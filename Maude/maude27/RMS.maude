@@ -1,0 +1,396 @@
+fmod OPTION-NAT is 
+  protecting NAT .
+  sort OptionNat .
+
+  op none : -> OptionNat [ctor] .
+  op some_ : Nat -> OptionNat [ctor] .
+
+  op s_ : OptionNat -> OptionNat .
+  op _+_ : Nat OptionNat -> OptionNat .
+
+  vars n m : Nat .
+
+  eq s none = none .
+  eq s some n = some (s n) .
+
+  eq n + none = none .
+  eq n + some m = some (n + m) .
+endfm
+
+fmod STACK is 
+  protecting OPTION-NAT .
+  sort Stack .
+
+  op bottom : -> Stack [ctor] .
+  op _#_ : Nat Stack -> Stack [ctor] .
+
+  op push_to_ : OptionNat Stack -> Stack .
+  op pop : Stack -> Stack .
+  op peek : Stack -> OptionNat .
+  op depth : Stack -> Nat .
+
+  var n : Nat .
+  var s : Stack .
+  
+  eq push none to s = s .
+  eq push some n to s = n # s .
+ 
+  eq pop(bottom) = bottom .
+  eq pop(n # s) = s .
+
+  eq peek(bottom) = none .
+  eq peek(n # s) = some n .
+
+  eq depth(bottom) = 0 .
+  eq depth(n # s) = s (depth(s)) .
+endfm
+
+fmod TIMER is 
+  protecting NAT .
+  sorts Timer Time .
+  subsort Time < Timer .
+
+  op [_/_] : Nat NzNat -> Timer [ctor] .
+  ops INT-PERIOD CYCLE : -> NzNat .
+
+  op reset : Timer -> Timer .
+  op inc : Timer -> Timer .
+  op _rem_ : Time NzNat -> Nat .
+
+  var n : Nat .
+  vars m N : NzNat .
+
+  cmb [ n / N ] : Time if N := CYCLE .
+
+  eq reset([ n / N ]) = [ 0 / N ] .
+
+  ceq inc([ n / N ]) = reset([ n / N ]) if [ n / N ] : Time /\ s n := N .
+  eq inc([ n / N ]) = [ s n / N ] [owise] .
+
+  eq [ n / N ] rem m = n rem m .
+
+  eq INT-PERIOD = 5 .
+  eq CYCLE = 27720 .
+***  eq CYCLE = 20 .
+endfm
+
+fmod PERIOD is 
+  protecting TIMER .
+  sort Period .
+
+  op period_ : NzNat -> Period [ctor] .
+
+  op _rem_ : Time Period -> Nat .
+
+  var n : Nat .
+  var p N : NzNat .
+
+  eq [ n / N ] rem (period p) = n rem p .
+endfm
+
+fmod TASK is 
+  protecting OPTION-NAT . 
+  protecting TIMER .
+  protecting PERIOD .
+  sorts Status Priority .
+  sort Task .
+
+  ops RUNNING INTERRUPT READY DORMANT : -> Status [ctor] .
+  op priority_ : Nat -> Priority [ctor] .
+
+  op <_,_,_:_> : Priority Period Status Timer -> Task [ctor] .
+  op errorTask : -> Task [ctor] .
+
+  op updateStatus_when_ : Task Time -> Task .
+  op start_ : Task -> Task .
+  op run_ : Task -> Task .
+  op _isFinished? : Task -> Bool .
+  op finish_ : Task -> Task .
+
+  var N : Nat .
+  var p : Priority .
+  var T : Period .
+  var st : Status .
+  var timer : Timer .
+  var time : Time .
+  var t : Task .
+
+  ceq updateStatus < p , T , st : timer > when time
+        = if st == DORMANT then < p , T , READY : timer >
+          else errorTask fi
+          if time rem T == 0 .
+  eq updateStatus < p , T , st : timer > when time
+       = if st == RUNNING then < p , T , INTERRUPT : timer > 
+         else < p , T , st : timer > fi [owise] .
+  eq updateStatus errorTask when time = errorTask .
+
+  eq start errorTask = errorTask .
+  eq start < p , T , st : timer > = < p , T , RUNNING : timer > .
+
+  eq run errorTask = errorTask .
+  eq run < p , T , st : timer > = < p , T , st : inc(timer) > .
+
+  eq < p , T , st : [ N / N ] > isFinished? = true .
+  eq t isFinished? = false [owise] . 
+
+  eq finish errorTask = errorTask .
+  eq finish < p , T , st : timer > = < p , T , DORMANT : reset(timer) > .
+
+endfm
+
+fmod TASKLIST is 
+  protecting TASK .
+  sort TaskList .
+
+  op null : -> TaskList [ctor] .
+  op _::_ : Task TaskList -> TaskList [ctor] .
+
+  op updateStatus_when_ : TaskList Time -> TaskList .
+  op nextTaskIn_from_ : TaskList Nat -> OptionNat .
+  op statusOf_in_ : Nat TaskList -> Status .
+  op start_in_ : Nat TaskList -> TaskList .
+  op run_in_ : Nat TaskList -> TaskList .
+  op _isFinished?in_ : Nat TaskList -> Bool .
+  op finish_in_ : Nat TaskList -> TaskList .
+
+  op hasError : TaskList -> Bool .
+
+  ops EXAM EXAM1 : -> TaskList .
+
+  var n : Nat .
+  var t : Task .
+  var l : TaskList .
+  var p : Priority .
+  var T : Period .
+  var st : Status .
+  var timer : Timer .
+  var time : Time .
+
+  eq updateStatus null when time = null .
+  eq updateStatus t :: l when time
+       = (updateStatus t when time) :: (updateStatus l when time) .
+
+  eq nextTaskIn null from n = none .
+  eq nextTaskIn t :: l from s n = s (nextTaskIn l from n) .
+  eq nextTaskIn < p , T , st : timer > :: l from 0 
+       = if st == READY or st == INTERRUPT 
+         then some 0
+         else s (nextTaskIn l from 0)
+         fi .
+  eq nextTaskIn errorTask :: l from 0 = none .
+
+  *** assume that the inputs are well-formed
+  eq statusOf 0 in < p , T , st : timer > :: l = st .
+  eq statusOf s n in t :: l = statusOf n in l .
+
+  eq start n in null = null .
+  eq start (s n) in (t :: l) = t :: (start n in l) .
+  eq start 0 in (t :: l) = (start t) :: l .
+
+  eq run n in null = null .
+  eq run (s n) in (t :: l) = t :: (run n in l) .
+  eq run 0 in (t :: l) = (run t) :: l .
+
+  eq n isFinished?in null = false .
+  eq (s n) isFinished?in (t :: l) = n isFinished?in l .
+  eq 0 isFinished?in (t :: l) = t isFinished? .
+
+  eq finish n in null = null .
+  eq finish (s n) in (t :: l) = t :: (finish n in l) .
+  eq finish 0 in (t :: l) = (finish t) :: l .
+
+  eq hasError(null) = false .
+  eq hasError(errorTask :: l) = true .
+  eq hasError(t :: l) = hasError(l) [owise] .
+
+  eq EXAM = errorTask 
+            :: < priority 5 , period 16 , RUNNING : [ 2 / 3 ] >
+            :: < priority 4 , period 8 , INTERRUPT : [ 2 / 3 ] > 
+            :: < priority 3 , period 4 , READY : [ 2 / 3 ] >
+            :: < priority 2 , period 2 , DORMANT : [ 2 / 3 ] > 
+            :: null .
+
+  eq EXAM1 = < priority 5 , period 20 , RUNNING : [ 2 / 3 ] > 
+             :: < priority 4 , period 15 , INTERRUPT : [ 2 / 3 ] > 
+             :: < priority 3 , period 10 , READY : [ 2 / 3 ] >
+             :: < priority 2 , period 5 , DORMANT : [ 2 / 3 ] > 
+             :: null .
+
+endfm
+
+fmod SYSTEM is 
+  protecting TASKLIST .
+  protecting STACK .
+  protecting TIMER .
+  sort RunTag .
+  sort System .
+
+  op running_ : OptionNat -> RunTag [ctor] .
+  op {_;_;_:_} : TaskList Stack RunTag Time -> System [ctor] .
+
+  op _.interrupt : System -> System .
+  op _.int-ret : System -> System . 
+
+  var tasks : TaskList .
+  var s : Stack .
+  var r : OptionNat .
+  var time : Time .
+
+  eq { tasks ; s ; running r : time }.interrupt
+       = { tasks ; push r to s ; running none : time } .
+
+  eq { tasks ; s ; running r : time }.int-ret
+       = { tasks ; pop(s) ; running peek(s) : time } .
+endfm
+
+mod SCHEDULE is 
+  protecting SYSTEM .
+
+  op _.updateStatus : System -> System .
+  op _.scanTasks : System -> System .
+  op _.schedule : System -> System .
+  op _.progress : System -> System .
+  op _.switch : System -> System .
+  op _.reload : System -> System .
+
+  var tasks : TaskList .
+  var s : Stack .
+  var r : OptionNat .
+  vars m n : Nat .
+  var time : Time .
+  var sys : System .
+
+  *** update the status of the tasklist in the system
+  eq { tasks ; s ; running r : time }.updateStatus
+       = { (updateStatus tasks when time ) ; s ; running r : time } .
+
+  *** scan the tasklist to find the first task, whose status is READY or INTERRUPT
+  *** - if READY, set the status to be RUNNING and put it to run
+  *** - if INTERRUPT, do the "return"
+  ceq { tasks ; s ; running r : time }.scanTasks
+        = if statusOf n in tasks == READY 
+          then { (start n in tasks) ; s ; running some n : time }
+          else { tasks ; s ; running r : time }.int-ret
+          *** status of n is INTERRUPT
+          fi
+          if some n := nextTaskIn tasks from 0 .
+  eq { tasks ; s ; running r : time }.scanTasks
+       = { tasks ; s ; running none : time } [owise] . 
+         *** if none := nextTaskIn tasks from 0 .
+
+  *** the schedule function corresponding to the function in the src
+  eq (sys).schedule = ((sys).updateStatus).scanTasks .
+
+  *** the whole system progresses 1 tick
+  eq { tasks ; s ; running none : time }.progress
+       = { tasks ; s ; running none : inc(time) } .
+  eq { tasks ; s ; running some n : time }.progress
+       = { (run n in tasks) ; s ; running some n : inc(time) } .
+
+  *** set the next task, which should be run, to be ready to run
+  ceq { tasks ; s ; running some n : time }.switch
+        = if statusOf m in tasks == READY 
+          then { (start m in tasks) ; s ; running some m : time }
+          else { tasks ; s ; running some n : time }.int-ret
+          *** status of n is INTERRUPT
+          fi
+          if some m := nextTaskIn tasks from (s n) .
+  eq { tasks ; s ; running some n : time }.switch
+       = { tasks ; s ; running none : time } [owise] . 
+         *** if none := nextTaskIn tasks from (s n) .
+
+  *** check the status of running task, do the preparation for next tick
+  eq { tasks ; s ; running none : time }.reload
+       = { tasks ; s ; running none : time } .
+  eq { tasks ; s ; running some n : time }.reload
+       = if (n isFinished?in tasks) 
+         then { (finish n in tasks) ; s ; running some n : time }.switch
+         else { tasks ; s ; running some n : time }
+         fi .
+
+	 
+  crl [interrupt] : 
+    { tasks ; s ; running r : time } 
+    => ((({ tasks ; s ; running r : time }.interrupt).schedule).progress).reload
+    if time rem INT-PERIOD == 0 .
+
+  crl [process] : 
+    { tasks ; s ; running r : time } 
+    => ({ tasks ; s ; running r : time }.progress).reload
+    if time rem INT-PERIOD =/= 0 .
+
+endm
+
+mod SCHEDULE-TEST is 
+  protecting SCHEDULE .
+ 
+  ops TEST-1 TEST-2 : -> TaskList .
+  ops INIT-1 INIT-2 : -> System .
+
+  *** utilization = 71.6%
+  eq TEST-1 = < priority 8 , period 10 , DORMANT : [ 0 / 1 ] >
+            :: < priority 7 , period 20 , DORMANT : [ 0 / 3 ] >
+            :: < priority 6 , period 35 , DORMANT : [ 0 / 3 ] >
+            :: < priority 5 , period 55 , DORMANT : [ 0 / 4 ] >
+            :: < priority 4 , period 70 , DORMANT : [ 0 / 5 ] >
+            :: < priority 3 , period 90 , DORMANT : [ 0 / 8 ] >
+            :: < priority 2 , period 110 , DORMANT : [ 0 / 7 ] >
+            :: < priority 1 , period 120 , DORMANT : [ 0 / 10 ] >
+            :: null .
+
+  eq TEST-2 = < priority 8 , period 10 , DORMANT : [ 0 / 1 ] >
+            :: < priority 7 , period 20 , DORMANT : [ 0 / 3 ] >
+            :: < priority 6 , period 35 , DORMANT : [ 0 / 3 ] >
+            :: < priority 5 , period 55 , DORMANT : [ 0 / 4 ] >
+            :: < priority 4 , period 70 , DORMANT : [ 0 / 5 ] >
+            :: < priority 3 , period 90 , DORMANT : [ 0 / 8 ] >
+            :: < priority 2 , period 110 , DORMANT : [ 0 / 7 ] >
+            :: < priority 1 , period 120 , DORMANT : [ 0 / 60 ] >
+            :: null .
+
+***(
+  eq TEST = < priority 3 , period 5 , DORMANT : [ 0 / 2 ] >
+            :: < priority 2 , period 10 , DORMANT : [ 0 / 4 ] >
+            :: < priority 1 , period 20 , DORMANT : [ 0 / 4 ] >
+            :: null .
+)
+
+  eq INIT-1 = { TEST-1 ; bottom ; running none : [ 0 / CYCLE ] } .
+  eq INIT-2 = { TEST-2 ; bottom ; running none : [ 0 / CYCLE ] } .
+endm
+
+mod SCHEDULE-VERIFICATION is 
+  protecting SCHEDULE .
+  protecting SCHEDULE-TEST .
+
+  op stackOverflow : System -> Bool .
+  op taskTimeout : System -> Bool .
+  op schedulingError : OptionNat TaskList -> Bool .
+  op schedulingError : System -> Bool .
+
+  var tl : TaskList .
+  var s : Stack .
+  var r : OptionNat .
+  var time : Time .
+  var p : Priority .
+  var T : Period .
+  var timer : Timer .
+  var t : Task .
+  var n : Nat .
+
+  eq stackOverflow({ tl ; s ; running r : time }) = depth(s) > 8 .
+
+  eq taskTimeout({ tl ; s ; running r : time }) = hasError(tl) .
+
+  eq schedulingError(none , null) = false .
+  eq schedulingError(none , (< p , T , DORMANT : timer > :: tl)) 
+       = schedulingError(none , tl) .
+  eq schedulingError(none , t :: tl) = true [owise] .
+  eq schedulingError(some 0 , t :: tl) = false .
+  eq schedulingError(some (s n) , (< p , T , DORMANT : timer > :: tl))
+       = schedulingError(some n , tl) .
+  eq schedulingError(some (s n) , t :: tl) = true [owise] .
+
+  *** This assumes no timeout in the system .
+  eq schedulingError({ tl ; s ; running r : time }) = schedulingError(r , tl) .
+endm

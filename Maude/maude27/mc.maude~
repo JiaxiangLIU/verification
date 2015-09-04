@@ -1,0 +1,39 @@
+mod SYSTEM is 
+  sorts Cap Counter System .
+  subsort Nat < Counter .
+  
+  ops A B C : -> Cap .
+  op <_,_> : Cap Nat -> 
+endm
+
+mod MC is
+  including SATISFACTION .
+  including MODEL-CHECKER .
+  including LTL-SIMPLIFIER .
+  subsort System < State .
+
+  op timeout : -> Prop .
+
+  var sys : System .
+  
+  eq sys |= timeout = taskTimeout(sys) .
+
+
+  op a : -> System .
+  op f_ : System -> System .
+  ops A B C : -> System .
+
+  rl [t1] : a => f a .
+
+  rl [t2] : A => B .
+  rl [t3] : B => C .
+  rl [t4] : C => A .
+
+  ops mo no : -> Prop .
+
+  eq f a |= mo = true .
+  eq sys |= mo = false [owise] .
+
+  eq B |= no = true .
+  eq sys |= no = false [owise] .
+endm

@@ -1,0 +1,57 @@
+mod SYSTEM is 
+  sorts Cap Counter System .
+  subsort Nat < Counter .
+  
+  ops A B C : -> Cap [ctor] .
+  op inc : Counter -> Counter .
+  op MAX : -> Counter .
+  op <_,_> : Cap Counter -> System [ctor] .
+  op INIT : -> System .
+
+  var n : Counter .
+  
+  ceq inc(n) = 0 if s n := MAX .
+  eq inc(n) = s n [owise] .
+
+  eq MAX = 4 .
+
+  rl [a1] : < A , n > => < B , inc(n) > .
+  rl [a2] : < A , n > => < C , inc(n) > .
+  rl [b] : < B , n > => < A , inc(n) > .
+  rl [c] : < C , n > => < A , inc(n) > .
+
+  eq INIT = < A , 0 > .
+endm
+
+mod SYSTEM-MC is
+  protecting SYSTEM .
+  including SATISFACTION .
+  including MODEL-CHECKER .
+  including LTL-SIMPLIFIER .
+  subsort System < State .
+
+  op timeout : -> Prop .
+
+  var sys : System .
+  
+  eq sys |= timeout = taskTimeout(sys) .
+
+
+  op a : -> System .
+  op f_ : System -> System .
+  ops A B C : -> System .
+
+  rl [t1] : a => f a .
+
+  rl [t2] : A => B .
+  rl [t3] : B => C .
+  rl [t4] : C => A .
+
+  ops mo no : -> Prop .
+
+  eq f a |= mo = true .
+  eq sys |= mo = false [owise] .
+
+  eq B |= no = true .
+  eq sys |= no = false [owise] .
+endm

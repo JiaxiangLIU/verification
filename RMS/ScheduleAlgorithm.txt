@@ -1,0 +1,57 @@
+void updateStatus(TaskList l) {
+  Task p = l.head;
+
+  while (p) {
+    
+    // 中断正在执行的任务
+    if (p->status == RUNNING)
+      p->status = INTERRUPT;
+
+    // 轮到该任务运行
+    if (timer % (p->period) == 0) {
+      if (p->status == DORMANT) 
+	p->status = READY;
+      else 
+      // INTERRUPT, READY
+      // 说明上一轮任务未执行完，本轮任务需要开始
+	reportTaskError(p);
+    }
+
+    p = p->next;
+  }
+}
+
+void schedule(void) {
+  
+  // 关中断
+  int_off();
+
+  updateStatus(taskList);
+  
+  timer = timer + 1;
+
+  // 扫描所有任务，运行，或结束本次调度返回上一层时钟中断
+  Task p = taskList.head;
+  while (p) {
+    
+    if (p->status == INTERRUPT)
+      // 结束本次调度返回上一层时钟中断
+      // ?这里需要手动开中断吗？
+      return;
+    
+    else if (p->status == READY) {
+      
+      // 运行该任务
+      p->status = RUNNING;
+      int_on();
+      
+      p->function();
+      
+      int_off();
+      p->status = DORMANT;
+    }
+
+    // 检查下一个任务
+    p = p->next;
+  }
+}

@@ -1,0 +1,701 @@
+(tmod OPTION-NAT is 
+  protecting NAT .
+  sort OptionNat .
+
+  op none : -> OptionNat [ctor] .
+  op some_ : Nat -> OptionNat [ctor] .
+
+  op s_ : OptionNat -> OptionNat .
+  op _+_ : Nat OptionNat -> OptionNat .
+
+  vars n m : Nat .
+
+  eq s none = none .
+  eq s some n = some (s n) .
+
+  eq n + none = none .
+  eq n + some m = some (n + m) .
+endtm)
+
+(tmod STACK is 
+  protecting OPTION-NAT .
+  sort Stack .
+
+  op bottom : -> Stack [ctor] .
+  op _#_ : Nat Stack -> Stack [ctor] .
+
+  op push_to_ : OptionNat Stack -> Stack .
+  op pop : Stack -> Stack .
+  op peek : Stack -> OptionNat .
+  op depth : Stack -> Nat .
+
+  var n : Nat .
+  var s : Stack .
+  
+  eq push none to s = s .
+  eq push some n to s = n # s .
+ 
+  eq pop(bottom) = bottom .
+  eq pop(n # s) = s .
+
+  eq peek(bottom) = none .
+  eq peek(n # s) = some n .
+
+  eq depth(bottom) = 0 .
+  eq depth(n # s) = s (depth(s)) .
+endtm)
+
+(tmod TIMER is 
+  protecting NAT .
+  sorts Interval Counter .
+  sort Timer .
+  sort Clock .
+
+  op `[_`,_`] : Time Time -> Interval [ctor] .
+  op `[_/_`] : Time Interval -> Counter [ctor] .
+  op `[_/_`] : Nat NzNat -> Timer [ctor] .
+  op clock`(_/_`) : Time Time -> Clock [ctor] .
+  ops INT-PERIOD CYCLE : -> Time .
+
+  op reset : Counter -> Counter .
+***  op inc : Counter -> Counter .
+  op inc : Timer -> Timer .
+  op _rem_ : Timer NzNat -> Nat .
+  op mte : Clock -> Time .
+  op mte : Counter -> Time .
+  op delta : Clock Time -> Clock .
+  op delta : Counter Time -> Counter .
+
+  var n : Nat .
+  vars m N : NzNat .
+  var i : Interval .
+  var R R' R'' : Time .
+
+  *** reset the counter
+  eq reset([ R / i ]) = [ zero / i ] .
+
+***(
+  *** increase the counter
+  eq inc([ n / i ]) = [ s n / i ] .
+)
+
+  *** increase the timer
+  ceq inc([ n / N ]) = [ 0 / N ] if s n := N .
+  eq inc([ n / N ]) = [ s n / N ] [owise] .
+
+  eq [ n / N ] rem m = n rem m .
+
+  eq mte(clock( R / R' )) = R' monus R .
+
+  eq mte([ R / [ R' , R'' ]]) = R'' monus R .
+ 
+  eq delta(clock( R / R' ) , R'' ) = clock( R plus R'' / R' ) .
+  
+  eq delta([ R / i ] , R'') = [ R plus R'' / i ] .
+
+endtm)
+
+(tmod PERIOD is 
+  protecting TIMER .
+  sort Period .
+
+  op period_ : NzNat -> Period [ctor] .
+
+  op _rem_ : Timer Period -> Nat .
+
+  var t : Timer .
+  var p : NzNat .
+
+  eq t rem (period p) = t rem p .
+endtm)
+
+(tmod TASK is 
+  protecting OPTION-NAT . 
+  protecting TIMER .
+  protecting PERIOD .
+  sorts Status Priority .
+  sort Task .
+  sort FinishedStatus .
+
+  ops RUNNING INTERRUPT READY DORMANT : -> Status [ctor] .
+  op priority_ : Nat -> Priority [ctor] .
+
+  op <_`,_`,_:_> : Priority Period Status Counter -> Task [ctor] .
+  op errorTask : -> Task [ctor] .
+
+  ops YES MAYBE NO : -> FinishedStatus [ctor] .
+
+  op updateStatus_when_ : Task Timer -> Task .
+  op start_ : Task -> Task .
+***  op run_ : Task -> Task .
+  op _isFinished? : Counter -> FinishedStatus .
+  op _isFinished? : Task -> FinishedStatus .
+  op finish_ : Task -> Task .
+
+  op mte : Task -> Time .
+  op delta : Task Time -> Task .
+
+  vars min max : Time .
+  var p : Priority .
+  var T : Period .
+  var st : Status .
+  var c : Counter .
+  var timer : Timer .
+  var t : Task .
+  vars R R' : Time .
+  var i : Interval .
+
+  ceq updateStatus < p , T , st : c > when timer
+        = if st == DORMANT then < p , T , READY : c >
+          else errorTask fi
+          if timer rem T == 0 .
+  eq updateStatus < p , T , st : c > when timer
+       = if st == RUNNING then < p , T , INTERRUPT : c > 
+         else < p , T , st : c > fi [owise] .
+  eq updateStatus errorTask when timer = errorTask .
+
+  eq start errorTask = errorTask .
+  eq start < p , T , st : c > = < p , T , RUNNING : c > .
+
+***(  eq run errorTask = errorTask .
+  eq run < p , T , st : c > = < p , T , st : inc(c) > .
+)
+
+  eq [ R / [ min , max ] ] isFinished? 
+       = if R lt min then NO else MAYBE fi .
+
+  eq < p , T , st : c > isFinished? = c isFinished? .
+
+  eq finish errorTask = errorTask .
+  eq finish < p , T , st : c > = < p , T , DORMANT : reset(c) > .
+
+  eq mte(errorTask) = zero .
+  eq mte(< p , T , st : c >) = mte(c) .
+
+  eq delta(errorTask, R) = errorTask .
+  eq delta(< p , T , st : c >, R) 
+       = < p , T , st : delta(c , R) > .
+
+endtm)
+
+(tmod TASKLIST is 
+  protecting TASK .
+  sort TaskList .
+
+  op null : -> TaskList [ctor] .
+  op _::_ : Task TaskList -> TaskList [ctor] .
+
+  op updateStatus_when_ : TaskList Timer -> TaskList .
+  op nextTaskIn_from_ : TaskList Nat -> OptionNat .
+  op statusOf_in_ : Nat TaskList -> Status .
+  op start_in_ : Nat TaskList -> TaskList .
+***  op run_in_ : Nat TaskList -> TaskList .
+  op _isFinished?in_ : Nat TaskList -> FinishedStatus .
+  op finish_in_ : Nat TaskList -> TaskList .
+
+  op hasError : TaskList -> Bool .
+
+  op mteOf_in_ : Nat TaskList -> Time .
+  op delta : Nat TaskList Time -> TaskList .
+
+  var n : Nat .
+  var t : Task .
+  var l : TaskList .
+  var p : Priority .
+  var T : Period .
+  var st : Status .
+  var c : Counter .
+  var timer : Timer .
+  var R : Time .
+
+  eq updateStatus null when timer = null .
+  eq updateStatus t :: l when timer
+       = (updateStatus t when timer) :: (updateStatus l when timer) .
+
+  eq nextTaskIn null from n = none .
+  eq nextTaskIn t :: l from s n = s (nextTaskIn l from n) .
+  eq nextTaskIn < p , T , st : c > :: l from 0 
+       = if st == READY or st == INTERRUPT 
+         then some 0
+         else s (nextTaskIn l from 0)
+         fi .
+  eq nextTaskIn errorTask :: l from 0 = none .
+
+  *** assume that the inputs are well-formed
+  eq statusOf 0 in < p , T , st : c > :: l = st .
+  eq statusOf s n in t :: l = statusOf n in l .
+
+  eq start n in null = null .
+  eq start (s n) in (t :: l) = t :: (start n in l) .
+  eq start 0 in (t :: l) = (start t) :: l .
+
+***(
+  eq run n in null = null .
+  eq run (s n) in (t :: l) = t :: (run n in l) .
+  eq run 0 in (t :: l) = (run t) :: l .
+)
+
+  eq n isFinished?in null = NO .
+  eq (s n) isFinished?in (t :: l) = n isFinished?in l .
+  eq 0 isFinished?in (t :: l) = t isFinished? .
+
+  eq finish n in null = null .
+  eq finish (s n) in (t :: l) = t :: (finish n in l) .
+  eq finish 0 in (t :: l) = (finish t) :: l .
+
+  eq hasError(null) = false .
+  eq hasError(errorTask :: l) = true .
+  eq hasError(t :: l) = hasError(l) [owise] .
+
+  eq mteOf n in null = zero .
+  eq mteOf 0 in t :: l = mte(t) .
+  eq mteOf s n in t :: l = mteOf n in l .
+
+  eq delta( n , null , R ) = null .
+  eq delta( 0 , (t :: l) , R ) = delta(t , R) :: l .
+  eq delta( (s n) , (t :: l) , R ) = t :: delta( n , l , R ) .
+
+endtm)
+
+(tmod SYSTEM is 
+  protecting TASKLIST .
+  protecting STACK .
+  protecting TIMER .
+  sort ThreadID .
+  subsort OptionNat < ThreadID .
+  sorts RunTag SysTag IntSwitchTag IntReqTag .
+
+  ops sch swi : -> ThreadID [ctor] .
+  op running_ : ThreadID -> RunTag [ctor] .
+***  ops EX IN1 IN2 : -> SysTag [ctor] .
+  ops INT-ON INT-OFF : -> IntSwitchTag [ctor] .
+  op intReq_ : Bool -> IntReqTag [ctor] .
+  op `{_;_;_:_:_|_:_|_`,_;_`} : 
+     TaskList Stack RunTag Timer Clock IntSwitchTag IntReqTag 
+     Counter Counter OptionNat -> System [ctor] .
+
+  op _.reqInterrupt : System -> System .
+  op _.interrupt : System -> System .
+  op _.int-ret : System -> System . 
+  op ansInt`(_`,_`) : IntSwitchTag IntReqTag -> Bool .
+
+  var tasks : TaskList .
+  var s : Stack .
+  var r : ThreadID .
+  var timer : Timer .
+  var time : Clock .
+  var isTag : IntSwitchTag .
+  var irTag : IntReqTag .
+  vars schCtr swiCtr : Counter .
+  var tmp : OptionNat .
+***  var sTag : SysTag .
+
+  *** this is to request an interrupt
+  eq { tasks ; s ; running r : timer : time 
+       | isTag : irTag | schCtr , swiCtr ; tmp }.reqInterrupt
+       = { tasks ; s ; running r : timer : time 
+           | isTag : intReq true | schCtr , swiCtr ; tmp } .
+
+  *** this is to answer the interrupt request
+  eq { tasks ; s ; running r : timer : time 
+       | INT-ON : intReq true | schCtr , swiCtr ; tmp }.interrupt
+       = { tasks ; push r to s ; running sch : timer : time 
+           | INT-OFF : intReq false | schCtr , swiCtr ; tmp } .
+
+  eq { tasks ; s ; running r : timer : time 
+       | INT-OFF : irTag | schCtr , swiCtr ; tmp }.int-ret
+       = { tasks ; pop(s) ; running peek(s) : timer : time 
+           | INT-ON : irTag | schCtr , swiCtr ; tmp } .
+
+  eq ansInt( INT-ON , intReq true ) = true .
+  eq ansInt( isTag , irTag ) = false [owise] .
+endtm)
+
+(tmod SCHEDULE is 
+  protecting SYSTEM .
+  including LTIME .
+
+  op _.updateStatus : System -> System .
+  op _.scanTasks : System -> System .
+  op _.bgnSchedule : System -> System .
+  op _.endSchedule : System -> System .
+***  op _.progress : System -> System .
+  op _.bgnSwitch : System -> System .
+  op _.endSwitch : System -> System .
+***  op _.reload : System -> System .
+
+  var tasks : TaskList .
+  var s : Stack .
+  var r : ThreadID .
+  vars m n : Nat .
+  var timer : Timer .
+  var time : Clock .
+  var isTag : IntSwitchTag .
+  var irTag : IntReqTag .
+  vars schCtr swiCtr : Counter .
+  var tmp : OptionNat .
+***  var sTag : SysTag .
+  var sys : System .
+  vars R R' : Time .
+
+  *** update the status of the tasklist in the system
+  eq { tasks ; s ; running r : timer : time 
+       | isTag : irTag | schCtr , swiCtr ; tmp }.updateStatus
+       = { (updateStatus tasks when timer ) ; s ; running r 
+           : inc(timer) : time | isTag : irTag | schCtr , swiCtr ; tmp } .
+
+  *** scan the tasklist to find the first task, whose status is READY or INTERRUPT
+  *** - if READY, set the status to be RUNNING and put it to run
+  *** - if INTERRUPT, do the "return"
+  ceq { tasks ; s ; running r : timer : time 
+        | isTag : irTag | schCtr , swiCtr ; tmp }.scanTasks
+        = if statusOf n in tasks == READY 
+          then { (start n in tasks) ; s ; running some n : timer : time 
+                 | INT-ON : irTag | schCtr , swiCtr ; tmp }
+          else { tasks ; s ; running r : timer : time 
+                 | isTag : irTag | schCtr , swiCtr ; tmp }.int-ret
+          *** status of n is INTERRUPT
+          fi
+          if some n := nextTaskIn tasks from 0 .
+  eq { tasks ; s ; running r : timer : time 
+       | isTag : irTag | schCtr , swiCtr ; tmp }.scanTasks
+       = { tasks ; s ; running none : timer : time 
+           | INT-ON : irTag | schCtr , swiCtr ; tmp } [owise] . 
+         *** if none := nextTaskIn tasks from 0 .
+
+  *** the schedule function corresponding to the function in the src
+  eq (sys).bgnSchedule = (sys).updateStatus .
+  eq { tasks ; s ; running sch : timer : time 
+       | isTag : irTag | schCtr , swiCtr ; tmp }.endSchedule
+       = { tasks ; s ; running sch : timer : time 
+           | isTag : irTag | reset(schCtr) , swiCtr ; tmp }.scanTasks .
+
+  *** the whole system progresses 1 tick, advancing the state to IN2
+***(
+  eq { tasks ; s ; running none : timer : time 
+       | isTag : irTag | schCtr , swiCtr ; tmp | sTag }.progress
+       = { tasks ; s ; running none : timer : inc(time) 
+           | isTag : irTag | schCtr , swiCtr ; tmp | IN2 } .
+  eq { tasks ; s ; running some n : timer : time 
+       | isTag : irTag | schCtr , swiCtr ; tmp | sTag }.progress
+       = { (run n in tasks) ; s ; running some n : timer : inc(time) 
+           | isTag : irTag | schCtr , swiCtr ; tmp | IN2 } .
+  eq { tasks ; s ; running sch : timer : time 
+       | isTag : irTag | schCtr , swiCtr ; tmp | sTag }.progress
+       = { tasks ; s ; running sch : timer : inc(time) 
+           | isTag : irTag | inc(schCtr) , swiCtr ; tmp | IN2 } .
+  eq { tasks ; s ; running swi : timer : time 
+       | isTag : irTag | schCtr , swiCtr ; tmp | sTag }.progress
+       = { tasks ; s ; running swi : timer : inc(time) 
+           | isTag : irTag | schCtr , inc(swiCtr) ; tmp | IN2 } .
+  )
+
+
+  *** to start the switching, store the current finished task ID
+  eq { tasks ; s ; running some n : timer : time 
+       | isTag : irTag | schCtr , swiCtr ; tmp }.bgnSwitch
+       = { tasks ; s ; running swi : timer : time
+           | INT-OFF : irTag | schCtr , swiCtr ; some n } . 
+
+  *** to end the switching, set the next task which should be run
+  ceq { tasks ; s ; running swi : timer : time 
+        | INT-OFF : irTag | schCtr , swiCtr ; some n }.endSwitch
+        = if statusOf m in tasks == READY 
+          then { (start m in tasks) ; s ; running some m : timer : time 
+                 | INT-ON : irTag | schCtr , reset(swiCtr) ; none }
+          else { tasks ; s ; running swi : timer : time 
+                 | INT-OFF : irTag | schCtr , reset(swiCtr) ; none }.int-ret
+          *** status of m is INTERRUPT
+          fi
+          if some m := nextTaskIn tasks from (s n) .
+  eq { tasks ; s ; running swi : timer : time 
+       | INT-OFF : irTag | schCtr , swiCtr ; some n }.endSwitch
+       = { tasks ; s ; running none : timer : time 
+           | INT-ON : irTag | schCtr , reset(swiCtr) ; none } [owise] . 
+         *** if none := nextTaskIn tasks from (s n) .
+
+
+  ***************
+  *** instanous rules
+  ***************
+  rl [req-interrupt] :
+    { tasks ; s ; running r : timer : clock( R / R ) 
+      | isTag : irTag | schCtr , swiCtr ; tmp } 
+    => { tasks ; s ; running r : timer : clock( zero / R ) 
+         | isTag : irTag | schCtr , swiCtr ; tmp }.reqInterrupt .
+
+  crl [interrupt] : 
+    { tasks ; s ; running r : timer : time 
+      | isTag : irTag | schCtr , swiCtr ; tmp } 
+    => ({ tasks ; s ; running r : timer : time | isTag : irTag 
+          | schCtr , swiCtr ; tmp }.interrupt).bgnSchedule
+    if ansInt( isTag , irTag ) == true .
+
+  crl [schedule-finish] :
+    { tasks ; s ; running sch : timer : time 
+      | isTag : irTag | schCtr , swiCtr ; tmp }
+    => { tasks ; s ; running sch : timer : time 
+         | isTag : irTag | schCtr , swiCtr ; tmp }.endSchedule
+    if (schCtr isFinished? == MAYBE) .
+
+  crl [task-finish] :
+    { tasks ; s ; running some n : timer : time 
+      | isTag : irTag | schCtr , swiCtr ; tmp }
+    => { (finish n in tasks) ; s ; running some n : timer : time 
+         | isTag : irTag | schCtr , swiCtr ; tmp }.bgnSwitch
+    if (n isFinished?in tasks == MAYBE) .
+
+  crl [switch-finish] :
+    { tasks ; s ; running swi : timer : time 
+      | isTag : irTag | schCtr , swiCtr ; tmp }
+    => { tasks ; s ; running swi : timer : time 
+         | isTag : irTag | schCtr , swiCtr ; tmp }.endSwitch
+    if (swiCtr isFinished? == MAYBE) .
+
+  ************
+  *** max time elapsed
+  ************
+  op mte : System -> Time [frozen (1)] .
+  eq mte({ tasks ; s ; running none : timer : time 
+           | isTag : irTag | schCtr , swiCtr ; tmp })
+       = if ansInt( isTag , irTag ) then zero
+         else mte(time) fi .
+  eq mte({ tasks ; s ; running some n : timer : time 
+           | isTag : irTag | schCtr , swiCtr ; tmp })
+       = if ansInt( isTag , irTag ) then zero
+         else minimum( mte(time) , (mteOf n in tasks) ) fi .
+  eq mte({ tasks ; s ; running sch : timer : time 
+           | isTag : irTag | schCtr , swiCtr ; tmp })
+       = if ansInt( isTag , irTag ) then zero
+         else minimum( mte(time) , mte(schCtr) ) fi .
+  eq mte({ tasks ; s ; running swi : timer : time 
+           | isTag : irTag | schCtr , swiCtr ; tmp })
+       = if ansInt( isTag , irTag ) then zero
+         else minimum( mte(time) , mte(swiCtr) ) fi .
+
+  *************
+  *** tick rule
+  *************
+  crl [tick] : 
+    {sys} => {delta(sys, R)} in time R if R le mte(sys) [nonexec] .
+
+  ************
+  *** delta effects
+  ***********
+  op delta : System Time -> System [frozen (1)] .
+  eq delta({ tasks ; s ; running none : timer : time
+             | isTag : irTag | schCtr , swiCtr ; tmp } , R)
+       = { tasks ; s ; running none : timer : delta(time , R)
+           | isTag : irTag | schCtr , swiCtr ; tmp } .
+  eq delta({ tasks ; s ; running some n : timer : time
+             | isTag : irTag | schCtr , swiCtr ; tmp } , R)
+       = { delta(n , tasks , R) ; s ; running some n : timer : delta(time , R)
+           | isTag : irTag | schCtr , swiCtr ; tmp } .
+  eq delta({ tasks ; s ; running sch : timer : time
+             | isTag : irTag | schCtr , swiCtr ; tmp } , R)
+       = { tasks ; s ; running sch : timer : delta(time , R)
+           | isTag : irTag | delta(schCtr , R) , swiCtr ; tmp } .
+  eq delta({ tasks ; s ; running swi : timer : time
+             | isTag : irTag | schCtr , swiCtr ; tmp } , R)
+       = { tasks ; s ; running swi : timer : delta(time , R)
+           | isTag : irTag | schCtr , delta(swiCtr , R) ; tmp } .
+
+endtm)
+
+(tmod SCHEDULE-VERIFICATION is 
+  protecting SCHEDULE .
+
+  op stackOverflow : System -> Bool .
+  op taskTimeout : System -> Bool .
+***  op schedulingError : OptionNat TaskList -> Bool .
+
+***  op schedulingError : System -> Bool .
+ 
+  var tl : TaskList .
+  var s : Stack .
+  var r : ThreadID .
+  var timer : Timer .
+  var time : Clock .
+  var p : Priority .
+  var T : Period .
+  var c : Counter .
+  var t : Task .
+  var n : Nat .
+  var isTag : IntSwitchTag .
+  var irTag : IntReqTag .
+  vars schCtr swiCtr : Counter .
+  var tmp : OptionNat .
+
+  eq stackOverflow({ tl ; s ; running r : timer : time 
+                     | isTag : irTag | schCtr , swiCtr ; tmp }) 
+       = depth(s) > 8 .
+
+  eq taskTimeout({ tl ; s ; running r : timer : time 
+                   | isTag : irTag | schCtr , swiCtr ; tmp }) 
+       = hasError(tl) .
+
+***(
+  eq schedulingError(none , null) = false .
+  eq schedulingError(none , (< p , T , DORMANT : c > :: tl)) 
+       = schedulingError(none , tl) .
+  eq schedulingError(none , t :: tl) = true [owise] .
+  eq schedulingError(some 0 , t :: tl) = false .
+  eq schedulingError(some (s n) , (< p , T , DORMANT : c > :: tl))
+       = schedulingError(some n , tl) .
+  eq schedulingError(some (s n) , t :: tl) = true [owise] .
+  eq schedulingError(sch , tl ) = false .
+  eq schedulingError(swi , tl ) = false .
+
+  *** This assumes no timeout in the system .
+  eq schedulingError({ tl ; s ; running r : timer : time 
+                       | isTag : irTag | schCtr , swiCtr ; tmp | EX }) 
+       = schedulingError(r , tl) .
+)
+endtm)
+
+(tmod SCHEDULE-MODEL-CHECK is
+  including TIMED-MODEL-CHECKER .
+  protecting SCHEDULE-VERIFICATION .
+
+  op timeout : -> Prop [ctor] .
+
+  var sys : System .
+  
+  eq {sys} |= timeout = taskTimeout(sys) .
+
+endtm)
+
+(tmod TIMER-TEST is 
+  protecting NAT-TIME-DOMAIN .
+  including SCHEDULE-MODEL-CHECK .
+
+  eq INT-PERIOD = 5 .
+  eq CYCLE = 2 .   
+
+  ops EXAM-1 EXAM-2 : -> TaskList .
+
+  eq EXAM-1 = errorTask 
+              :: < priority 5 , period 16 , RUNNING : [ 3 / [ 3 , 5 ] ] >
+              :: < priority 4 , period 8 , INTERRUPT : [ 2 / [ 3 , 5 ] ] > 
+              :: < priority 3 , period 4 , READY : [ 2 / [ 3 , 5] ] >
+              :: < priority 2 , period 2 , DORMANT : [ 2 / [ 3 , 5 ] ] > 
+              :: null .
+
+  eq EXAM-2 = < priority 5 , period 20 , RUNNING : [ 4 / [ 3 , 5 ] ] > 
+              :: < priority 4 , period 15 , INTERRUPT : [ 5 / [ 3 , 5 ] ] > 
+              :: < priority 3 , period 10 , READY : [ 2 / [ 3 , 5 ] ] >
+              :: < priority 2 , period 5 , DORMANT : [ 2 / [ 3 , 5 ] ] > 
+              :: null .
+
+  ops SYS-1 SYS-2 : -> System .
+
+  eq SYS-1 = { EXAM-2 ; 1 # bottom ; running some 1  : [ 1 / 2] : clock( 4 / 5 ) 
+               | INT-ON : intReq false | [ 0 / [ 1 , 2 ] ] , [ 3 / [ 3 , 4 ] ] ; 
+               some 0 } .
+  eq SYS-2 = { EXAM-2 ; 1 # bottom ; running some 0 : [ 1 / 2] : clock( 3 / 5 ) 
+               | INT-OFF : intReq true | [ 0 / [ 1 , 2 ] ] , [ 0 / [ 3 , 4 ] ] ; 
+               none } .
+
+  ops TEST-1 TEST-2 TEST-3 TEST-4 : -> TaskList .
+  ops INIT-1 INIT-2 INIT-3 INIT-4 : -> System .
+  ops TASK-614-1 TASK-614-2 TASK-614-3 TASK-614-4 : -> TaskList .
+  ops INIT-614-1 INIT-614-2 INIT-614-3 INIT-614-4 : -> System .
+  ops TEST-5 TEST-6 : -> TaskList .
+  ops INIT-5 INIT-6 : -> System .
+
+  *** utilization = 71.6%
+  eq TEST-1 = < priority 8 , period 2 , DORMANT : [ 0 / [ 100 , 100 ] ] >
+            :: < priority 7 , period 4 , DORMANT : [ 0 / [ 300 , 300 ] ] >
+            :: < priority 6 , period 7 , DORMANT : [ 0 / [ 300 , 300 ] ] >
+            :: < priority 5 , period 11 , DORMANT : [ 0 / [ 400 , 400 ] ] >
+            :: < priority 4 , period 14 , DORMANT : [ 0 / [ 500 , 500 ] ] >
+            :: < priority 3 , period 18 , DORMANT : [ 0 / [ 800 , 800 ] ] >
+            :: < priority 2 , period 22 , DORMANT : [ 0 / [ 700 , 700 ] ] >
+            :: < priority 1 , period 24 , DORMANT : [ 0 / [ 1000 , 1000 ] ] >
+            :: null .
+
+  eq TEST-2 = < priority 8 , period 2 , DORMANT : [ 0 / [ 1 , 1 ] ] >
+            :: < priority 7 , period 4 , DORMANT : [ 0 / [ 3 , 3 ] ] >
+            :: < priority 6 , period 7 , DORMANT : [ 0 / [ 3 , 3 ] ] >
+            :: < priority 5 , period 11 , DORMANT : [ 0 / [ 4 , 4 ] ] >
+            :: < priority 4 , period 14 , DORMANT : [ 0 / [ 5 , 5 ] ] >
+            :: < priority 3 , period 18 , DORMANT : [ 0 / [ 8 , 8 ] ] >
+            :: < priority 2 , period 22 , DORMANT : [ 0 / [ 7 , 7 ] ] >
+            :: < priority 1 , period 24 , DORMANT : [ 0 / [ 60 , 60 ] ] >
+            :: null .
+
+  eq TEST-3 = < priority 8 , period 2 , DORMANT : [ 0 / [ 50 , 100 ] ] >
+            :: < priority 7 , period 4 , DORMANT : [ 0 / [ 200 , 250 ] ] >
+            :: < priority 6 , period 7 , DORMANT : [ 0 / [ 200 , 300 ] ] >
+            :: < priority 5 , period 11 , DORMANT : [ 0 / [ 300 , 400 ] ] >
+            :: < priority 4 , period 14 , DORMANT : [ 0 / [ 200 , 400 ] ] >
+            :: < priority 3 , period 18 , DORMANT : [ 0 / [ 500 , 700 ] ] >
+            :: < priority 2 , period 22 , DORMANT : [ 0 / [ 400 , 600 ] ] >
+            :: < priority 1 , period 24 , DORMANT : [ 0 / [ 600 , 750 ] ] >
+            :: null .
+
+  eq TEST-4 = < priority 8 , period 2 , DORMANT : [ 0 / [ 1 , 2 ] ] >
+            :: < priority 7 , period 4 , DORMANT : [ 0 / [ 2 , 3 ] ] >
+            :: < priority 6 , period 7 , DORMANT : [ 0 / [ 2 , 4 ] ] >
+            :: < priority 5 , period 11 , DORMANT : [ 0 / [ 3 , 4 ] ] >
+            :: < priority 4 , period 14 , DORMANT : [ 0 / [ 2 , 5 ] ] >
+            :: < priority 3 , period 18 , DORMANT : [ 0 / [ 5 , 8 ] ] >
+            :: < priority 2 , period 22 , DORMANT : [ 0 / [ 4 , 7 ] ] >
+            :: < priority 1 , period 24 , DORMANT : [ 0 / [ 10 , 60 ] ] >
+            :: null .
+
+  eq TEST-5 = < priority 1 , period 1 , DORMANT : [ 0 / [ 1 , 6 ] ] >
+            :: null .
+
+  eq TEST-6 = < priority 2 , period 1 , DORMANT : [ 0 / [ 1 , 3 ] ] >
+              :: < priority 1 , period 2 , DORMANT : [ 0 / [ 2 , 5 ] ] >
+              :: null .
+
+  eq TASK-614-1 = < priority 2 , period 1 , DORMANT : [ 0 / [ 3000 , 3000 ] ] >
+                  :: < priority 1 , period 5 , DORMANT : [ 0 / [ 7000 , 7000 ] ] >
+                  :: null .
+
+  eq TASK-614-2 = < priority 2 , period 1 , DORMANT : [ 0 / [ 2000 , 2000 ] ] >
+                  :: < priority 1 , period 5 , DORMANT : [ 0 / [ 4000 , 4000 ] ] >
+                  :: null .
+
+  eq TASK-614-3 = < priority 2 , period 1 , DORMANT : [ 0 / [ 2000 , 2000 ] ] >
+                  :: < priority 1 , period 5 , DORMANT : [ 0 / [ 2300 , 2300 ] ] >
+                  :: null .
+
+  eq TASK-614-4 = < priority 2 , period 1 , DORMANT : [ 0 / [ 2500 , 3000 ] ] >
+                  :: < priority 1 , period 5 , DORMANT : [ 0 / [ 7000 , 7000 ] ] >
+                  :: null .
+
+  eq INIT-1 = { TEST-1 ; bottom ; running none : [ 0 / CYCLE ] : clock( 0 / 13860000 ) 
+                | INT-ON : intReq false 
+                | [ 0 / [ 3 , 4 ] ] , [ 0 / [ 1 , 2 ] ] ; none } .
+  eq INIT-2 = { TEST-2 ; bottom ; running none : [ 0 / CYCLE ] : clock( 0 / CYCLE )
+                | INT-ON : intReq false 
+                | [ 0 / [ 1 , 1 ] ] , [ 0 / [ 1 , 1 ] ] ; none } .
+  eq INIT-3 = { TEST-3 ; bottom ; running none : [ 0 / CYCLE ] : clock( 0 / 13860000 )
+                | INT-ON : intReq false 
+                | [ 0 / [ 3 , 4 ] ] , [ 0 / [ 1 , 2 ] ] ; none } .
+  eq INIT-4 = { TEST-4 ; bottom ; running none : [ 0 / CYCLE ] : clock( 0 / CYCLE )
+                | INT-ON : intReq false 
+                | [ 0 / [ 1 , 1 ] ] , [ 0 / [ 1 , 1 ] ] ; none } .
+  eq INIT-5 = { TEST-5 ; bottom ; running none : [ 0 / 2 ] : clock( 0 / 10 )
+                | INT-ON : intReq false 
+                | [ 0 / [ 1 , 1 ] ] , [ 0 / [ 1 , 1 ] ] ; none } .
+  eq INIT-6 = { TEST-6 ; bottom ; running none : [ 0 / 2 ] : clock( 0 / 10 )
+                | INT-ON : intReq false 
+                | [ 0 / [ 1 , 1 ] ] , [ 0 / [ 1 , 1 ] ] ; none } .
+  eq INIT-614-1 = { TASK-614-1 ; bottom ; running none : [ 0 / 5 ] : clock( 5000 / 5000 )
+                    | INT-ON : intReq false 
+                    | [ 0 / [ 5 , 9 ] ] , [ 0 / [ 2 , 4 ] ] ; none } .
+  eq INIT-614-2 = { TASK-614-2 ; bottom ; running none : [ 0 / 5 ] : clock( 0 / 5000 )
+                    | INT-ON : intReq false 
+                    | [ 0 / [ 5 , 9 ] ] , [ 0 / [ 2 , 4 ] ] ; none } .
+  eq INIT-614-3 = { TASK-614-3 ; bottom ; running none : [ 0 / 5 ] : clock( 0 / 5000 )
+                    | INT-ON : intReq false 
+                    | [ 0 / [ 5 , 9 ] ] , [ 0 / [ 2 , 4 ] ] ; none } .
+  eq INIT-614-4 = { TASK-614-4 ; bottom ; running none : [ 0 / 5 ] : clock( 5000 / 5000 )
+                    | INT-ON : intReq false 
+                    | [ 0 / [ 2 , 2 ] ] , [ 0 / [ 1 , 1 ] ] ; none } .
+endtm)
+

@@ -60,14 +60,35 @@ A class declaration $\texttt{class }C\texttt{ |
 declares a class $C$ with attributes $att_1$ to $att_n$ of sorts $s_1$
 to $s_n$. An \emph{object} of class $C$ in a given state is
 represented as a term $\texttt{< } O\texttt{:} C \texttt{ | }
-att_1\texttt{:}val_1\texttt{,}\ldots\texttt{,}att_n\texttt{:}val_n\texttt{
-  >}$ of sort \verb|Object|, where $O$, of sort \verb|Oid|, is the object's
-\emph{identifier}, and where $val_1$ to $val_n$ are the current values of the
-attributes $att_1$ to $att_n$. A \emph{subclass} inherits all the attributes
-and rules of its superclasses.
+att_1\texttt{:}val_1\texttt{,} \ldots
+\texttt{,}att_n\texttt{:}val_n\texttt{ >}$ of sort \verb|Object|,
+where $O$, of sort \verb|Oid|, is the object's \emph{identifier}, and
+where $val_1$ to $val_n$ are the current values of the attributes
+$att_1$ to $att_n$. A \emph{subclass} inherits all the attributes and
+rules of its superclasses.
 
 \subsection{Formal Analysis}
-In this 
+In this paper, we only consider Real-Time Maude's \emph{linear
+  temporal logic model checker}, which analyzes whether \emph{each}
+behavior satisfies a temporal logic formula. \emph{State propositions}
+are terms of sort \verb|Prop|, and their symantics is defined by
+equations $\texttt{ceq } statePattern \texttt{ |= } prop \texttt{ = }
+b \texttt{ if } cond$, with $b$ a term of sort \verb|Bool|, stating
+that $prop$ evaluates to $b$ in states that are instances of
+$statePattern$ when the condition $cond$ holds. These equations
+together define $prop$ to hold in all states $t$ where $t \texttt{ |=
+} prop$ evaluates to \verb|true|. A temporal logic \emph{formula} is
+constructed by state propositions and temporal logic operators such as
+\verb|True|, \verb|False|, \verb|~|(negation), \verb|/\|, \verb|\/|,
+\verb|->|(implication), \verb|[]|(``always''),
+\verb|<>|(``eventually'') and \verb|U|(``until''). Real-Time Maude
+provides both \emph{unbounded} and \emph{time-bounded} LTL model
+checking. The time-bounded model checking command
+\begin{alltt}
+  (mc \(t\) |=t \(formula\) in time <= \(timeLimit\) .)
+\end{alltt}
+checks whether the temporal logic formula holds in all behaviors up to
+duration $timeLimit$ starting from the initial state $t$.
 
 \section{Rate-Monotonic Scheduling Algorithm and the Implementation}
 

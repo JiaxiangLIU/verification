@@ -92,6 +92,28 @@ duration $timeLimit$ starting from the initial state $t$.
 
 \section{Rate-Monotonic Scheduling Algorithm and the Implementation}
 
+\subsection{Formulation of the Standard Setting}
+The frequently used setting of the RMS algorithm for analysis
+considers a task set consisting only of $n$ periodic tasks
+$\tau_1,\ldots,\tau_n$. Task $\tau_i$ has a period $T_i$ and a
+computation time $C_i$. First jobs of all tasks are assumed to be
+instantiated simultaneously.  This means that jobs corresponding to
+task $\tau_i$ are initiated at times $kT_i, k\ge 0$. The job initiated
+at time $kT_i$ has $(k+1)T_i$ as its deadline, the initiation time of
+the next job. The RMS algorithm chooses the labeling such that $T_1\le
+T_2\le \ldots \le T_n$. Consequently, $\tau_i$ receives priority
+$i$. The following assumptions are made:
+
+(A1) Computation time $C_i$ for each task $\tau_i$ is constant and
+does not vary with time.
+
+(A2) Tasks are independent, such that they are ready to run at their
+initiation times and can be preempted instantly (ignoring all
+blocking).
+
+(A3) All overhead, such as task swapping times, is ignored.
+
+
 \section{Formalizing the RMS Implementation}
 
 \section{Formal Analysis}

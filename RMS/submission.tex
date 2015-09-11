@@ -4,8 +4,14 @@
 \documentclass{llncs}
 \usepackage{alltt}
 \usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 %\usepackage{llncsdoc}
-%
+
+\newcommand{\hide}[1]{\ignorespaces}
+
 \begin{document}
 %\thispagestyle{empty}
 %\begin{flushleft}
@@ -97,9 +103,10 @@ The frequently used setting of the RMS algorithm for analysis
 considers a task set consisting only of $n$ periodic tasks
 $\tau_1,\ldots,\tau_n$. Task $\tau_i$ has a period $T_i$ and a
 computation time $C_i$. First jobs of all tasks are assumed to be
-instantiated simultaneously.  This means that jobs corresponding to
-task $\tau_i$ are initiated at times $kT_i, k\ge 0$. The job initiated
-at time $kT_i$ has $(k+1)T_i$ as its deadline, the initiation time of
+instantiated simultaneously. This means that jobs corresponding to
+task $\tau_i$ are initiated at times $kT_i, k\ge 0$. Deadlines consist
+of runability constraints only, that is, the job initiated at time
+$kT_i$ has $(k+1)T_i$ as its deadline, which is the initiation time of
 the next job. The RMS algorithm chooses the labeling such that $T_1\le
 T_2\le \ldots \le T_n$. Consequently, $\tau_i$ receives priority
 $i$. The following assumptions are made:
@@ -113,8 +120,69 @@ blocking).
 
 (A3) All overhead, such as task swapping times, is ignored.
 
+In this paper, our application of the RMS algorithm meets the
+assumption~(A2), while we would try to relax (A1) and (A3) in our
+analysis model.
+
+\subsection{The Implementation of RMS}
+The algorithm of the RMS is straightforward, and it is easy to
+implement it in pratical systems. However, the way to implement it is
+not unique. Our target implementation to analyze is from a realistic
+avionic operating system. Interrupts triggered by the clock would come
+every $T$, which we call \emph{interrupt cycle}. When an interrupt
+request comes, if the system is interruptable, i.e. the interrupt
+switch is enabled, the funtion $schedule()$ will be called; otherwise
+$schedule()$ will be called once the interrupt switch becomes enable.
+The pseudo code of $schedule()$ is shown as
+Algorithm~\ref{a:schedule}, where $taskList$ is the list of periodic
+tasks, which are needed to be scheduled, and assumed ordered
+descendingly by priorities, and where both variables $taskList$ and
+$timer$ are global. In this implementation, the period $T_i$ of each
+task is a multiple of $T$, and the tasks are independent, meeting the
+assumption~(A2).
+
+\begin{algorithm}
+  \caption{The C-Like Pseudo Code of $schedule()$}
+  \label{a:schedule}
+  \begin{algorithmic}[1]
+\Function{$schedule$}{$ $}{}
+  \State \Call{$int\_o\!f\!\!f$}{$ $}; \Comment{to disable interrupts}
+  \State \Call{$updateStatus$}{$taskList$};
+  \State $timer = timer + 1$;
+  \State $p = taskList$;
+  \While{$p$} 
+    \If{$p\rightarrow status == \textit{INTERRUPT}$}
+      \State \Return;
+    \ElsIf{$p\rightarrow status == \textit{READY}$}      
+      \State $p\rightarrow status = \textit{RUNNING}$;
+      \State \Call{$int\_on$}{$ $}; \Comment{to enable interrupts}
+      \State $p\rightarrow function()$; \Comment{to run the task}
+      \State \Call{$int\_o\!f\!\!f$}{$ $};
+      \State $p\rightarrow status = \textit{DORMANT}$;
+    \EndIf
+    \State $p = p\rightarrow next$;
+  \EndWhile
+\EndFunction
+\Function{$updateStatus$}{$p$}
+  \While{$p$}
+    \If{$p\rightarrow status == \textit{RUNNING}$}
+      \State $p\rightarrow status = \textit{INTERRUPT}$;
+    \EndIf
+    \If{$timer~\%~(p\rightarrow period) == 0$} \Comment{the task should be initiated}
+      \If{$p\rightarrow status == \textit{DORMANT}$} 
+        \State $p\rightarrow status = \textit{READY}$;
+      \Else \Comment{the status is \textit{READY} or \textit{INTERRUPT}}
+	\State \Call{$reportTaskError$}{$p$}; \Comment{the task misses its deadline}
+      \EndIf
+    \EndIf
+    \State $p = p\rightarrow next$;
+  \EndWhile
+\EndFunction
+  \end{algorithmic}
+\end{algorithm}
 
 \section{Formalizing the RMS Implementation}
+
 
 \section{Formal Analysis}
 \subsection{Properties}

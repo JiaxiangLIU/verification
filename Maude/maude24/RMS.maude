@@ -1,0 +1,170 @@
+(fmod MAYBE-NAT is 
+  protecting NAT .
+  
+  sort MaybeNat .
+  op none : -> MaybeNat [ctor] .
+  op some_ : Nat -> MaybeNat [ctor] .
+
+  vars n m : Nat .
+
+  op s_ : MaybeNat -> MaybeNat .
+  eq s none = none .
+  eq s some n = some (s n) .
+
+  op _+_ : Nat MaybeNat -> MaybeNat .
+  eq n + none = none .
+  eq n + some m = some (n + m) .
+endfm)
+
+(fmod STACK is 
+  protecting MAYBE-NAT .
+
+  sort Stack .
+  op bottom : -> Stack [ctor] .
+  op _#_ : Nat Stack -> Stack [ctor] .
+
+  var n : Nat .
+  var s : Stack .
+
+  op push_to_ : MaybeNat Stack -> Stack .
+  eq push none to s = s .
+  eq push some n to s = n # s .
+
+  op pop : Stack -> Stack .
+  eq pop(bottom) = bottom .
+  eq pop(n # s) = s .
+
+  op peek : Stack -> MaybeNat .
+  eq peek(bottom) = none .
+  eq peek(n # s) = some n .
+
+  op depth : Stack -> Nat .
+  eq depth(bottom) = 0 .
+  eq depth(n # s) = s (depth(s)) .
+endfm)
+
+(tomod COUNTER is
+  protecting NAT .
+  
+  sorts Interval Counter .
+  op `[_`,_`] : Time Time -> Interval [ctor] .
+  op `[_/_`] : Time Interval -> Counter [ctor] .
+
+  var n : Nat .
+  vars m N : NzNat .
+  var i : Interval .
+  var R R' R'' : Time .
+
+  *** reset the counter
+  op reset : Counter -> Counter .
+  eq reset([ R / i ]) = [ zero / i ] .
+
+  *** counter may reach the finishing time ?
+  op _mayFinish? : Counter -> Bool .
+  eq [ R / [ R' , R'' ] ] mayFinish? 
+       = if R lt R' then False else True fi .
+
+  op mte : Counter -> Time .
+  eq mte([ R / [ R' , R'' ]]) = R'' monus R .
+
+  op delta : Counter Time -> Counter .
+  eq delta([ R / i ] , R'') = [ R plus R'' / i ] .
+endtom)
+
+(fmod TIMER is
+  protecting NAT .
+  sort Timer .
+  op `[_/_`] : Nat NzNat -> Timer [ctor] .
+
+  var n : Nat .
+  vars m N : NzNat .
+
+  *** increase the timer
+  op inc : Timer -> Timer .
+  ceq inc([ n / N ]) = [ 0 / N ] if s n := N .
+  eq inc([ n / N ]) = [ s n / N ] [owise] .
+
+  op _rem_ : Timer NzNat -> Nat .
+  eq [ n / N ] rem m = n rem m .
+endfm)
+
+(tomod INTERRUPT-SOURCE is
+  protecting NAT .
+
+  *** the source of interrupts
+  class IntSrc | val : Time , cycle : Time .
+
+  var O : Oid .
+  var R R' R'' : Time .
+  
+  op mte : Object ~> Time .
+  eq mte(< O : IntSrc | val : R , cycle : R' >) = R .
+
+  op delta : Object Time ~> Object .
+  eq delta(< O : IntSrc | val : R , cycle : R' > , R'' )
+       = < O : IntSrc | val : R monus R'' , cycle : R' > .
+endtom)
+
+(omod TASK is
+  protecting COUNTER .
+  class Task | cnt : Counter .
+
+  var O : Oid .
+  var C : Counter .
+  var R : Time .
+  
+  op _mayFinish? : Object ~> Bool .
+  eq < O : Task | cnt : C > mayFinish? = C mayFinish? .
+
+  op mte : Object ~> Time .
+  eq mte(error) = zero .
+  eq mte(< O : PTask | cnt : C >) = mte(C) .
+
+  op delta : Object Time -> Task .
+  eq delta(error, R) = error .
+  eq delta(< O : Task | cnt : C >, R) = < O : Task | cnt : delta(C, R) > .
+
+endom)
+
+(omod PERIODIC-TASK is
+  protecting TASK .
+  sort Status .
+  ops RUNNING INTERRUPT READY DORMANT : -> Status [ctor] .
+
+  class PTask | priority : Nat , period : NzNat , st : Status .
+  subclass PTask < Task .
+
+  *** an error status for the task 
+  op error : -> Object [ctor] .
+
+
+  var O : Oid .
+  vars min max : Time .
+  var p : Priority .
+  var T : Period .
+  var st : Status .
+  var c : Counter .
+  var timer : Timer .
+  var t : Task .
+  vars R R' : Time .
+  var i : Interval .
+
+  op updateStatus_with_ : Object Timer ~> Object .
+  ceq updateStatus < O : PTask | period : P , st : ST > with timer
+        = if ST == DORMANT then < O : PTask | st : READY >
+          else error fi
+          if timer rem P == 0 .
+  eq updateStatus < O : PTask | st : ST > with timer
+       = if ST == RUNNING then < O : PTask | st : INTERRUPT >
+         else < O : PTask | > fi [owise] .
+  eq updateStatus error with timer = error .
+
+  op start_ : Object ~> Object .
+  eq start error = error .
+  eq start < O : PTask | > = < O : PTask | st : RUNNING > .
+
+  op finish_ : Object ~> Object .
+  eq finish error = error .
+  eq finish < O : PTask | cnt : C >
+       = < O : PTask | st : DORMANT , cnt : reset(C) > .
+endom)

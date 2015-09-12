@@ -1,12 +1,12 @@
-(tmod OPTION-NAT is 
+(tmod MAYBE-NAT is 
   protecting NAT .
-  sort OptionNat .
+  sort MaybeNat .
 
-  op none : -> OptionNat [ctor] .
-  op some_ : Nat -> OptionNat [ctor] .
+  op none : -> MaybeNat [ctor] .
+  op some_ : Nat -> MaybeNat [ctor] .
 
-  op s_ : OptionNat -> OptionNat .
-  op _+_ : Nat OptionNat -> OptionNat .
+  op s_ : MaybeNat -> MaybeNat .
+  op _+_ : Nat MaybeNat -> MaybeNat .
 
   vars n m : Nat .
 
@@ -18,15 +18,15 @@
 endtm)
 
 (tmod STACK is 
-  protecting OPTION-NAT .
+  protecting MAYBE-NAT .
   sort Stack .
 
   op bottom : -> Stack [ctor] .
   op _#_ : Nat Stack -> Stack [ctor] .
 
-  op push_to_ : OptionNat Stack -> Stack .
+  op push_to_ : MaybeNat Stack -> Stack .
   op pop : Stack -> Stack .
-  op peek : Stack -> OptionNat .
+  op peek : Stack -> MaybeNat .
   op depth : Stack -> Nat .
 
   var n : Nat .
@@ -110,7 +110,7 @@ endtm)
 endtm)
 
 (tmod TASK is 
-  protecting OPTION-NAT . 
+  protecting MAYBE-NAT . 
   protecting TIMER .
   protecting PERIOD .
   sorts Status Priority .
@@ -186,7 +186,7 @@ endtm)
   op _::_ : Task TaskList -> TaskList [ctor] .
 
   op updateStatus_when_ : TaskList Timer -> TaskList .
-  op nextTaskIn_from_ : TaskList Nat -> OptionNat .
+  op nextTaskIn_from_ : TaskList Nat -> MaybeNat .
   op statusOf_in_ : Nat TaskList -> Status .
   op start_in_ : Nat TaskList -> TaskList .
 ***  op run_in_ : Nat TaskList -> TaskList .
@@ -262,7 +262,7 @@ endtm)
   protecting STACK .
   protecting TIMER .
   sort ThreadID .
-  subsort OptionNat < ThreadID .
+  subsort MaybeNat < ThreadID .
   sorts RunTag SysTag IntSwitchTag IntReqTag .
 
   ops sch swi : -> ThreadID [ctor] .
@@ -272,7 +272,7 @@ endtm)
   op intReq_ : Bool -> IntReqTag [ctor] .
   op `{_;_;_:_:_|_:_|_`,_;_`} : 
      TaskList Stack RunTag Timer Clock IntSwitchTag IntReqTag 
-     Counter Counter OptionNat -> System [ctor] .
+     Counter Counter MaybeNat -> System [ctor] .
 
   op _.reqInterrupt : System -> System .
   op _.interrupt : System -> System .
@@ -287,7 +287,7 @@ endtm)
   var isTag : IntSwitchTag .
   var irTag : IntReqTag .
   vars schCtr swiCtr : Counter .
-  var tmp : OptionNat .
+  var tmp : MaybeNat .
 ***  var sTag : SysTag .
 
   *** this is to request an interrupt
@@ -333,7 +333,7 @@ endtm)
   var isTag : IntSwitchTag .
   var irTag : IntReqTag .
   vars schCtr swiCtr : Counter .
-  var tmp : OptionNat .
+  var tmp : MaybeNat .
 ***  var sTag : SysTag .
   var sys : System .
   vars R R' : Time .
@@ -507,7 +507,7 @@ endtm)
 
   op stackOverflow : System -> Bool .
   op taskTimeout : System -> Bool .
-***  op schedulingError : OptionNat TaskList -> Bool .
+***  op schedulingError : MaybeNat TaskList -> Bool .
 
 ***  op schedulingError : System -> Bool .
  
@@ -524,7 +524,7 @@ endtm)
   var isTag : IntSwitchTag .
   var irTag : IntReqTag .
   vars schCtr swiCtr : Counter .
-  var tmp : OptionNat .
+  var tmp : MaybeNat .
 
   eq stackOverflow({ tl ; s ; running r : timer : time 
                      | isTag : irTag | schCtr , swiCtr ; tmp }) 

@@ -43,7 +43,7 @@ endfm)
   eq depth(n # s) = s (depth(s)) .
 endfm)
 
-(tomod COUNTER is
+(tmod COUNTER is
   protecting NAT .
   
   sorts Interval Counter .
@@ -62,14 +62,14 @@ endfm)
   *** counter may reach the finishing time ?
   op _mayFinish? : Counter -> Bool .
   eq [ R / [ R' , R'' ] ] mayFinish? 
-       = if R lt R' then False else True fi .
+       = if R lt R' then false else true fi .
 
   op mte : Counter -> Time .
   eq mte([ R / [ R' , R'' ]]) = R'' monus R .
 
   op delta : Counter Time -> Counter .
   eq delta([ R / i ] , R'') = [ R plus R'' / i ] .
-endtom)
+endtm)
 
 (fmod TIMER is
   protecting NAT .
@@ -101,14 +101,17 @@ endfm)
   eq mte(< O : IntSrc | val : R , cycle : R' >) = R .
 
   op delta : Object Time ~> Object .
-  eq delta(< O : IntSrc | val : R , cycle : R' > , R'' )
+  eq delta(< O : IntSrc | val : R , cycle : R' > , R'')
        = < O : IntSrc | val : R monus R'' , cycle : R' > .
 endtom)
 
-(omod TASK is
+(tomod TASK is
   protecting COUNTER .
   class Task | cnt : Counter .
 
+  *** an error status for tasks 
+  op error : -> Object [ctor] .
+  
   var O : Oid .
   var C : Counter .
   var R : Time .
@@ -118,53 +121,285 @@ endtom)
 
   op mte : Object ~> Time .
   eq mte(error) = zero .
-  eq mte(< O : PTask | cnt : C >) = mte(C) .
+  eq mte(< O : Task | cnt : C >) = mte(C) .
 
-  op delta : Object Time -> Task .
+  op delta : Object Time ~> Object .
   eq delta(error, R) = error .
-  eq delta(< O : Task | cnt : C >, R) = < O : Task | cnt : delta(C, R) > .
-
-endom)
+  eq delta(< O : Task | cnt : C > , R) = < O : Task | cnt : delta(C, R) > .
+endtom)
 
 (omod PERIODIC-TASK is
   protecting TASK .
+  protecting TIMER .
   sort Status .
   ops RUNNING INTERRUPT READY DORMANT : -> Status [ctor] .
 
-  class PTask | priority : Nat , period : NzNat , st : Status .
+  class PTask | priority : Nat , period : NzNat , status : Status .
   subclass PTask < Task .
 
-  *** an error status for the task 
-  op error : -> Object [ctor] .
-
-
   var O : Oid .
-  vars min max : Time .
-  var p : Priority .
-  var T : Period .
-  var st : Status .
-  var c : Counter .
+  var T : Nat . 
+  var ST : Status .
+  var C : Counter .
   var timer : Timer .
-  var t : Task .
-  vars R R' : Time .
-  var i : Interval .
 
   op updateStatus_with_ : Object Timer ~> Object .
-  ceq updateStatus < O : PTask | period : P , st : ST > with timer
-        = if ST == DORMANT then < O : PTask | st : READY >
+  ceq updateStatus < O : PTask | period : T , status : ST > with timer
+        = if ST == DORMANT then < O : PTask | status : READY >
           else error fi
-          if timer rem P == 0 .
-  eq updateStatus < O : PTask | st : ST > with timer
-       = if ST == RUNNING then < O : PTask | st : INTERRUPT >
+          if timer rem T == 0 .
+  eq updateStatus < O : PTask | status : ST > with timer
+       = if ST == RUNNING then < O : PTask | status : INTERRUPT >
          else < O : PTask | > fi [owise] .
   eq updateStatus error with timer = error .
 
   op start_ : Object ~> Object .
   eq start error = error .
-  eq start < O : PTask | > = < O : PTask | st : RUNNING > .
+  eq start < O : PTask | > = < O : PTask | status : RUNNING > .
 
   op finish_ : Object ~> Object .
   eq finish error = error .
   eq finish < O : PTask | cnt : C >
-       = < O : PTask | st : DORMANT , cnt : reset(C) > .
+       = < O : PTask | status : DORMANT , cnt : reset(C) > .
 endom)
+
+(omod TASKLIST is
+  protecting MAYBE-NAT .
+  protecting PERIODIC-TASK .
+  sort TaskList .
+
+  *** List of periodic tasks
+  op null : -> TaskList [ctor] .
+  op _::_ : Object TaskList ~> TaskList [ctor] .
+  mb (< O:Oid : PTask | > :: L:TaskList) : TaskList .
+  mb (error :: L:TaskList) : TaskList .
+
+  var n : Nat .
+  var t : Object .
+  var ST : Status .
+  var l : TaskList .
+  var timer : Timer .
+  var R : Time .
+
+  *** the model of function updateStatus() in the code
+  op updateStatus_with_ : TaskList Timer -> TaskList .
+  eq updateStatus null with timer = null .
+  eq updateStatus t :: l with timer
+       = (updateStatus t with timer) :: (updateStatus l with timer) .
+
+  *** find the next task which should be run, from index n
+  op nextTaskIn_from_ : TaskList Nat -> MaybeNat .
+  eq nextTaskIn null from n = none .
+  eq nextTaskIn t :: l from s n = s (nextTaskIn l from n) .
+  eq nextTaskIn < O:Oid : PTask | status : ST > :: l from 0 
+       = if ST == READY or ST == INTERRUPT 
+         then some 0
+         else s (nextTaskIn l from 0)
+         fi .
+  eq nextTaskIn error :: l from 0 = none .
+
+  *** get the status of nth task in l
+  op statusOf_in_ : Nat TaskList ~> Status .
+  eq statusOf 0 in < O:Oid : PTask | status : ST > :: l = ST .
+  eq statusOf s n in t :: l = statusOf n in l .
+
+  *** start nth task in l
+  op start_in_ : Nat TaskList ~> TaskList .
+  --- eq start n in null = null .
+  eq start (s n) in (t :: l) = t :: (start n in l) .
+  eq start 0 in (t :: l) = (start t) :: l .
+
+  *** ask whether nth task in l may finish
+  op _mayFinish?in_ : Nat TaskList ~> Bool .
+  --- eq n mayFinish?in null = false .
+  eq (s n) mayFinish?in (t :: l) = n mayFinish?in l .
+  eq 0 mayFinish?in (t :: l) = t mayFinish? .
+
+  *** finish nth task in l
+  op finish_in_ : Nat TaskList ~> TaskList .
+  --- eq finish n in null = null .
+  eq finish (s n) in (t :: l) = t :: (finish n in l) .
+  eq finish 0 in (t :: l) = (finish t) :: l .
+
+  *** l contains error?
+  op containError : TaskList -> Bool .
+  eq containError(null) = false .
+  eq containError(error :: l) = true .
+  eq containError(t :: l) = containError(l) [owise] .
+
+  *** mte of the list l
+  op mteOf_in_ : Nat TaskList ~> Time .
+  --- eq mteOf n in null = zero .
+  eq mteOf 0 in t :: l = mte(t) .
+  eq mteOf s n in t :: l = mteOf n in l .
+
+  *** time effect on list l
+  op delta : Nat TaskList Time ~> TaskList .
+  --- eq delta( n , null , R ) = null .
+  eq delta( 0 , (t :: l) , R ) = delta(t , R) :: l .
+  eq delta( (s n) , (t :: l) , R ) = t :: delta( n , l , R ) .
+endom)
+
+(omod SYSTEM-TASKS is
+  protecting TASK .
+  sort SysTasks .
+  subsort SysTasks < Configuration .
+
+  
+endom)
+
+
+(tomod TEST is 
+  protecting NAT-TIME-DOMAIN .
+  including TASKLIST .
+  protecting QID .
+
+  subsort Qid < Oid .
+
+  ops o1 o2 : -> Object .
+
+  eq o1 = < 'o1 : PTask | cnt : [ 1 / [2 , 4]] , period : 1 ,
+                          priority : 1 , status : READY > .
+
+  ops L-1 L-2 : -> TaskList .
+
+  eq L-1 = error 
+           :: < 'o1 : PTask | priority : 5 , period : 16 ,
+	                      status : RUNNING , cnt : [ 3 / [ 3 , 5 ] ] >
+           :: < 'o2 : PTask | priority : 4 , period : 8 ,
+                              status : INTERRUPT , cnt : [ 2 / [ 3 , 5 ] ] > 
+           :: < 'o3 : PTask | priority : 3 , period : 4 ,
+                              status : READY , cnt : [ 4 / [ 3 , 5] ] >
+           :: < 'o4 : PTask | priority : 2 , period : 2 ,
+                              status : DORMANT , cnt : [ 1 / [ 3 , 5 ] ] > 
+           :: null .
+
+  eq L-2 = < 'o1 : PTask | priority : 5 , period : 16 ,
+	                   status : RUNNING , cnt : [ 3 / [ 3 , 5 ] ] >
+           :: < 'o2 : PTask | priority : 4 , period : 8 ,
+                              status : INTERRUPT , cnt : [ 2 / [ 3 , 5 ] ] > 
+           :: < 'o3 : PTask | priority : 3 , period : 4 ,
+                              status : READY , cnt : [ 4 / [ 3 , 5] ] >
+           :: < 'o4 : PTask | priority : 2 , period : 2 ,
+                              status : DORMANT , cnt : [ 1 / [ 3 , 5 ] ] > 
+           :: null .
+	   
+***(
+  eq EXAM-2 = < priority 5 , period 20 , RUNNING : [ 4 / [ 3 , 5 ] ] > 
+              :: < priority 4 , period 15 , INTERRUPT : [ 5 / [ 3 , 5 ] ] > 
+              :: < priority 3 , period 10 , READY : [ 2 / [ 3 , 5 ] ] >
+              :: < priority 2 , period 5 , DORMANT : [ 2 / [ 3 , 5 ] ] > 
+              :: null .
+
+  ops SYS-1 SYS-2 : -> System .
+
+  eq SYS-1 = { EXAM-2 ; 1 # bottom ; running some 1  : [ 1 / 2] : clock( 4 / 5 ) 
+               | INT-ON : intReq false | [ 0 / [ 1 , 2 ] ] , [ 3 / [ 3 , 4 ] ] ; 
+               some 0 } .
+  eq SYS-2 = { EXAM-2 ; 1 # bottom ; running some 0 : [ 1 / 2] : clock( 3 / 5 ) 
+               | INT-OFF : intReq true | [ 0 / [ 1 , 2 ] ] , [ 0 / [ 3 , 4 ] ] ; 
+               none } .
+
+  ops TEST-1 TEST-2 TEST-3 TEST-4 : -> TaskList .
+  ops INIT-1 INIT-2 INIT-3 INIT-4 : -> System .
+  ops TASK-614-1 TASK-614-2 TASK-614-3 TASK-614-4 : -> TaskList .
+  ops INIT-614-1 INIT-614-2 INIT-614-3 INIT-614-4 : -> System .
+  ops TEST-5 TEST-6 : -> TaskList .
+  ops INIT-5 INIT-6 : -> System .
+
+  *** utilization = 71.6%
+  eq TEST-1 = < priority 8 , period 2 , DORMANT : [ 0 / [ 100 , 100 ] ] >
+            :: < priority 7 , period 4 , DORMANT : [ 0 / [ 300 , 300 ] ] >
+            :: < priority 6 , period 7 , DORMANT : [ 0 / [ 300 , 300 ] ] >
+            :: < priority 5 , period 11 , DORMANT : [ 0 / [ 400 , 400 ] ] >
+            :: < priority 4 , period 14 , DORMANT : [ 0 / [ 500 , 500 ] ] >
+            :: < priority 3 , period 18 , DORMANT : [ 0 / [ 800 , 800 ] ] >
+            :: < priority 2 , period 22 , DORMANT : [ 0 / [ 700 , 700 ] ] >
+            :: < priority 1 , period 24 , DORMANT : [ 0 / [ 1000 , 1000 ] ] >
+            :: null .
+
+  eq TEST-2 = < priority 8 , period 2 , DORMANT : [ 0 / [ 1 , 1 ] ] >
+            :: < priority 7 , period 4 , DORMANT : [ 0 / [ 3 , 3 ] ] >
+            :: < priority 6 , period 7 , DORMANT : [ 0 / [ 3 , 3 ] ] >
+            :: < priority 5 , period 11 , DORMANT : [ 0 / [ 4 , 4 ] ] >
+            :: < priority 4 , period 14 , DORMANT : [ 0 / [ 5 , 5 ] ] >
+            :: < priority 3 , period 18 , DORMANT : [ 0 / [ 8 , 8 ] ] >
+            :: < priority 2 , period 22 , DORMANT : [ 0 / [ 7 , 7 ] ] >
+            :: < priority 1 , period 24 , DORMANT : [ 0 / [ 60 , 60 ] ] >
+            :: null .
+
+  eq TEST-3 = < priority 8 , period 2 , DORMANT : [ 0 / [ 50 , 100 ] ] >
+            :: < priority 7 , period 4 , DORMANT : [ 0 / [ 200 , 250 ] ] >
+            :: < priority 6 , period 7 , DORMANT : [ 0 / [ 200 , 300 ] ] >
+            :: < priority 5 , period 11 , DORMANT : [ 0 / [ 300 , 400 ] ] >
+            :: < priority 4 , period 14 , DORMANT : [ 0 / [ 200 , 400 ] ] >
+            :: < priority 3 , period 18 , DORMANT : [ 0 / [ 500 , 700 ] ] >
+            :: < priority 2 , period 22 , DORMANT : [ 0 / [ 400 , 600 ] ] >
+            :: < priority 1 , period 24 , DORMANT : [ 0 / [ 600 , 750 ] ] >
+            :: null .
+
+  eq TEST-4 = < priority 8 , period 2 , DORMANT : [ 0 / [ 1 , 2 ] ] >
+            :: < priority 7 , period 4 , DORMANT : [ 0 / [ 2 , 3 ] ] >
+            :: < priority 6 , period 7 , DORMANT : [ 0 / [ 2 , 4 ] ] >
+            :: < priority 5 , period 11 , DORMANT : [ 0 / [ 3 , 4 ] ] >
+            :: < priority 4 , period 14 , DORMANT : [ 0 / [ 2 , 5 ] ] >
+            :: < priority 3 , period 18 , DORMANT : [ 0 / [ 5 , 8 ] ] >
+            :: < priority 2 , period 22 , DORMANT : [ 0 / [ 4 , 7 ] ] >
+            :: < priority 1 , period 24 , DORMANT : [ 0 / [ 10 , 60 ] ] >
+            :: null .
+
+  eq TEST-5 = < priority 1 , period 1 , DORMANT : [ 0 / [ 1 , 6 ] ] >
+            :: null .
+
+  eq TEST-6 = < priority 2 , period 1 , DORMANT : [ 0 / [ 1 , 3 ] ] >
+              :: < priority 1 , period 2 , DORMANT : [ 0 / [ 2 , 5 ] ] >
+              :: null .
+
+  eq TASK-614-1 = < priority 2 , period 1 , DORMANT : [ 0 / [ 3000 , 3000 ] ] >
+                  :: < priority 1 , period 5 , DORMANT : [ 0 / [ 7000 , 7000 ] ] >
+                  :: null .
+
+  eq TASK-614-2 = < priority 2 , period 1 , DORMANT : [ 0 / [ 2000 , 2000 ] ] >
+                  :: < priority 1 , period 5 , DORMANT : [ 0 / [ 4000 , 4000 ] ] >
+                  :: null .
+
+  eq TASK-614-3 = < priority 2 , period 1 , DORMANT : [ 0 / [ 2000 , 2000 ] ] >
+                  :: < priority 1 , period 5 , DORMANT : [ 0 / [ 2300 , 2300 ] ] >
+                  :: null .
+
+  eq TASK-614-4 = < priority 2 , period 1 , DORMANT : [ 0 / [ 2500 , 3000 ] ] >
+                  :: < priority 1 , period 5 , DORMANT : [ 0 / [ 7000 , 7000 ] ] >
+                  :: null .
+
+  eq INIT-1 = { TEST-1 ; bottom ; running none : [ 0 / CYCLE ] : clock( 0 / 13860000 ) 
+                | INT-ON : intReq false 
+                | [ 0 / [ 3 , 4 ] ] , [ 0 / [ 1 , 2 ] ] ; none } .
+  eq INIT-2 = { TEST-2 ; bottom ; running none : [ 0 / CYCLE ] : clock( 0 / CYCLE )
+                | INT-ON : intReq false 
+                | [ 0 / [ 1 , 1 ] ] , [ 0 / [ 1 , 1 ] ] ; none } .
+  eq INIT-3 = { TEST-3 ; bottom ; running none : [ 0 / CYCLE ] : clock( 0 / 13860000 )
+                | INT-ON : intReq false 
+                | [ 0 / [ 3 , 4 ] ] , [ 0 / [ 1 , 2 ] ] ; none } .
+  eq INIT-4 = { TEST-4 ; bottom ; running none : [ 0 / CYCLE ] : clock( 0 / CYCLE )
+                | INT-ON : intReq false 
+                | [ 0 / [ 1 , 1 ] ] , [ 0 / [ 1 , 1 ] ] ; none } .
+  eq INIT-5 = { TEST-5 ; bottom ; running none : [ 0 / 2 ] : clock( 0 / 10 )
+                | INT-ON : intReq false 
+                | [ 0 / [ 1 , 1 ] ] , [ 0 / [ 1 , 1 ] ] ; none } .
+  eq INIT-6 = { TEST-6 ; bottom ; running none : [ 0 / 2 ] : clock( 0 / 10 )
+                | INT-ON : intReq false 
+                | [ 0 / [ 1 , 1 ] ] , [ 0 / [ 1 , 1 ] ] ; none } .
+  eq INIT-614-1 = { TASK-614-1 ; bottom ; running none : [ 0 / 5 ] : clock( 5000 / 5000 )
+                    | INT-ON : intReq false 
+                    | [ 0 / [ 5 , 9 ] ] , [ 0 / [ 2 , 4 ] ] ; none } .
+  eq INIT-614-2 = { TASK-614-2 ; bottom ; running none : [ 0 / 5 ] : clock( 0 / 5000 )
+p                    | INT-ON : intReq false 
+                    | [ 0 / [ 5 , 9 ] ] , [ 0 / [ 2 , 4 ] ] ; none } .
+  eq INIT-614-3 = { TASK-614-3 ; bottom ; running none : [ 0 / 5 ] : clock( 0 / 5000 )
+                    | INT-ON : intReq false 
+                    | [ 0 / [ 5 , 9 ] ] , [ 0 / [ 2 , 4 ] ] ; none } .
+  eq INIT-614-4 = { TASK-614-4 ; bottom ; running none : [ 0 / 5 ] : clock( 5000 / 5000 )
+                    | INT-ON : intReq false 
+                    | [ 0 / [ 2 , 2 ] ] , [ 0 / [ 1 , 1 ] ] ; none } .
+)
+endtom)

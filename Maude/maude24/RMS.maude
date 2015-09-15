@@ -242,21 +242,301 @@ endom)
 
 (omod SYSTEM-TASKS is
   protecting TASK .
+  protecting MAYBE-NAT .
   sort SysTasks .
-  subsort SysTasks < Configuration .
+  op `[_`] : ObjectConfiguration ~> SysTasks [ctor] .
 
-  
+  sort TaskID .
+  subsorts MaybeNat Oid < TaskID .
+
+  ops scheduling switching : -> Oid [ctor] .
 endom)
+
+(omod REGISTER is
+  protecting SYSTEM-TASKS .
+  class Regs | pc : TaskID , mask : Bool ,
+               ir : Bool , temp : TaskID .
+
+  var O : Oid .
+  var B : Bool .
+  var ID : TaskID .
+
+  op _.getPc : Object ~> TaskID .
+  eq (< O : Regs | pc : ID >).getPc = ID .
+
+  op _.setPc`(_`) : Object TaskID ~> Object .
+  eq (< O : Regs | >).setPc(ID) = < O : Regs | pc : ID > .
+
+  op _.getMask : Object ~> Bool .
+  eq (< O : Regs | mask : B >).getMask = B .
+
+  ops _.setMask _.clearMask : Object ~> Object .
+  eq (< O : Regs | >).setMask = < O : Regs | mask : true > .
+  eq (< O : Regs | >).clearMask = < O : Regs | mask : false > .
+
+  op _.getIr : Object ~> Bool .
+  eq (< O : Regs | ir : B >).getIr = B .
+
+  ops _.setIr _.clearIr : Object ~> Object .
+  eq (< O : Regs | >).setIr = < O : Regs | ir : true > .
+  eq (< O : Regs | >).clearIr = < O : Regs | ir : false > .
+
+  op _.getTemp : Object ~> TaskID .
+  eq (< O : Regs | temp : ID >).getTemp = ID .
+
+  op _.setTemp`(_`) : Object TaskID ~> Object .
+  eq (< O : Regs | >).setTemp(ID) = < O : Regs | temp : ID > .
+endom)
+
+(omod HARDWARE is
+  protecting REGISTER .
+  protecting STACK .
+  sort Hardware .
+  op `[_;_`] : Object Stack ~> Hardware [ctor] .
+  mb ([ < O:Oid : Regs | > ; S:Stack ]) : Hardware .
+
+  var REGS : Object .
+  var S : Stack .
+
+  *** to signal an interrupt request
+  op _.intReq : Hardware -> Hardware .
+  eq [ REGS ; S ].intReq = [ (REGS).setIr ; S ] .
+
+  *** to handle an interrupt request
+  op _.interrupt : Hardware -> Hardware .
+  eq [ REGS ; S ].interrupt = [ (((REGS).setMask).clearIr).setPc(scheduling) ;
+                                (push (REGS).getPc to S) ] .
+  
+
+endom)
+
+(fmod SCHEDULER is
+  protecting TASKLIST .
+  protecting TIMER .
+  sort Scheduler .
+  op `[_;_`] : TaskList Timer -> Scheduler [ctor] .
+endfm)
+
+(tomod SYSTEM is 
+  protecting SCHEDULER .
+  protecting SYSTEM-TASKS .
+  protecting HARDWARE .
+  protecting INTERRUPT-SOURCE .
+
+
+  op ____ : Scheduler SysTasks Hardware Object ~> System [ctor] .
+
+endtom)
+
+***(
+(tmod SCHEDULE is 
+  protecting SYSTEM .
+  including LTIME .
+
+  op _.updateStatus : System -> System .
+  op _.scanTasks : System -> System .
+  op _.bgnSchedule : System -> System .
+  op _.endSchedule : System -> System .
+***  op _.progress : System -> System .
+  op _.bgnSwitch : System -> System .
+  op _.endSwitch : System -> System .
+***  op _.reload : System -> System .
+
+  var tasks : TaskList .
+  var s : Stack .
+  var r : ThreadID .
+  vars m n : Nat .
+  var timer : Timer .
+  var time : Clock .
+  var isTag : IntSwitchTag .
+  var irTag : IntReqTag .
+  vars schCtr swiCtr : Counter .
+  var tmp : MaybeNat .
+***  var sTag : SysTag .
+  var sys : System .
+  vars R R' : Time .
+
+  *** update the status of the tasklist in the system
+  eq { tasks ; s ; running r : timer : time 
+       | isTag : irTag | schCtr , swiCtr ; tmp }.updateStatus
+       = { (updateStatus tasks when timer ) ; s ; running r 
+           : inc(timer) : time | isTag : irTag | schCtr , swiCtr ; tmp } .
+
+  *** scan the tasklist to find the first task, whose status is READY or INTERRUPT
+  *** - if READY, set the status to be RUNNING and put it to run
+  *** - if INTERRUPT, do the "return"
+  ceq { tasks ; s ; running r : timer : time 
+        | isTag : irTag | schCtr , swiCtr ; tmp }.scanTasks
+        = if statusOf n in tasks == READY 
+          then { (start n in tasks) ; s ; running some n : timer : time 
+                 | INT-ON : irTag | schCtr , swiCtr ; tmp }
+          else { tasks ; s ; running r : timer : time 
+                 | isTag : irTag | schCtr , swiCtr ; tmp }.int-ret
+          *** status of n is INTERRUPT
+          fi
+          if some n := nextTaskIn tasks from 0 .
+  eq { tasks ; s ; running r : timer : time 
+       | isTag : irTag | schCtr , swiCtr ; tmp }.scanTasks
+       = { tasks ; s ; running none : timer : time 
+           | INT-ON : irTag | schCtr , swiCtr ; tmp } [owise] . 
+         *** if none := nextTaskIn tasks from 0 .
+
+  *** the schedule function corresponding to the function in the src
+  eq (sys).bgnSchedule = (sys).updateStatus .
+  eq { tasks ; s ; running sch : timer : time 
+       | isTag : irTag | schCtr , swiCtr ; tmp }.endSchedule
+       = { tasks ; s ; running sch : timer : time 
+           | isTag : irTag | reset(schCtr) , swiCtr ; tmp }.scanTasks .
+
+  *** the whole system progresses 1 tick, advancing the state to IN2
+***(
+  eq { tasks ; s ; running none : timer : time 
+       | isTag : irTag | schCtr , swiCtr ; tmp | sTag }.progress
+       = { tasks ; s ; running none : timer : inc(time) 
+           | isTag : irTag | schCtr , swiCtr ; tmp | IN2 } .
+  eq { tasks ; s ; running some n : timer : time 
+       | isTag : irTag | schCtr , swiCtr ; tmp | sTag }.progress
+       = { (run n in tasks) ; s ; running some n : timer : inc(time) 
+           | isTag : irTag | schCtr , swiCtr ; tmp | IN2 } .
+  eq { tasks ; s ; running sch : timer : time 
+       | isTag : irTag | schCtr , swiCtr ; tmp | sTag }.progress
+       = { tasks ; s ; running sch : timer : inc(time) 
+           | isTag : irTag | inc(schCtr) , swiCtr ; tmp | IN2 } .
+  eq { tasks ; s ; running swi : timer : time 
+       | isTag : irTag | schCtr , swiCtr ; tmp | sTag }.progress
+       = { tasks ; s ; running swi : timer : inc(time) 
+           | isTag : irTag | schCtr , inc(swiCtr) ; tmp | IN2 } .
+  )
+
+
+  *** to start the switching, store the current finished task ID
+  eq { tasks ; s ; running some n : timer : time 
+       | isTag : irTag | schCtr , swiCtr ; tmp }.bgnSwitch
+       = { tasks ; s ; running swi : timer : time
+           | INT-OFF : irTag | schCtr , swiCtr ; some n } . 
+
+  *** to end the switching, set the next task which should be run
+  ceq { tasks ; s ; running swi : timer : time 
+        | INT-OFF : irTag | schCtr , swiCtr ; some n }.endSwitch
+        = if statusOf m in tasks == READY 
+          then { (start m in tasks) ; s ; running some m : timer : time 
+                 | INT-ON : irTag | schCtr , reset(swiCtr) ; none }
+          else { tasks ; s ; running swi : timer : time 
+                 | INT-OFF : irTag | schCtr , reset(swiCtr) ; none }.int-ret
+          *** status of m is INTERRUPT
+          fi
+          if some m := nextTaskIn tasks from (s n) .
+  eq { tasks ; s ; running swi : timer : time 
+       | INT-OFF : irTag | schCtr , swiCtr ; some n }.endSwitch
+       = { tasks ; s ; running none : timer : time 
+           | INT-ON : irTag | schCtr , reset(swiCtr) ; none } [owise] . 
+         *** if none := nextTaskIn tasks from (s n) .
+
+
+  ***************
+  *** instanous rules
+  ***************
+  rl [req-interrupt] :
+    { tasks ; s ; running r : timer : clock( R / R ) 
+      | isTag : irTag | schCtr , swiCtr ; tmp } 
+    => { tasks ; s ; running r : timer : clock( zero / R ) 
+         | isTag : irTag | schCtr , swiCtr ; tmp }.reqInterrupt .
+
+  crl [interrupt] : 
+    { tasks ; s ; running r : timer : time 
+      | isTag : irTag | schCtr , swiCtr ; tmp } 
+    => ({ tasks ; s ; running r : timer : time | isTag : irTag 
+          | schCtr , swiCtr ; tmp }.interrupt).bgnSchedule
+    if ansInt( isTag , irTag ) == true .
+
+  crl [schedule-finish] :
+    { tasks ; s ; running sch : timer : time 
+      | isTag : irTag | schCtr , swiCtr ; tmp }
+    => { tasks ; s ; running sch : timer : time 
+         | isTag : irTag | schCtr , swiCtr ; tmp }.endSchedule
+    if (schCtr isFinished? == MAYBE) .
+
+  crl [task-finish] :
+    { tasks ; s ; running some n : timer : time 
+      | isTag : irTag | schCtr , swiCtr ; tmp }
+    => { (finish n in tasks) ; s ; running some n : timer : time 
+         | isTag : irTag | schCtr , swiCtr ; tmp }.bgnSwitch
+    if (n isFinished?in tasks == MAYBE) .
+
+  crl [switch-finish] :
+    { tasks ; s ; running swi : timer : time 
+      | isTag : irTag | schCtr , swiCtr ; tmp }
+    => { tasks ; s ; running swi : timer : time 
+         | isTag : irTag | schCtr , swiCtr ; tmp }.endSwitch
+    if (swiCtr isFinished? == MAYBE) .
+
+  ************
+  *** max time elapsed
+  ************
+  op mte : System -> Time [frozen (1)] .
+  eq mte({ tasks ; s ; running none : timer : time 
+           | isTag : irTag | schCtr , swiCtr ; tmp })
+       = if ansInt( isTag , irTag ) then zero
+         else mte(time) fi .
+  eq mte({ tasks ; s ; running some n : timer : time 
+           | isTag : irTag | schCtr , swiCtr ; tmp })
+       = if ansInt( isTag , irTag ) then zero
+         else minimum( mte(time) , (mteOf n in tasks) ) fi .
+  eq mte({ tasks ; s ; running sch : timer : time 
+           | isTag : irTag | schCtr , swiCtr ; tmp })
+       = if ansInt( isTag , irTag ) then zero
+         else minimum( mte(time) , mte(schCtr) ) fi .
+  eq mte({ tasks ; s ; running swi : timer : time 
+           | isTag : irTag | schCtr , swiCtr ; tmp })
+       = if ansInt( isTag , irTag ) then zero
+         else minimum( mte(time) , mte(swiCtr) ) fi .
+
+  *************
+  *** tick rule
+  *************
+  crl [tick] : 
+    {sys} => {delta(sys, R)} in time R if R le mte(sys) [nonexec] .
+
+  ************
+  *** delta effects
+  ***********
+  op delta : System Time -> System [frozen (1)] .
+  eq delta({ tasks ; s ; running none : timer : time
+             | isTag : irTag | schCtr , swiCtr ; tmp } , R)
+       = { tasks ; s ; running none : timer : delta(time , R)
+           | isTag : irTag | schCtr , swiCtr ; tmp } .
+  eq delta({ tasks ; s ; running some n : timer : time
+             | isTag : irTag | schCtr , swiCtr ; tmp } , R)
+       = { delta(n , tasks , R) ; s ; running some n : timer : delta(time , R)
+           | isTag : irTag | schCtr , swiCtr ; tmp } .
+  eq delta({ tasks ; s ; running sch : timer : time
+             | isTag : irTag | schCtr , swiCtr ; tmp } , R)
+       = { tasks ; s ; running sch : timer : delta(time , R)
+           | isTag : irTag | delta(schCtr , R) , swiCtr ; tmp } .
+  eq delta({ tasks ; s ; running swi : timer : time
+             | isTag : irTag | schCtr , swiCtr ; tmp } , R)
+       = { tasks ; s ; running swi : timer : delta(time , R)
+           | isTag : irTag | schCtr , delta(swiCtr , R) ; tmp } .
+)
+
+endtom)
 
 
 (tomod TEST is 
   protecting NAT-TIME-DOMAIN .
-  including TASKLIST .
+  including SYSTEM-TASKS .
+  inc TASKLIST .
+  inc SYSTEM .
   protecting QID .
 
   subsort Qid < Oid .
 
   ops o1 o2 : -> Object .
+  ops regs isrc : -> Object .
+
+  eq regs = < 'r : Regs | pc : scheduling , mask : true ,
+               ir : false , temp : none > .
+  eq isrc = < 'i : IntSrc | val : 4 , cycle : 500 > .
 
   eq o1 = < 'o1 : PTask | cnt : [ 1 / [2 , 4]] , period : 1 ,
                           priority : 1 , status : READY > .

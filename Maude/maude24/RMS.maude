@@ -96,6 +96,13 @@ endfm)
 
   var O : Oid .
   var R R' R'' : Time .
+
+  op _.timeout : Object ~> Bool .
+  eq (< O : IntSrc | val : R , cycle : R' >).timeout = (R == zero) .
+
+  op reset : Object ~> Object .
+  eq reset(< O : IntSrc | val : R , cycle : R' >) 
+       = < O : IntSrc | val : R' , cycle : R' > .
   
   op mteOf : Object ~> Time .
   eq mteOf(< O : IntSrc | val : R , cycle : R' >) = R .
@@ -449,9 +456,9 @@ endom)
   *** instanous rules
   *********************
 
-  rl [req-interrupt] :
-    (L T SYS HW ISRC)
-    => (L T SYS (HW).intReq (< switching : IntSrc | val : INF >)) .
+  crl [req-interrupt] :
+    (L T SYS HW ISRC) => (L T SYS (HW).intReq reset(ISRC)) 
+    if (ISRC).timeout .
 
   crl [handle-interrupt] :
     SYSTEM => ((SYSTEM).interrupt).stScheduling
@@ -506,7 +513,7 @@ endom)
 endtom)
 
 (tomod TEST is 
-  protecting NAT-TIME-DOMAIN .
+  protecting NAT-TIME-DOMAIN-WITH-INF .
   including INTERRUPT-SOURCE .
   including PERIODIC-TASK .
   including SYSTEM .

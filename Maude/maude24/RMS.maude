@@ -235,6 +235,20 @@ endom)
   eq containError(error :: l) = true .
   eq containError(t :: l) = containError(l) [owise] .
 
+  *** judge whether n is the should-be-run one (assuming no error)
+  op _shouldRunIn_ : MaybeNat TaskList ~> Bool .
+  eq none shouldRunIn null = true .
+  eq none shouldRunIn < O:Oid : PTask | status : DORMANT > :: l
+       = none shouldRunIn l .
+  eq none shouldRunIn t :: l = false [owise] .
+  eq some n shouldRunIn null = false .
+  eq some 0 shouldRunIn < O:Oid : PTask | status : DORMANT > :: l
+       = false .
+  eq some 0 shouldRunIn t :: l = true [owise] .
+  eq some (s n) shouldRunIn < O:Oid : PTask | status : DORMANT > :: l
+       = some n shouldRunIn l .
+  eq some (s n) shouldRunIn t :: l = false [owise] .
+
   *** mte of the list l
   op mteOf_in_ : MaybeNat TaskList ~> TimeInf .
   --- eq mteOf n in null = zero .
@@ -386,8 +400,6 @@ endom)
   protecting INTERRUPT-SOURCE .
   protecting LTIME-INF .
 
-  op _____ : TaskList Timer SysTasks Hardware Object -> System [ctor] .
-
   var SYSTEM : System .
   var L : TaskList .
   var T : Timer .
@@ -397,7 +409,10 @@ endom)
   var ID : TaskID .
   vars M N : Nat .
   var R : Time .
-  
+
+  op _____ : TaskList Timer SysTasks Hardware Object ~> System [ctor] .
+  mb (L T SYS HW < O:Oid : IntSrc | >) : System .
+
   op _.existInt : System ~> Bool .
   eq (L T SYS HW ISRC).existInt = (HW).existInt .
 
@@ -512,11 +527,42 @@ endom)
   
 endtom)
 
-(tomod TEST is 
+(omod RMS-VERIFICATION is
+  protecting SYSTEM .
+
+  var L : TaskList .
+  var T : Timer .
+  var SYS : SysTasks .
+  var HW : Hardware .
+  var ISRC : Object .
+
+  op taskTimeout : System ~> Bool .
+  eq taskTimeout( L T SYS HW ISRC ) = containError(L) .
+
+  op scheduleCorrectly : System ~> Bool .
+  eq scheduleCorrectly( L T SYS HW ISRC )
+       = (not containError(L))
+         and (if (HW).getPc :: MaybeNat then ((HW).getPc shouldRunIn L)
+              else true fi) .
+
+endom)
+
+(tomod RMS-MODEL-CHECK is
+  including TIMED-MODEL-CHECKER .
+  protecting RMS-VERIFICATION .
+
+  ops schedulable scheduleCorrectly : -> Prop [ctor] .
+  eq {SYSTEM:System} |= schedulable = (not taskTimeout(SYSTEM:System)) .
+  eq {SYSTEM:System} |= scheduleCorrectly = scheduleCorrectly(SYSTEM:System) .
+endtom)
+
+(tomod INSTANTIATION is 
   protecting NAT-TIME-DOMAIN-WITH-INF .
   including INTERRUPT-SOURCE .
   including PERIODIC-TASK .
   including SYSTEM .
+  including RMS-VERIFICATION .
+  including RMS-MODEL-CHECK .
   protecting QID .
 
   subsort Qid < Oid .

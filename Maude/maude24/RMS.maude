@@ -1,19 +1,19 @@
-(fmod MAYBE-NAT is 
+(fmod MAYBE-NAT is
   protecting NAT .
   
   sort MaybeNat .
   op none : -> MaybeNat [ctor] .
   op some_ : Nat -> MaybeNat [ctor] .
 
-  vars n m : Nat .
+  vars N M : Nat .
 
   op s_ : MaybeNat -> MaybeNat .
   eq s none = none .
-  eq s some n = some (s n) .
+  eq s some N = some (s N) .
 
   op _+_ : Nat MaybeNat -> MaybeNat .
-  eq n + none = none .
-  eq n + some m = some (n + m) .
+  eq N + none = none .
+  eq N + some M = some (N + M) .
 endfm)
 
 (fmod STACK is 
@@ -23,24 +23,24 @@ endfm)
   op bottom : -> Stack [ctor] .
   op _#_ : Nat Stack -> Stack [ctor] .
 
-  var n : Nat .
-  var s : Stack .
+  var N : Nat .
+  var S : Stack .
 
   op push_to_ : MaybeNat Stack -> Stack .
-  eq push none to s = s .
-  eq push some n to s = n # s .
+  eq push none to S = S .
+  eq push some N to S = N # S .
 
   op pop : Stack -> Stack .
   eq pop(bottom) = bottom .
-  eq pop(n # s) = s .
+  eq pop(N # S) = S .
 
   op peek : Stack -> MaybeNat .
   eq peek(bottom) = none .
-  eq peek(n # s) = some n .
+  eq peek(N # S) = some N .
 
   op depth : Stack -> Nat .
   eq depth(bottom) = 0 .
-  eq depth(n # s) = s (depth(s)) .
+  eq depth(N # S) = s (depth(S)) .
 endfm)
 
 (tmod COUNTER is
@@ -50,14 +50,12 @@ endfm)
   op `[_`,_`] : Time Time -> Interval [ctor] .
   op `[_/_`] : Time Interval -> Counter [ctor] .
 
-  var n : Nat .
-  vars m N : NzNat .
-  var i : Interval .
+  var I : Interval .
   var R R' R'' : Time .
 
   *** reset the counter
   op reset : Counter -> Counter .
-  eq reset([ R / i ]) = [ zero / i ] .
+  eq reset([ R / I ]) = [ zero / I ] .
 
   *** counter may reach the finishing time ?
   op _mayFinish? : Counter -> Bool .
@@ -68,24 +66,25 @@ endfm)
   eq mteOf([ R / [ R' , R'' ]]) = R'' monus R .
 
   op delta_in_ : Counter Time -> Counter .
-  eq delta [ R / i ] in R'' = [ R plus R'' / i ] .
+  eq delta [ R / I ] in R'' = [ R plus R'' / I ] .
 endtm)
 
 (fmod TIMER is
   protecting NAT .
+  
   sort Timer .
   op `[_/_`] : Nat NzNat -> Timer [ctor] .
 
-  var n : Nat .
-  vars m N : NzNat .
+  var M : Nat .
+  var N : NzNat .
 
   *** increase the timer
   op inc : Timer -> Timer .
-  ceq inc([ n / N ]) = [ 0 / N ] if s n := N .
-  eq inc([ n / N ]) = [ s n / N ] [owise] .
+  ceq inc([ M / N ]) = [ 0 / N ] if s M := N .
+  eq inc([ M / N ]) = [ s M / N ] [owise] .
 
   op _rem_ : Timer NzNat -> Nat .
-  eq [ n / N ] rem m = n rem m .
+  eq [ M / N ] rem (T:NzNat) = M rem (T:NzNat) .
 endfm)
 
 (tomod INTERRUPT-SOURCE is
@@ -148,17 +147,17 @@ endtom)
   var T : Nat . 
   var ST : Status .
   var C : Counter .
-  var timer : Timer .
+  var TIMER : Timer .
 
   op updateStatus_with_ : Object Timer ~> Object .
-  ceq updateStatus < O : PTask | period : T , status : ST > with timer
+  ceq updateStatus < O : PTask | period : T , status : ST > with TIMER
         = if ST == DORMANT then < O : PTask | status : READY >
           else error fi
-          if timer rem T == 0 .
-  eq updateStatus < O : PTask | status : ST > with timer
+      if TIMER rem T == 0 .
+  eq updateStatus < O : PTask | status : ST > with TIMER
        = if ST == RUNNING then < O : PTask | status : INTERRUPT >
          else < O : PTask | > fi [owise] .
-  eq updateStatus error with timer = error .
+  eq updateStatus error with TIMER = error .
 
   op start_ : Object ~> Object .
   eq start error = error .
@@ -182,86 +181,87 @@ endom)
   mb (< O:Oid : PTask | > :: L:TaskList) : TaskList .
   mb (error :: L:TaskList) : TaskList .
 
-  var n : Nat .
-  var t : Object .
+  var N : Nat .
+  var T : Object .
+  var O : Oid .
   var ST : Status .
-  var l : TaskList .
-  var timer : Timer .
+  var L : TaskList .
+  var TIMER : Timer .
   var R : Time .
 
   *** the model of function updateStatus() in the code
   op updateStatus_with_ : TaskList Timer -> TaskList .
-  eq updateStatus null with timer = null .
-  eq updateStatus t :: l with timer
-       = (updateStatus t with timer) :: (updateStatus l with timer) .
+  eq updateStatus null with TIMER = null .
+  eq updateStatus T :: L with TIMER
+       = (updateStatus T with TIMER) :: (updateStatus L with TIMER) .
 
-  *** find the next task which should be run, from index n
+  *** find the next task which should be run, from index N
   op nextTaskIn_from_ : TaskList Nat -> MaybeNat .
-  eq nextTaskIn null from n = none .
-  eq nextTaskIn t :: l from s n = s (nextTaskIn l from n) .
-  eq nextTaskIn < O:Oid : PTask | status : ST > :: l from 0 
+  eq nextTaskIn null from N = none .
+  eq nextTaskIn T :: L from s N = s (nextTaskIn L from N) .
+  eq nextTaskIn < O : PTask | status : ST > :: L from 0 
        = if ST == READY or ST == INTERRUPT 
          then some 0
-         else s (nextTaskIn l from 0)
+         else s (nextTaskIn L from 0)
          fi .
-  eq nextTaskIn error :: l from 0 = none .
+  eq nextTaskIn error :: L from 0 = none .
 
-  *** get the status of nth task in l
+  *** get the status of nth task in L
   op statusOf_in_ : Nat TaskList ~> Status .
-  eq statusOf 0 in < O:Oid : PTask | status : ST > :: l = ST .
-  eq statusOf s n in t :: l = statusOf n in l .
+  eq statusOf 0 in < O : PTask | status : ST > :: L = ST .
+  eq statusOf s N in T :: L = statusOf N in L .
 
-  *** start nth task in l
+  *** start Nth task in L
   op start_in_ : Nat TaskList ~> TaskList .
-  --- eq start n in null = null .
-  eq start (s n) in (t :: l) = t :: (start n in l) .
-  eq start 0 in (t :: l) = (start t) :: l .
+  --- eq start N in null = null .
+  eq start (s N) in (T :: L) = T :: (start N in L) .
+  eq start 0 in (T :: L) = (start T) :: L .
 
-  *** ask whether nth task in l may finish
+  *** ask whether Nth task in L may finish
   op _mayFinish?in_ : Nat TaskList ~> Bool .
-  --- eq n mayFinish?in null = false .
-  eq (s n) mayFinish?in (t :: l) = n mayFinish?in l .
-  eq 0 mayFinish?in (t :: l) = t mayFinish? .
+  --- eq N mayFinish?in null = false .
+  eq (s N) mayFinish?in (T :: L) = N mayFinish?in L .
+  eq 0 mayFinish?in (T :: L) = T mayFinish? .
 
-  *** finish nth task in l
+  *** finish Nth task in L
   op finish_in_ : Nat TaskList ~> TaskList .
-  --- eq finish n in null = null .
-  eq finish (s n) in (t :: l) = t :: (finish n in l) .
-  eq finish 0 in (t :: l) = (finish t) :: l .
+  --- eq finish N in null = null .
+  eq finish (s N) in (T :: L) = T :: (finish N in L) .
+  eq finish 0 in (T :: L) = (finish T) :: L .
 
-  *** l contains error?
+  *** L contains error?
   op containError : TaskList -> Bool .
   eq containError(null) = false .
-  eq containError(error :: l) = true .
-  eq containError(t :: l) = containError(l) [owise] .
+  eq containError(error :: L) = true .
+  eq containError(T :: L) = containError(L) [owise] .
 
-  *** judge whether n is the should-be-run one (assuming no error)
+  *** judge whether N is the should-be-run one (assuming no error)
   op _shouldRunIn_ : MaybeNat TaskList ~> Bool .
   eq none shouldRunIn null = true .
-  eq none shouldRunIn < O:Oid : PTask | status : DORMANT > :: l
-       = none shouldRunIn l .
-  eq none shouldRunIn t :: l = false [owise] .
-  eq some n shouldRunIn null = false .
-  eq some 0 shouldRunIn < O:Oid : PTask | status : DORMANT > :: l
+  eq none shouldRunIn < O : PTask | status : DORMANT > :: L
+       = none shouldRunIn L .
+  eq none shouldRunIn T :: L = false [owise] .
+  eq some N shouldRunIn null = false .
+  eq some 0 shouldRunIn < O : PTask | status : DORMANT > :: L
        = false .
-  eq some 0 shouldRunIn t :: l = true [owise] .
-  eq some (s n) shouldRunIn < O:Oid : PTask | status : DORMANT > :: l
-       = some n shouldRunIn l .
-  eq some (s n) shouldRunIn t :: l = false [owise] .
+  eq some 0 shouldRunIn T :: L = true [owise] .
+  eq some (s N) shouldRunIn < O : PTask | status : DORMANT > :: L
+       = some N shouldRunIn L .
+  eq some (s N) shouldRunIn T :: L = false [owise] .
 
-  *** mte of the list l
+  *** mte of the list L
   op mteOf_in_ : MaybeNat TaskList ~> TimeInf .
-  --- eq mteOf n in null = zero .
-  eq mteOf none in l = INF .
-  eq mteOf some 0 in t :: l = mteOf(t) .
-  eq mteOf some (s n) in t :: l = mteOf some n in l .
+  --- eq mteOf N in null = zero .
+  eq mteOf none in L = INF .
+  eq mteOf some 0 in T :: L = mteOf(T) .
+  eq mteOf some (s N) in T :: L = mteOf some N in L .
 
-  *** time effect on list l
+  *** time effect on list L
   op delta__in_ : MaybeNat TaskList Time ~> TaskList .
-  eq delta none l in R = l .
-  --- eq delta( n , null , R ) = null .
-  eq delta (some 0) (t :: l) in R = (delta t in R) :: l .
-  eq delta (some (s n)) (t :: l) in R = t :: (delta (some n) l in R) .
+  eq delta none L in R = L .
+  --- eq delta( N , null , R ) = null .
+  eq delta (some 0) (T :: L) in R = (delta T in R) :: L .
+  eq delta (some (s N)) (T :: L) in R = T :: (delta (some N) L in R) .
 endom)
 
 (omod SYSTEM-TASKS is
@@ -275,25 +275,27 @@ endom)
 
   ops scheduling switching : -> Oid [ctor] .
 
+  var O : Oid .
+  var C : Counter .
+  var REST : Configuration .
+  
   *** ask whether task with ID may finish
   op _mayFinish?in_ : Oid SysTasks ~> Bool .
-  eq O:Oid mayFinish?in [ < O:Oid : Task | cnt : C:Counter > REST:Configuration ]
-       = (C:Counter) mayFinish? .
+  eq O mayFinish?in [ < O : Task | cnt : C > REST ] = C mayFinish? .
 
   *** finish the task with ID
   op finish_in_ : Oid SysTasks ~> SysTasks .
-  eq finish O:Oid in [ < O:Oid : Task | cnt : C:Counter > REST:Configuration ]
-       = [ < O:Oid : Task | cnt : reset(C:Counter) > REST:Configuration ] .
+  eq finish O in [ < O : Task | cnt : C > REST ]
+       = [ < O : Task | cnt : reset(C) > REST ] .
 
   *** mte
   op mteOf_in_ : Oid SysTasks ~> Time .
-  eq mteOf O:Oid in [ < O:Oid : Task | cnt : C:Counter > REST:Configuration ]
-       = mteOf(C:Counter) .
+  eq mteOf O in [ < O : Task | cnt : C > REST ] = mteOf(C) .
 
   *** delta
   op delta__in_ : Oid SysTasks Time ~> SysTasks .
-  eq delta O:Oid ([ < O:Oid : Task | > REST:Configuration ]) in R:Time
-       = [ (delta (< O:Oid : Task | >) in R:Time) REST:Configuration ] .
+  eq delta O ([ < O : Task | > REST ]) in R:Time
+       = [ (delta (< O : Task | >) in R:Time) REST ] .
 
 endom)
 

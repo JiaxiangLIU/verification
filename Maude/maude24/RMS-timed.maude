@@ -676,7 +676,7 @@ endtm)
   eq INIT-3 = { TEST-3 ; bottom ; running none : [ 0 / CYCLE ] : clock( 0 / 13860000 )
                 | INT-ON : intReq false 
                 | [ 0 / [ 3 , 4 ] ] , [ 0 / [ 1 , 2 ] ] ; none } .
-  eq INIT-4 = { TEST-4 ; bottom ; running none : [ 0 / CYCLE ] : clock( 0 / CYCLE )
+  eq INIT-4 = { TEST-4 ; bottom ; running none : [ 0 / 5544 ] : clock( CYCLE / CYCLE )
                 | INT-ON : intReq false 
                 | [ 0 / [ 1 , 1 ] ] , [ 0 / [ 1 , 1 ] ] ; none } .
   eq INIT-5 = { TEST-5 ; bottom ; running none : [ 0 / 2 ] : clock( 0 / 10 )

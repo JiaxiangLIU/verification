@@ -112,11 +112,12 @@ does not vary with time.
 initiation times and can be preempted instantly (ignoring all
 blocking).
 
-(A3) All overhead, such as task swapping times, is ignored.
+(A3) All overhead, such as task switching times, is ignored.
 
-In this paper, our application of the RMS algorithm meets the
-assumption~(A2), while we would try to relax (A1) and (A3) in our
-analysis model.
+In this paper, we consider an implementation instead of the RMS
+algorithm itself, thus the model would be more complicated than this
+ideal formulation.  Assumptions~(A1) and (A3) will be relaxed to shape a more
+realisitc analysis model, as shown below.
 
 \subsection{The Implementation of RMS}
 The algorithm of the RMS is straightforward, and it is easy to
@@ -126,15 +127,15 @@ realistic avionic operating system from our industrial
 partner. Interrupts triggered by the clock would come every $T$, which
 we call \emph{interrupt cycle}. When an interrupt request comes, if
 the system is interruptable, i.e. the interrupt mask is cleared, the
-funtion $schedule()$ will be called; otherwise $schedule()$ will be
-called once the interrupt mask becomes cleared.  The pseudocode of
-$schedule()$ is shown as Algorithm~\ref{a:schedule}, where $taskList$
-is the list of periodic tasks, which are needed to be scheduled, and
-assumed ordered descendingly by priorities, and where both variables
-$taskList$ and $timer$ are global. In this implementation, there is
-only one kind of interrupt, the period $T_i$ of each task is a
-multiple of $T$, and the tasks are independent, meeting the
-assumption~(A2).
+function $schedule()$ will be called; otherwise the handler function
+$schedule()$ will be pending until the interrupt mask becomes cleared.
+The pseudocode of $schedule()$ is shown as Algorithm~\ref{a:schedule},
+where $taskList$ is the list of periodic tasks, which are needed to be
+scheduled, and assumed ordered descendingly by priorities, and where
+both variables $taskList$ and $timer$ are global. In this
+implementation, there is only one kind of interrupt, the period $T_i$
+of each task is a multiple of $T$, and the tasks are independent,
+meeting assumption~(A2).
 
 \begin{algorithm}
   \caption{The C-Like Pseudocode of $schedule()$}
@@ -143,7 +144,7 @@ assumption~(A2).
 \Function{$schedule$}{$ $}{}
   \State \Call{$int\_o\!f\!\!f$}{$ $}; \Comment{to disable interrupts}
   \State \Call{$updateStatus$}{$taskList$};
-  \State $timer = timer + 1$;
+  \State $timer = timer + 1$; \label{l:timer}
   \State $p = taskList$;
   \While{$p$} 
     \If{$p\rightarrow status == \textit{INTERRUPT}$}
@@ -160,7 +161,7 @@ assumption~(A2).
 \EndFunction
 \Function{$updateStatus$}{$p$}
   \While{$p$}
-    \If{$p\rightarrow status == \textit{RUNNING}$}
+    \If{$p\rightarrow status == \textit{RUNNING}$} \label{l:startupdate}
       \State $p\rightarrow status = \textit{INTERRUPT}$;
     \EndIf
     \If{$timer~\%~(p\rightarrow period) == 0$} \Comment{the task should be initiated}
@@ -169,7 +170,7 @@ assumption~(A2).
       \Else \Comment{the status is \textit{READY} or \textit{INTERRUPT}}
 	\State \Call{$reportTaskError$}{$p$}; \Comment{the task misses its deadline}
       \EndIf
-    \EndIf
+    \EndIf \label{l:endupdate}
     \State $p = p\rightarrow next$;
   \EndWhile
 \EndFunction
@@ -189,7 +190,269 @@ in Algorithm~\ref{a:schedule}), such that the running of $schedule()$
 can be nested.
 
 \section{Formalizing the RMS Implementation}
+Based on the code, we model the implementation under the following
+assumptions:
 
+(A1') Computation time $C_i$ for each task $\tau_i$ is not constant,
+varying randomly between minimum $C^{min}_i$ and maximum $C^{max}_i$.
+
+(A2) Tasks are independent, such that they are ready to run at their
+initiation times and can be preempted instanly.
+
+(A3') The times for scheduling and task switching should be
+considered, while other overhead is ignored.
+
+These assumptions make our model different with the standard
+formulation. For instance, due to the interrupt masking and
+consideration of scheduling overhead, jobs corresponding to task
+$\tau_i$ could not be initiated at exactly $kT_i$, but a bit later.
+Note that (A2) says jobs are ready to run at their initiation times,
+however, they cannot run at their initiation times, because scheduling
+takes time.
+
+\subsection{Some Basic Data Types}
+In our model, tasks are identified with their indexes of sort
+\verb|Nat| in the $taskList$. We define a sort \verb|MaybeNat|
+wrapping \verb|Nat|s to refer to some task, with \emph{constructor}
+\verb|some| followed by a \verb|Nat| $n$ indicating the task with
+index $n$, and \verb|none| for no task:
+\begin{verbatim}
+  op none : -> MaybeNat [ctor] .
+  op some_ : Nat -> MaybeNat [ctor] .
+\end{verbatim}
+
+A sort \verb|Stack| is introduced to simulate the stack of the system,
+storing the tasks that are being interrupted, and equipped with
+operations \verb|push|, \verb|pop| and \verb|peek| on it.
+\begin{verbatim}
+  op bottom : -> Stack [ctor] .
+  op _#_ : Nat Stack -> Stack [ctor] .
+\end{verbatim}
+
+We also need a sort \verb|Interval| denoting the interval, within
+which the computation time of a task varies, and a sort \verb|Counter|
+to represent how long some task has run and how long it should run.
+\begin{verbatim}
+  op [_,_] : Time Time -> Interval [ctor] .
+  op [_/_] : Time Interval -> Counter [ctor] .
+\end{verbatim}
+
+At last, to make our model checkable by \emph{untimed model-checking},
+it is reasonable to reset the global variable $timer$ when it reaches
+an upperbound while increasing (see Line~\ref{l:timer} in
+Algorithm~\ref{a:schedule}) in the model. Then $timer$ is of sort
+\verb|Timer| and the upperbound would be the least common multiple of
+the periods of all tasks.
+\begin{verbatim}
+  op [_/_] : Nat NzNat -> Timer [ctor] .
+\end{verbatim}
+
+\subsection{Modeling the System States}
+Abstracting from some details, the running system could be considered
+as consisting of several parts: the tasks which are scheduled, the
+scheduler itself, the hardware including registers and stacks, and the
+interrupt source. The scheduler, i.e. the function $schedule()$, has
+only the variable $timer$ to be interesting, thus it can be described
+by a single variable. We will present the modeling of the other parts
+one by one.
+
+\subsubsection{Tasks}
+In this paper, since we are trying to analyze the implementation of
+the scheduler, each task will be abstracted from its functionality and
+treated as a \verb|Counter|. As mentioned above, times for scheduling
+and task switching will be also considered in the model. They are just
+seen as two system tasks. Every task is modeled as an object instance
+of some subclass of the base class \verb|Task|:
+\begin{verbatim}
+  class Task | cnt : Counter .
+  op error : -> Object [ctor] .
+\end{verbatim}
+The attribute \verb|cnt| denotes the computation time of the task,
+while \verb|error| is an object indicating some task which misses its
+deadline.
+
+A periodic task, which is needed to be scheduled, is an object
+instance of the subclass \verb|PTask| with additional attributes
+\verb|priority|, \verb|period| and \verb|status|:
+\begin{verbatim}
+  class PTask | priority : Nat, period : NzNat, status : Status .
+  subclass PTask < Task .
+\end{verbatim}
+where \verb|Status| is a sort with four constant constructors, just as
+in the implementation:
+\begin{verbatim}
+  ops RUNNING INTERRUPT READY DORMANT : -> Status [ctor] .
+\end{verbatim}
+The list of periodic tasks, the variable $taskList$ in the
+implementation, is modeled as an instance of the sort \verb|TaskList|,
+which is a list of \verb|PTask|s\footnote{Following the Maude
+  convention, variables would be written in capital letters.}:
+\begin{verbatim}
+  op null : -> TaskList [ctor] .
+  op _::_ : Object TaskList ~> TaskList [ctor] .
+  mb (< O:Oid : PTask |> :: L:TaskList) : TaskList .
+  mb (error :: L:TaskList) : TaskList .
+\end{verbatim}
+As mentioned already, periodic tasks would be identified by their
+indexes in the list.
+
+On the other hand, a system task is an object instance of the subclass
+\verb|SysTask| of \verb|Task| with no extra attributes:
+\begin{verbatim}
+  class SysTask .            subclass SysTask < Task .
+\end{verbatim}
+Different from periodic tasks, system tasks would be organized in a
+multiset of sort \verb|SysTasks|, and identified by their \verb|Oid|s.
+We abstract here from the detailed definitions thanks to the
+similarity.
+
+\subsubsection{Hardware} Our model considers two parts of hardware relating
+to the interrupt handling inside the system, the registers and the
+stack.
+
+The set of registers is modeled as an object instance of the class
+\verb|Regs|, with attributes \verb|pc| denoting the program counter,
+\verb|mask| for the interrupt masking flag and \verb|ir| for the
+interrupt request flag.
+\begin{verbatim}
+  class Regs | pc : TaskID, mask : Bool, ir : Bool .
+\end{verbatim}
+where the sort \verb|TaskID| is a supersort of \verb|MaybeNat| and
+\verb|Oid|, referring to some task.
+\begin{verbatim}
+  subsorts MaybeNat Oid < TaskID .
+\end{verbatim}
+
+Some operations, such as \verb|getPc|, \verb|setMask| and so on, are
+also defined on the class \verb|Regs|.
+
+Then the hardware is naturally described by the sort \verb|Hardware|:
+\begin{verbatim}
+  op [_;_] : Object Stack ~> Hardware [ctor] .
+  mb ([ < O:Oid : Regs |> ; S:Stack ]) : Hardware .
+\end{verbatim}
+
+\subsubsection{Interrupt Source}
+The interrupt source is modeled in our model as an object of class \verb|IntSrc|,
+with attribute \verb|cycle| denoting the interrupt cycle:
+\begin{verbatim}
+  class IntSrc | val : Time, cycle : Time .
+\end{verbatim}
+
+\subsubsection{System}
+The system in the model is just a composition of the parts introduced
+above, with a sort \verb|System|\footnote{Some variable declarations
+  are not shown for simplicity.}:
+\begin{verbatim}
+  op _____ : 
+       TaskList Timer SysTasks Hardware Object ~> System [ctor] .
+  mb (L T STS HW < O:Oid : IntSrc |>) : System .
+\end{verbatim}
+
+\subsection{Interrupt Requesting}
+Interrupt requests are performed by the source exactly every cycle
+$T$, when the attribute \verb|val| decreases to \verb|zero| while time
+advances. This is modeled by the following instanous conditional rule
+applied on \verb|System|:
+\begin{verbatim}
+  crl [interrupt-request] :
+    (L T STS HW ISRC) => (L T STS (HW).intReq reset(ISRC))
+    if (ISRC).timeout .
+\end{verbatim}
+where the operator \verb|_.timeout| examines whether the attribute
+\verb|val| equals to \verb|zero|, and \verb|_.intReq| sets the
+\verb|ir| flag indicating there is an interrupt request to be handled:
+\begin{verbatim}
+  op _.intReq : Hardware -> Hardware .
+  eq [ REGS ; S ].intReq = [ (REGS).setIr ; S ] .
+\end{verbatim}
+Then the request will wait to be handled, which is explained in
+Section~\ref{ss:inthandling}.
+
+
+\subsection{Task Initiation}
+Periodic tasks are initiated sequently by exactly the function
+$updateStatus()$ in Algorithm~\ref{a:schedule}, which is modeled by
+the recursive operation as below:
+\begin{verbatim}
+  op updateStatus_with_ : TaskList Timer -> TaskList . 
+  eq updateStatus null with TIMER = null .
+  eq updateStatus (TASK :: L) with TIMER
+       = (update TASK with TIMER) :: (updateStatus L with TIMER) .
+\end{verbatim}
+with \verb|TIMER| the current value of the global variable $timer$,
+and \verb|update_with_| updating the status of individual task
+(Lines~\ref{l:startupdate}-\ref{l:endupdate} in
+Algorithm~\ref{a:schedule})
+\begin{verbatim}
+  op update_with_ : Object Timer ~> Object .
+  ceq update < O : PTask | period : T, status : ST > with TIMER
+        = if ST == DORMANT then < O : PTask | status : READY >
+          else error fi
+      if TIMER rem T == 0 .
+  eq update < O : PTask | status : ST > with TIMER
+       = if ST == RUNNING then < O : PTask | status : INTERRUPT >
+         else < O : PTask |> fi [owise] .
+\end{verbatim}
+In the case where \verb|TIMER|($timer$) can be divided by the task's
+period, i.e. the task should be initiated, if the status is
+\verb|DORMANT|, it should be ready to run; otherwise it means the
+previous job of the task is not finished, thus it misses its deadline,
+producing an \verb|error|. In the other case where the tasks should
+not be initiated, the status of the task changes only if it is
+\verb|RUNNING|. We can easily see \verb|updateStatus_with_| behaves
+the same as $updateStatus()$.
+
+\subsection{Interrupt Handling}
+\label{ss:inthandling}
+When an interrupt request comes, it may not be ``seen'' immediately by
+the system. It requires the \verb|mask| flag to be cleared. Once the
+request is seen, it is handled by performing two stages: the interrupt
+mechanism of the hardware (such as clearing \verb|ir|, pushing context
+into stack and so on) and running the $schedule()$ function. This is
+modeled by the following instanous rewrite rule:
+\begin{verbatim}
+  crl [interrupt-handle] :
+    SYSTEM => ((SYSTEM).interrupt).startScheduling
+    if (SYSTEM).existInt .
+\end{verbatim}
+where \verb|_.existInt| checks whether \verb|mask| is cleared
+\emph{and} \verb|ir| is set. The operation \verb|_.interrupt| models
+the interrupt mechanism performed by the hardware and does four
+things: (i)clearing the \verb|ir| flag, which means the request has
+been handled; (ii)pushing the current \verb|pc| value into the stack,
+storing the interrupted context; (iii)assigning \verb|scheduling| of
+sort \verb|Oid| to \verb|pc|, which indicates that $schedule()$ is
+running; and (iv)setting the \verb|mask| flag, to mask the coming
+interrupt requests.
+
+It is worth pointing out that \emph{scheduling} in our model does not
+refer to the stage in which $schedule()$ is running. We use it to
+refer to the stage scheduling the first should-be-run periodic task,
+i.e.  the code strictly before Line~\ref{l:function} in
+Algorithm~\ref{a:schedule}. Therefore,
+\begin{definition}
+  The \emph{scheduling time} talked about in this paper consists of
+  the time for switching from a running task to the function
+  $schedule()$ when handling interrupts, the time spent by
+  $schedule()$ finding and setting the \emph{first} should-be-run
+  periodic task, and the time for switching from $schedule()$ to that
+  first should-be-run task.
+\end{definition}
+Similarly, \emph{switching} in our model refers to the stage finding
+out the next should-be-run periodic task when one is finished.
+\begin{definition}
+  The \emph{switching time} in this paper consists of the time for
+  switching from a finished task back into $schedule()$, the time
+  spent by $schedule()$ finding and setting the \emph{next}
+  should-be-run periodic task, and the time for switching from
+  $schedule()$ to that next should-be-run task.
+\end{definition}
+
+
+
+
+\subsection{Timed Behaviours of the System}
 
 \section{Formal Analysis}
 \subsection{Properties}

@@ -143,15 +143,15 @@ meeting assumption~(A2).
   \begin{algorithmic}[1]
 \Function{$schedule$}{$ $}{}
   \State \Call{$int\_o\!f\!\!f$}{$ $}; \Comment{to disable interrupts}
-  \State \Call{$updateStatus$}{$taskList$};
-  \State $timer = timer + 1$; \label{l:timer}
+  \State \Call{$updateStatus$}{$taskList$}; \label{l:updatestatus}
+  \State $timer = timer + 1$; \label{l:timer} \label{l:inc}
   \State $p = taskList$;
-  \While{$p$} 
+  \While{$p$} \label{l:startrun1st}
     \If{$p\rightarrow status == \textit{INTERRUPT}$}
       \State \Return;
     \ElsIf{$p\rightarrow status == \textit{READY}$}      
       \State $p\rightarrow status = \textit{RUNNING}$;
-      \State \Call{$int\_on$}{$ $}; \Comment{to enable interrupts}
+      \State \Call{$int\_on$}{$ $}; \Comment{to enable interrupts} \label{l:endrun1st}
       \State $p\rightarrow function()$; \Comment{to run the task} \label{l:function}
       \State \Call{$int\_o\!f\!\!f$}{$ $};
       \State $p\rightarrow status = \textit{DORMANT}$;
@@ -230,8 +230,10 @@ operations \verb|push|, \verb|pop| and \verb|peek| on it.
 \end{verbatim}
 
 We also need a sort \verb|Interval| denoting the interval, within
-which the computation time of a task varies, and a sort \verb|Counter|
-to represent how long some task has run and how long it should run.
+which the computation time of a task varies and which we call
+\emph{possible finishing interval}, and a sort \verb|Counter| to
+represent the time some task has been running and the corresponding
+possible finishing interval.
 \begin{verbatim}
   op [_,_] : Time Time -> Interval [ctor] .
   op [_/_] : Time Interval -> Counter [ctor] .
@@ -403,7 +405,7 @@ not be initiated, the status of the task changes only if it is
 \verb|RUNNING|. We can easily see \verb|updateStatus_with_| behaves
 the same as $updateStatus()$.
 
-\subsection{Interrupt Handling}
+\subsection{Interrupt Handling and Task Scheduling}
 \label{ss:inthandling}
 When an interrupt request comes, it may not be ``seen'' immediately by
 the system. It requires the \verb|mask| flag to be cleared. Once the
@@ -424,12 +426,20 @@ been handled; (ii)pushing the current \verb|pc| value into the stack,
 storing the interrupted context; (iii)assigning \verb|scheduling| of
 sort \verb|Oid| to \verb|pc|, which indicates that $schedule()$ is
 running; and (iv)setting the \verb|mask| flag, to mask the coming
-interrupt requests.
+interrupt requests. As for \verb|_.startScheduling|, it performs
+updating the status of $taskList$ and increasing $timer$ by $1$,
+corresponding to Line~\ref{l:updatestatus} and \ref{l:inc} in
+Algorithm~\ref{a:schedule}.
+\begin{verbatim}
+  op _.startScheduling : System -> System .
+  eq (L T STS HW ISRC).startScheduling 
+       = ((updateStatus L with T) inc(T) STS HW ISRC) .
+\end{verbatim}
 
-It is worth pointing out that \emph{scheduling} in our model does not
-refer to the stage in which $schedule()$ is running. We use it to
-refer to the stage scheduling the first should-be-run periodic task,
-i.e.  the code strictly before Line~\ref{l:function} in
+It is worth pointing out here that \emph{scheduling} in our model does
+not refer to the stage in which $schedule()$ is running. We use it to
+refer to, for simplicity, the stage scheduling the first should-be-run
+periodic task, i.e.  the code strictly before Line~\ref{l:function} in
 Algorithm~\ref{a:schedule}. Therefore,
 \begin{definition}
   The \emph{scheduling time} talked about in this paper consists of
@@ -449,7 +459,60 @@ out the next should-be-run periodic task when one is finished.
   $schedule()$ to that next should-be-run task.
 \end{definition}
 
+With our terminology, when the running time of the system task
+\verb|scheduling| reaches its possible finishing interval, the
+following rule may apply to finish the scheduling stage:
+\begin{verbatim}
+  crl [scheduling-finish] :
+    (L T STS HW ISRC) => (SYSTEM).finishScheduling
+    if SYSTEM := (L T STS HW ISRC) 
+       /\ (SYSTEM).running == scheduling 
+       /\ scheduling mayFinish?in STS .
+\end{verbatim}
+where operation \verb|_.running| returns the current \verb|pc| value
+of the system and \verb|_mayFinish?in_| checks if the running time of
+the task reaches its possible finishing interval:
+\begin{verbatim}
+  op _mayFinish?in_ : Oid SysTasks ~> Bool .
+  eq O mayFinish?in [ < O : SysTask | cnt : C > REST ] 
+       = C mayFinish? .
+  op _mayFinish? : Counter -> Bool .
+  eq [ R / [ MIN , MAX ] ] mayFinish?
+       = if R lt MIN then false else true fi .
+\end{verbatim}
+And the operation \verb|_.finishScheduling| performs the remaining
+instructions, which are left by \verb|_.startScheduling|, in the
+scheduling stage: finding the first should-be-run periodic task and
+setting it to run (Line~\ref{l:startrun1st}-\ref{l:endrun1st} in
+Algorithm~\ref{a:schedule}).
+\begin{verbatim}
+  op _.finishScheduling : System -> System .
+  eq (L T STS HW ISRC).finishScheduling
+       = (L T (finish scheduling in STS) HW ISRC).run1stTask .
+\end{verbatim}
+where \verb|finish_in_| resets the counter of task \verb|scheduling|,
+and \verb|_.run1stTask| models
+Line~\ref{l:startrun1st}-\ref{l:endrun1st} in
+Algorithm~\ref{a:schedule}, searching the task with highest priority
+that has status \verb|INTERRUPT| or \verb|READY| then performing an
+\emph{interrupt return} or letting it run respectively.
 
+Similar to \verb|scheduling|, the \verb|switching| stage starts when
+the running time of the current running periodic task reaches its
+possible finishing interval and finishes when its own running time
+does so, with the two following similar rules:
+\begin{verbatim}
+  crl [task-finish] :
+    (L T STS HW ISRC) => (SYSTEM).startSwitching
+    if SYSTEM := (L T STS HW ISRC)
+       /\ some N := (SYSTEM).running
+       /\ some N mayFinish?in L .
+  crl [switching-finish] :
+    (L T STS HW ISRC) => (SYSTEM).finishSwitching
+    if SYSTEM := (L T STS HW ISRC)
+       /\ (SYSTEM).running == switching
+       /\ switching mayFinish?in STS .
+\end{verbatim}
 
 
 \subsection{Timed Behaviours of the System}

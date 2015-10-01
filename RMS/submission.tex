@@ -26,70 +26,6 @@
 
 \section{Introduction}
 
-\section{Real-Time Maude}
-Real-Time Maude is a language and tool that extends Maude to support
-the formal specification and analysis of real-time systems.
-
-\subsection{Specification}
-A Real-Time Maude module specifies a \emph{real-time rewrite theory}
-$(\Sigma, E\cup A , IR, TR)$, where:
-\begin{itemize}
-\item $\Sigma$ is an algebraic \emph{signature}, that is, a set of
-  declarations of \emph{sorts}, \emph{subsorts} and \emph{function
-    symbols}.
-\item $(\Sigma, E\cup A)$ is a \emph{membership equational logic
-  theory}, with $E$ a set of possibly conditional equations, and $A$ a
-  set of equational axioms such as associativiy, commutativity and
-  identity.  $(\Sigma, E\cup A)$ specifies the system's state space as
-  an algebraic data type, and includes a built-in specification of a
-  sort \verb|Time|.
-\item $IR$ is a set of \emph{labeled conditional rewrite rules}
-  specifying the system's local transitions, each of which has the
-  form $[l]~:~t\rightarrow t'\mbox{ \textbf{if}
-  }\bigwedge^n_{j=1}cond_j$, where each $cond_j$ is an equality
-  $u_j=v_j$, and $l$ is a \emph{label}. Such a rule specifies an
-  \emph{instantaneous transition} from an instance of $t$ to the
-  corresponding instance of $t'$, \emph{provided} the conditions hold.
-\item $TR$ is a set of \emph{tick rules} $[l]~:~\{t\}\rightarrow\{t'\}
-  \mbox{ \textbf{in time} }\tau\mbox{ \textbf{if} }cond$ that advance
-  time in the \emph{entire} state $t$ by $\tau$ time units.
-\end{itemize}
-
-A class declaration $\texttt{class }C\texttt{ |
-}att_1\texttt{:}s_1\texttt{,}\ldots\texttt{,}att_n\texttt{:}s_n$
-declares a class $C$ with attributes $att_1$ to $att_n$ of sorts $s_1$
-to $s_n$. An \emph{object} of class $C$ in a given state is
-represented as a term $\texttt{< } O\texttt{:} C \texttt{ | }
-att_1\texttt{:}val_1\texttt{,} \ldots
-\texttt{,}att_n\texttt{:}val_n\texttt{ >}$ of sort \verb|Object|,
-where $O$, of sort \verb|Oid|, is the object's \emph{identifier}, and
-where $val_1$ to $val_n$ are the current values of the attributes
-$att_1$ to $att_n$. A \emph{subclass} inherits all the attributes and
-rules of its superclasses.
-
-\subsection{Formal Analysis}
-In this paper, we only consider Real-Time Maude's \emph{linear
-  temporal logic model checker}, which analyzes whether \emph{each}
-behavior satisfies a temporal logic formula. \emph{State propositions}
-are terms of sort \verb|Prop|, and their symantics is defined by
-equations $\texttt{ceq } statePattern \texttt{ |= } prop \texttt{ = }
-b \texttt{ if } cond$, with $b$ a term of sort \verb|Bool|, stating
-that $prop$ evaluates to $b$ in states that are instances of
-$statePattern$ when the condition $cond$ holds. These equations
-together define $prop$ to hold in all states $t$ where $t \texttt{ |=
-} prop$ evaluates to \verb|true|. A temporal logic \emph{formula} is
-constructed by state propositions and temporal logic operators such as
-\verb|True|, \verb|False|, \verb|~|(negation), \verb|/\|, \verb|\/|,
-\verb|->|(implication), \verb|[]|(``always''),
-\verb|<>|(``eventually'') and \verb|U|(``until''). Real-Time Maude
-provides both \emph{unbounded} and \emph{time-bounded} LTL model
-checking. The time-bounded model checking command
-\begin{alltt}
-  (mc \(t\) |=t \(formula\) in time <= \(timeLimit\) .)
-\end{alltt}
-checks whether the temporal logic formula holds in all behaviors up to
-duration $timeLimit$ starting from the initial state $t$.
-
 \section{Rate-Monotonic Scheduling Algorithm and the Implementation}
 
 \subsection{Formulation of the Standard Setting}
@@ -188,6 +124,70 @@ $schedule()$ is called only when the periodic interrupt is handled. It
 can be also interrupted while running some task (Line~\ref{l:function}
 in Algorithm~\ref{a:schedule}), such that the running of $schedule()$
 can be nested.
+
+\section{Real-Time Maude}
+Real-Time Maude is a language and tool that extends Maude to support
+the formal specification and analysis of real-time systems.
+
+\subsection{Specification}
+A Real-Time Maude module specifies a \emph{real-time rewrite theory}
+$(\Sigma, E\cup A , IR, TR)$, where:
+\begin{itemize}
+\item $\Sigma$ is an algebraic \emph{signature}, that is, a set of
+  declarations of \emph{sorts}, \emph{subsorts} and \emph{function
+    symbols}.
+\item $(\Sigma, E\cup A)$ is a \emph{membership equational logic
+  theory}, with $E$ a set of possibly conditional equations, and $A$ a
+  set of equational axioms such as associativiy, commutativity and
+  identity.  $(\Sigma, E\cup A)$ specifies the system's state space as
+  an algebraic data type, and includes a built-in specification of a
+  sort \verb|Time|.
+\item $IR$ is a set of \emph{labeled conditional rewrite rules}
+  specifying the system's local transitions, each of which has the
+  form $[l]~:~t\rightarrow t'\mbox{ \textbf{if}
+  }\bigwedge^n_{j=1}cond_j$, where each $cond_j$ is an equality
+  $u_j=v_j$, and $l$ is a \emph{label}. Such a rule specifies an
+  \emph{instaneous transition} from an instance of $t$ to the
+  corresponding instance of $t'$, \emph{provided} the conditions hold.
+\item $TR$ is a set of \emph{tick rules} $[l]~:~\{t\}\rightarrow\{t'\}
+  \mbox{ \textbf{in time} }\tau\mbox{ \textbf{if} }cond$ that advance
+  time in the \emph{entire} state $t$ by $\tau$ time units.
+\end{itemize}
+
+A class declaration $\texttt{class }C\texttt{ |
+}att_1\texttt{:}s_1\texttt{,}\ldots\texttt{,}att_n\texttt{:}s_n$
+declares a class $C$ with attributes $att_1$ to $att_n$ of sorts $s_1$
+to $s_n$. An \emph{object} of class $C$ in a given state is
+represented as a term $\texttt{< } O\texttt{:} C \texttt{ | }
+att_1\texttt{:}val_1\texttt{,} \ldots
+\texttt{,}att_n\texttt{:}val_n\texttt{ >}$ of sort \verb|Object|,
+where $O$, of sort \verb|Oid|, is the object's \emph{identifier}, and
+where $val_1$ to $val_n$ are the current values of the attributes
+$att_1$ to $att_n$. A \emph{subclass} inherits all the attributes and
+rules of its superclasses.
+
+\subsection{Formal Analysis}
+In this paper, we only consider Real-Time Maude's \emph{linear
+  temporal logic model checker}, which analyzes whether \emph{each}
+behavior satisfies a temporal logic formula. \emph{State propositions}
+are terms of sort \verb|Prop|, and their symantics is defined by
+equations $\texttt{ceq } statePattern \texttt{ |= } prop \texttt{ = }
+b \texttt{ if } cond$, with $b$ a term of sort \verb|Bool|, stating
+that $prop$ evaluates to $b$ in states that are instances of
+$statePattern$ when the condition $cond$ holds. These equations
+together define $prop$ to hold in all states $t$ where $t \texttt{ |=
+} prop$ evaluates to \verb|true|. A temporal logic \emph{formula} is
+constructed by state propositions and temporal logic operators such as
+\verb|True|, \verb|False|, \verb|~|(negation), \verb|/\|, \verb|\/|,
+\verb|->|(implication), \verb|[]|(``always''),
+\verb|<>|(``eventually'') and \verb|U|(``until''). Real-Time Maude
+provides both \emph{unbounded} and \emph{time-bounded} LTL model
+checking. The time-bounded model checking command
+\begin{alltt}
+  (mc \(t\) |=t \(formula\) in time <= \(timeLimit\) .)
+\end{alltt}
+checks whether the temporal logic formula holds in all behaviors up to
+duration $timeLimit$ starting from the initial state $t$.
 
 \section{Formalizing the RMS Implementation}
 Based on the code, we model the implementation under the following
@@ -354,7 +354,7 @@ above, with a sort \verb|System|\footnote{Some variable declarations
 \subsection{Interrupt Requesting}
 Interrupt requests are performed by the source exactly every cycle
 $T$, when the attribute \verb|val| decreases to \verb|zero| while time
-advances. This is modeled by the following instanous conditional rule
+advances. This is modeled by the following instaneous conditional rule
 applied on \verb|System|:
 \begin{verbatim}
   crl [interrupt-request] :
@@ -412,7 +412,7 @@ the system. It requires the \verb|mask| flag to be cleared. Once the
 request is seen, it is handled by performing two stages: the interrupt
 mechanism of the hardware (such as clearing \verb|ir|, pushing context
 into stack and so on) and running the $schedule()$ function. This is
-modeled by the following instanous rewrite rule:
+modeled by the following instaneous rewrite rule:
 \begin{verbatim}
   crl [interrupt-handle] :
     SYSTEM => ((SYSTEM).interrupt).startScheduling
@@ -514,8 +514,56 @@ does so, with the two following similar rules:
        /\ switching mayFinish?in STS .
 \end{verbatim}
 
-
 \subsection{Timed Behaviours of the System}
+\emph{Timed behaviours} of the system consist of two parts, the
+running of tasks, including both periodic ones and system ones, and
+the running of interrupt source. These are all modeled as the
+following one conventional tick rule:
+\begin{verbatim}
+  crl [tick]:
+    {SYSTEM} => {delta(SYSTEM, R)} in time R 
+    if R le mte(SYSTEM) [nonexec] .
+\end{verbatim}
+where \verb|delta| defines the effects of time elapse on the system,
+and \verb|mte| denotes the maximum amount of time allowed to elapse
+from the current state until an instaneous transition \emph{must} be
+performed. Notice that the variable $R$ is \emph{continuous} with
+respect to the specific time domain\footnote{Real-Time Maude contains
+  built-in modules to define the time domain to be natural numbers and
+  rational numbers, specifying \emph{discrete} time domains and
+  \emph{dense} time domains respectively.}  that we choose to
+instantiate the model on, which is different from timed automata that
+discretize dense time by defining ``clock region''.
+
+Time affects the system by advancing both the running task, whose $ID$
+is loaded at \verb|pc|, and the interrupt source simultaneously,
+increasing their \verb|cnt| and \verb|val| respectively:
+\begin{verbatim}
+  ceq delta((L T STS HW ISRC), R)
+        = ((deltaTask(ID, L, R) T STS HW (deltaIS(ISRC, R)))
+      if ID := (HW).getPc /\ ID :: MaybeNat .
+\end{verbatim}
+We ease the reading by not showing the case where $ID$ is of sort
+\verb|Oid|, due to similarity. At that case, \verb|deltaTask| applies
+on \verb|STS| instead of \verb|L|.
+
+The maximum amount of time allowed to elapse depends on three aspects:
+the time remained to finish the running task, either periodic one or
+system one, the time remained to request an interrupt, and whether or
+not there exists a non-masked interrupt request for the moment:
+\begin{verbatim}
+  ceq mte(L T STS HW ISRC)
+        = minimum( mteTask(ID, L),
+                   minimum( mteIS(ISRC), mteIr(HW)))
+      if ID := (HW).getPc /\ ID :: MaybeNat .
+\end{verbatim}
+where \verb|mteIr| will return \verb|zero| if there exists a
+non-masked interrupt request in the system, or \verb|INF| which
+represents \emph{infinity} otherwise. Again we do not show the case
+where $ID$ is of sort \verb|Oid|, which is very similar. We should
+point out that \verb|mteTask| computes the time remained to reach the
+maximum of the possible finishing interval of the task, since it is
+the time until which a ``finish'' transition \emph{must} happen.
 
 \section{Formal Analysis}
 \subsection{Properties}

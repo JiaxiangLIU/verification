@@ -565,8 +565,31 @@ point out that \verb|mteTask| computes the time remained to reach the
 maximum of the possible finishing interval of the task, since it is
 the time until which a ``finish'' transition \emph{must} happen.
 
-\section{Formal Analysis}
-\subsection{Properties}
+\section{Formal Verification}
+Although Real-Time Maude provides many useful commands and tools to
+analyze a model, such as, \verb|rewrite| to execute the model,
+\verb|search| to search some reachable state(s) satisfying given
+properties from the initial state, the Maude Inductive Theorem Prover
+(ITP) to interactively prove properties written in \emph{membership
+  equational logic}, and so on, we concentrate in this paper on using
+the model checking tool to verify the desired properties of our model.
+
+In this section, we analyze our model of the RMS implementation under
+several different scenarios, containing both realistic and
+experimental ones.
+
+The main objective is to verify the schedubility of a given set of
+periodic tasks. Therefore we define an atomic proposition
+\verb|taskTimeout| to hold if there exists an \verb|error| appearing
+in the $taskList$ of the current state:
+\begin{verbatim}
+  op taskTimeout : -> Prop [ctor] .
+  eq {L T STS HW ISRC} |= taskTimeout = containError(L) .
+\end{verbatim}
+
+\subsection{Properties Formalism}
+
+
 \subsection{Completeness of the Analysis}
 
 \section{Related Work}

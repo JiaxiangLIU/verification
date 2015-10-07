@@ -8,6 +8,9 @@
 \usepackage{amssymb}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
+\usepackage{enumerate}
+\usepackage{epic}
+\usepackage{pstricks}
 %\usepackage{llncsdoc}
 
 \newcommand{\hide}[1]{\ignorespaces}
@@ -575,10 +578,14 @@ properties from the initial state, the Maude Inductive Theorem Prover
 the model checking tool to verify the desired properties of our model.
 
 In this section, we analyze our model of the RMS implementation under
-several different scenarios, containing both realistic and
-experimental ones.
+several different scenarios, including both realistic and experimental
+ones. Notice that from any (reasonable) given initial state, the
+number of reachable states is finite, thanks to the upperbound given
+to the $timer$, which provides the potential for applying the untimed
+model-checker.
 
-The main objective is to verify the schedubility of a given set of
+\subsection{Properties Verified}
+The main objective is to verify the schedulability of a given set of
 periodic tasks. Therefore we define an atomic proposition
 \verb|taskTimeout| to hold if there exists an \verb|error| appearing
 in the $taskList$ of the current state:
@@ -586,9 +593,213 @@ in the $taskList$ of the current state:
   op taskTimeout : -> Prop [ctor] .
   eq {L T STS HW ISRC} |= taskTimeout = containError(L) .
 \end{verbatim}
+where \verb|containError| returns \verb|true| if there is an object
+\verb|error| existing in $L$. Then our desired
+property--schedulability--can be formalized as the temporal logic
+formula \verb|[](~taskTimeout)|. As the property is not
+\emph{clocked}, given an initial state \verb|init|, the following
+untimed model-checking command returns \verb|true| if our desired
+schedulability property holds \emph{with no time limit}; otherwise 
+a trace showing a counterexample is provided.
+\begin{verbatim}
+  (mc init |=u [](~taskTimeout) .)
+\end{verbatim}
 
-\subsection{Properties Formalism}
+The other objective is to verify the correctness of the
+implementation, in the sense that the periodic tasks are scheduled
+exactly with respect to their priorities. The atomic proposition
+\verb|scheduleCorrectly| is defined to hold if the running periodic
+task is the one requested to be run and with the highest priority:
+\begin{verbatim}
+  op scheduleCorrectly : -> Prop [ctor] .
+  ceq {L T STS HW ISRC} |= scheduleCorrectly 
+        = (not containError(L))
+          and (if ID :: MaybeNat then shouldRun(ID, L)
+               else true fi)
+      if ID := (HW).getPc .
+\end{verbatim}
+where \verb|shouldRun(ID, L)| returns \verb|true| if the task
+identified by \verb|ID|, probably \verb|none|, is the one possessing
+the highest priority among those whose status is \verb|READY|,
+\verb|RUNNING| or \verb|INTERRUPT|. Note that \verb|scheduleCorrectly|
+requires no \verb|error| popping up, since our defined correctness
+property makes no sense in the implementation once some task misses
+its deadline. The correctness property is formalized as the temporal
+logic formula \verb|[]scheduleCorrectly|, and can be verified by the
+following untimed model-checking command provided an initial state
+\verb|init|, which returning \verb|true| indicates the correctness
+property holds with no time limit.
+\begin{verbatim}
+  (mc init |=u []scheduleCorrectly .)
+\end{verbatim}
 
+\subsection{Scenarios}
+We use the following setting for our verification, which is from the 
+statistics provided by our industrial partner:
+\begin{itemize}
+\item The interrupt cycle is $5ms$.
+\item The scheduling time ranges from $5{\mu}s$ to $9{\mu}s$, and the
+switching time ranges from $2{\mu}s$ to $4{\mu}s$.
+\item The initial state is with empty stack, empty \verb|pc|, cleared 
+\verb|mask| and cleared \verb|ir|.
+\end{itemize}
+
+We have analyzed our model/implementation in ten different scenarios,
+including both realistic ones provided by our industrial partner and
+experimental ones designed by ourselves, four of them are described
+below:
+\begin{itemize}
+\item Scenario (i) with two tasks: one having period $5ms$ and
+  possible finishing interval $[2.4ms, 3ms]$, and the other having
+  period $25ms$ and possible finishing interval $[6.1ms, 7ms]$.
+\item Scenario (ii) with two tasks: one having period $5ms$ and
+  possible finishing interval $[1.8ms, 2ms]$, and the other having
+  period $25ms$ and possible finishing interval $[2.1ms, 2.3ms]$.
+\item Scenario (iii) with three tasks: the first having period $5ms$
+  and possible finishing interval $[2.5ms, 2.7ms]$, the second having
+  period $10ms$ and possible finishing interval $[1.5ms, 2ms]$, and
+  the third having period $25ms$ and possible finishing interval
+  $[2.6ms, 3ms]$.
+\item Scenario (iv) with three tasks: the first having period $5ms$
+  and possible finishing interval $[2.2ms, 2.5ms]$, the second having
+  period $10ms$ and possible finishing interval $[1.4ms, 1.5ms]$, and
+  the third having period $15ms$ and possible finishing interval
+  $[4.3ms, 4.5ms]$.
+\end{itemize}
+
+Choosing the \emph{maximal time sampling strategy}, the results of the
+model checking show that both the schedulability and the correctness
+properties hold in Scenarios (i-iii), but not in Scenario (iv). For
+Scenario (iv), one counterexample of the schedulability is pictured in
+Figure~\ref{f:counterexample}, where the third task (task$2$) misses
+its deadline at the time $15ms$ that is marked by the tiny red
+triangle. And the correctness fails in Scenario (iv) because of the
+failure of schedulability.
+
+\begin{figure}[h]
+\begin{center}
+\begin{picture}(300,110)(0,-10)
+\thicklines
+\put(0,0){\vector(1,0){320}}
+\put(305,5){time(${\mu}s$)}
+\thinlines
+\put(0,0){\line(0,1){110}}
+\put(-25,97){task$0$}
+\put(-25,77){task$1$}
+\put(-25,57){task$2$}
+\put(-44,37){scheduling}
+\put(-40,17){switching}
+\put(-2,-8){$0$}
+
+\dashline[30]{3}(0,100)(250,100)
+\dashline[30]{3}(0,80)(280,80)
+\dashline[30]{3}(0,60)(300,60)
+\dashline[30]{3}(0,40)(210,40)
+\dashline[30]{3}(0,20)(285,20)
+
+
+\dashline[30]{3}(10,-10)(10,100)
+\thicklines
+\textcolor{red}{\put(0,40){\line(1,0){10}}}
+\put(8,-18){$9$}
+
+\thinlines
+\dashline[30]{3}(50,0)(50,100)
+\thicklines
+\textcolor{blue}{\put(10,100){\line(1,0){40}}}
+\put(35,-8){$2509$}
+
+\thinlines
+\dashline[30]{3}(55,-10)(55,80)
+\thicklines
+\textcolor{red}{\put(50,20){\line(1,0){5}}}
+\put(46,-18){$2513$}
+
+\thinlines
+\dashline[30]{3}(80,0)(80,80)
+\thicklines
+\textcolor{blue}{\put(55,80){\line(1,0){25}}}
+\put(65,-8){$4013$}
+
+\thinlines
+\dashline[30]{3}(85,-10)(85,60)
+\thicklines
+\textcolor{red}{\put(80,20){\line(1,0){5}}}
+\put(76,-18){$4017$}
+
+\thinlines
+\dashline[30]{3}(100,0)(100,60)
+\thicklines
+\textcolor{blue}{\put(85,60){\line(1,0){15}}}
+\put(90,-8){$5000$}
+
+\thinlines
+\dashline[30]{3}(110,-10)(110,100)
+\thicklines
+\textcolor{red}{\put(100,40){\line(1,0){10}}}
+\put(101,-18){$5009$}
+
+\thinlines
+\dashline[30]{3}(150,0)(150,100)
+\thicklines
+\textcolor{blue}{\put(110,100){\line(1,0){40}}}
+\put(135,-8){$7509$}
+
+\thinlines
+\dashline[30]{3}(155,-10)(155,60)
+\thicklines
+\textcolor{red}{\put(150,20){\line(1,0){5}}}
+\put(146,-18){$7513$}
+
+\thinlines
+\dashline[30]{3}(200,0)(200,60)
+\thicklines
+\textcolor{blue}{\put(155,60){\line(1,0){45}}}
+\put(185,-8){$10000$}
+
+\thinlines
+\dashline[30]{3}(210,-10)(210,100)
+\thicklines
+\textcolor{red}{\put(200,40){\line(1,0){10}}}
+\put(198,-18){$10009$}
+
+\thinlines
+\dashline[30]{3}(250,0)(250,100)
+\thicklines
+\textcolor{blue}{\put(210,100){\line(1,0){40}}}
+\put(230,-8){$12509$}
+
+\thinlines
+\dashline[30]{3}(255,-10)(255,80)
+\thicklines
+\textcolor{red}{\put(250,20){\line(1,0){5}}}
+\put(243,-18){$12513$}
+
+\thinlines
+\dashline[30]{3}(280,0)(280,80)
+\thicklines
+\textcolor{blue}{\put(255,80){\line(1,0){25}}}
+\put(260,-8){$14013$}
+
+\thinlines
+\dashline[30]{3}(285,-10)(285,60)
+\thicklines
+\textcolor{red}{\put(280,20){\line(1,0){5}}}
+\put(272,-18){$14017$}
+
+\thinlines
+\dashline[30]{3}(300,0)(300,60)
+\thicklines
+\textcolor{blue}{\put(285,60){\line(1,0){15}}}
+\put(289,-8){$15000$}
+
+\textcolor{red}{\put(300,60){\vector(-1,0){0}}}
+
+\end{picture}
+\end{center}
+\caption{An Counterexample of Scenario (iv).}
+\label{f:counterexample}
+\end{figure}
 
 \subsection{Completeness of the Analysis}
 

@@ -6,6 +6,7 @@
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amssymb}
+\usepackage{mathabx}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{enumerate}
@@ -134,7 +135,7 @@ the formal specification and analysis of real-time systems.
 
 \subsection{Specification}
 A Real-Time Maude module specifies a \emph{real-time rewrite theory}
-$(\Sigma, E\cup A , IR, TR)$, where:
+${\cal R} = (\Sigma, E\cup A , IR, TR)$, where:
 \begin{itemize}
 \item $\Sigma$ is an algebraic \emph{signature}, that is, a set of
   declarations of \emph{sorts}, \emph{subsorts} and \emph{function
@@ -634,6 +635,7 @@ property holds with no time limit.
 \end{verbatim}
 
 \subsection{Scenarios}
+\label{ss:results}
 We use the following setting for our verification, which is from the 
 statistics provided by our industrial partner:
 \begin{itemize}
@@ -667,8 +669,9 @@ below:
   $[4.3ms, 4.5ms]$.
 \end{itemize}
 
-Choosing the \emph{maximal time sampling strategy}, the results of the
-model checking show that both the schedulability and the correctness
+Instantiating our model on dense time domain and choosing the
+\emph{maximal time sampling strategy}, the results of the model
+checking show that both the schedulability and the correctness
 properties hold in Scenarios (i-iii), but not in Scenario (iv). For
 Scenario (iv), one counterexample of the schedulability is pictured in
 Figure~\ref{f:counterexample}, where the third task (task$2$) misses
@@ -801,7 +804,80 @@ failure of schedulability.
 \label{f:counterexample}
 \end{figure}
 
-\subsection{Completeness of the Analysis}
+\subsection{Soundness and Completeness of the Analysis}
+We call an analysis method \emph{sound} if any counterexample found
+using such a method is a real counterexample of the question, and
+\emph{complete} if the fact that no counterexample can be found using
+such a method implies no counterexample exist for the question in
+analysis. The soundness of our results is easy to check, simply by
+examining the counterexamples found. But this is not the case for
+completeness, since we choose instantiating our model on dense time
+domain to make it more real but giving rise to an infinite state space
+which is unfeasible to exhaust. In general, completeness of untimed
+model checking cannot be achieved for any systems, any time sampling
+stategies and any properties. However, \"Olveczky and Meseguer proved
+the completeness of untimed temporal logic model checking, under the
+maximal time sampling strategy, for a large class of real-time
+systems:
+\begin{theorem}
+\label{t:completeness}
+Given a \emph{time-robust} real-time rewrite theory $\cal R$, a set
+$P$ of \emph{tick-stabilizing} atomic propositions, an LTL formula
+$\Phi$ (excluding the \emph{next} operator $\bigcirc$) whose atomic
+propositions are contained in $P$. The untimed temporal logic model
+checking verifying $\Phi$ is \emph{complete} under the maximal time
+sampling stategy.
+\end{theorem}
+
+To apply Theorem~\ref{t:completeness} on our analysis to show the
+completeness, we only need to prove time-robustness of our model and
+tick-stabilization of our defined atomic propositions,
+\verb|taskTimeout| and \verb|scheduleCorrectly|. The latter is quite
+trivial, while the former requires little adjustments to the model,
+which collapse the possible finishing interval for some periodic task
+into a single value that should be assigned to the possible maximum
+computation time. Then we can apply Lemma~\ref{l:timerobustness} to
+prove the time-robustness of our (adjusted) model.
+\begin{lemma}
+\label{l:timerobustness}
+An object-oriented specification $\cal R$, with a conventional tick
+rule, is \emph{time-robust} if the following conditions are satisfied
+for all appropriate \emph{ground} terms $t$ and $r,r'$:
+
+\noindent
+(i) $mte(\delta(t,r))=mte(t)\dotdiv r$, for all $r\le mte(t)$;
+
+\noindent
+(ii) $\delta(t,0)=t$;
+
+\noindent
+(iii) $\delta(\delta(t,r),r')=\delta(t,r+r')$, for $r+r'\le mte(t)$;
+
+\noindent
+(iv) $mte(\sigma(l))=0$ for each ground instance $\sigma(l)$ of a
+left-hand side of an instantaneous rewrite rule.
+\end{lemma}
+
+We achieve the same verification results for the adjusted model as for
+the original one: schedulability and correctness hold in Scenarios
+(i-iii) but fail in Scenario~(iv). The only thing remained to show the
+completeness of our results is to prove the reasonability of the
+adjustments, that is, if a set of tasks (including system ones) is
+schedulable when the computation time of some task $\tau_i$ in it
+equals to $C_i^{max}$, then when some jobs of $\tau_i$ become possible
+to finish in time $r\le C_i^{max}$, the set of tasks remains still
+schedulable. This is done by proving Lemma~\ref{l:max} and considering
+\verb|scheduling| and \verb|switching| as having same and higher
+priority than all periodic tasks.
+\begin{lemma}
+\label{l:max}
+Assume the time $r_s$ at which a job of $\tau_i$ starts running is
+fixed. The time $r_f$, at which this job finishes, reaches its maximum
+if all job instances of tasks $\tau$'s, the priorities of which are
+higher than or equal to that of $\tau_i$, running between $r_s$ and
+$r_f$ finish in their maximum possible computation time.
+\end{lemma}
+
 
 \section{Related Work}
 

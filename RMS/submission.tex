@@ -29,9 +29,77 @@
 \thispagestyle{empty}
 
 \section{Introduction}
+Periodic task scheduling is one of the most studied topics within the
+field of real-time systems, due to the large number of control systems
+that require cyclic activities. A set of periodic tasks is said to be
+\emph{schedulable} with respect to some scheduling algorithm if all
+jobs meet their deadlines. \emph{Rate-Monotonic Scheduling}
+(\emph{RMS}) algorithm is a \emph{fixed} priority scheduling algorithm
+for preemptive hard real-time environments proposed by Liu and
+Layland~\cite{DBLP:journals/jacm/LiuL73} in 1973, which assigns
+priorities to jobs according to the periods of the corresponding
+tasks: the smaller the period, the higher the priority. As it is easy
+to implement and is proved to be the \emph{optimal} fixed priority
+scheduling algorithm~\cite{DBLP:journals/jacm/LiuL73}, in the sense
+that any set of tasks that is schedulable under \emph{some} fixed
+priority scheduling algorithm is also schedulable with respect to RMS
+algorithm, RMS is widely used in different kinds of real-time
+applications, some of which are even safety-critical, such as trains,
+avionics and so on. 
+
+Liu and Layland also gave a sufficient condition for the
+schedulability of a set of $n$ tasks scheduled by RMS algorithm
+in~\cite{DBLP:journals/jacm/LiuL73}:
+$\displaystyle\Sigma^n_{i=1}C_i/T_i \le n(2^{1/n}-1)$, where $C_i$ and
+$T_i$ are the computation time and the period of task $\tau_i$
+respectively. Two main directions on RMS have been explored since
+then. One is to relax the assumptions on the original RMS model, for
+instance, to allow aperiodic
+tasks~\cite{DBLP:conf/rtss/LehoczkySS87,DBLP:journals/rts/SpruntSL89,DBLP:conf/rtss/LehoczkyR92,DBLP:journals/tc/StrosniderLS95},
+to generalize it to be
+\emph{deadline-monotonic}~\cite{DBLP:journals/pe/LeungW82,audsley1993deadline},
+to allow resource sharing among tasks~\cite{DBLP:journals/tc/ShaRL90},
+to extend it on
+multiprocessors~\cite{dhall1978real,DBLP:journals/rts/LopezGDG03,DBLP:journals/tpds/LopezDG04,DBLP:journals/tc/BaruahG03},
+to enhance
+fault-tolerance~\cite{DBLP:journals/rts/OhS94,DBLP:journals/rts/GhoshMMS98,DBLP:journals/tpds/BertossiMR99}
+and so on, making RMS algorithm applicable on more systems. The other
+direction is to generate better schedulablity test conditions for the
+algorithm and its
+extensions~\cite{DBLP:conf/rtss/LehoczkySD89,DBLP:conf/rtss/KuoM91,DBLP:journals/tc/BiniBB03,DBLP:journals/rts/LopezGDG03,DBLP:journals/tc/BaruahG03,gardner1999}. The
+RMS algorithm is of such practical importance that we certainly cannot
+exhaust all the results in literatures here.
+
+On the other hand, an increasing number of efforts to apply formal
+methods, such as model checking and theorem proving, are made to
+analyze safety-critical systems for the past few
+years~\cite{DBLP:journals/iandc/MeseguerR13,DBLP:journals/cacm/Leroy09,DBLP:conf/sosp/KleinEHACDEEKNSTW09}. However,
+as far as we know, few~\cite{DBLP:conf/iceccs/CuiDT14,TianD2011} are
+made to analyze the RMS algorithm, none for implementations of RMS.
+
+In this paper, we use \emph{Real-Time Maude}, a \emph{rewriting}-based
+modeling language and analyzing tool for real-time systems, to model a
+realistic implementation of RMS algorithm and then verify some desired
+properties on the built model. The model we built based on the
+realistic implementation extends the original ideal one proposed
+in~\cite{DBLP:journals/jacm/LiuL73}, by allowing computation time of
+tasks to be non-constant, and by considering overheads and other
+realistic aspects.
+
+The rest of this paper is organized as follows: Section~\ref{s:rms}
+introduces the standard setting of the RMS algorithm proposed
+in~\cite{DBLP:journals/jacm/LiuL73} and our considering realistic
+implementation. Section~\ref{s:rtmaude} gives a background to
+Real-Time Maude. Section~\ref{s:formalism} presents how we model the
+RMS implementation using Real-Time Maude. Then
+Section~\ref{s:verification} explains how to verify the desired
+properties and to analyze the results. Related work is discussed in
+Section~\ref{s:relate} before concluding in
+Section~\ref{s:conclusion}.
+
 
 \section{Rate-Monotonic Scheduling Algorithm and the Implementation}
-
+\label{s:rms}
 \subsection{Formulation of the Standard Setting}
 The frequently used setting of the RMS algorithm for analysis
 considers a task set consisting only of $n$ periodic tasks
@@ -130,6 +198,7 @@ in Algorithm~\ref{a:schedule}), such that the running of $schedule()$
 can be nested.
 
 \section{Real-Time Maude}
+\label{s:rtmaude}
 Real-Time Maude is a language and tool that extends Maude to support
 the formal specification and analysis of real-time systems.
 
@@ -194,6 +263,7 @@ checks whether the temporal logic formula holds in all behaviors up to
 duration $timeLimit$ starting from the initial state $t$.
 
 \section{Formalizing the RMS Implementation}
+\label{s:formalism}
 Based on the code, we model the implementation under the following
 assumptions:
 
@@ -570,6 +640,7 @@ maximum of the possible finishing interval of the task, since it is
 the time until which a ``finish'' transition \emph{must} happen.
 
 \section{Formal Verification}
+\label{s:verification}
 Although Real-Time Maude provides many useful commands and tools to
 analyze a model, such as, \verb|rewrite| to execute the model,
 \verb|search| to search some reachable state(s) satisfying given
@@ -880,8 +951,13 @@ $r_f$ finish in their maximum possible computation time.
 
 
 \section{Related Work}
+\label{s:relate}
+
 
 \section{Conclusion}
+\label{s:conclusion}
 
 
+\bibliographystyle{splncs03}
+\bibliography{submission}
 \end{document}

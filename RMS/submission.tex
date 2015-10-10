@@ -68,7 +68,7 @@ direction is to generate better schedulablity test conditions for the
 algorithm and its
 extensions~\cite{DBLP:conf/rtss/LehoczkySD89,DBLP:conf/rtss/KuoM91,DBLP:journals/tc/BiniBB03,DBLP:journals/rts/LopezGDG03,DBLP:journals/tc/BaruahG03,gardner1999}. The
 RMS algorithm is of such practical importance that we certainly cannot
-exhaust all the results in literatures here.
+exhaust all the results in the literature here.
 
 On the other hand, an increasing number of efforts to apply formal
 methods, such as model checking and theorem proving, are made to
@@ -952,12 +952,61 @@ $r_f$ finish in their maximum possible computation time.
 
 \section{Related Work}
 \label{s:relate}
+In this section we discuss our results with related work in two
+directions.
 
+Considering schedulability test, Liu and Layland gave
+in~\cite{DBLP:journals/jacm/LiuL73} the famous sufficient condition
+that a set of periodic tasks is schedulable with respect to RMS if
+$\displaystyle \Sigma^n_{i=1} C_i/T_i \le n(2^{1/n}-1)$ holds, where
+$C_i$ and $T_i$ are the computation time and the period of task
+$\tau_i$ respectively. Then in~\cite{DBLP:journals/tc/BiniBB03}, a
+more sufficient condition, known as \emph{Hyperbolic Bound}, which has
+the same complexity as Liu and Layland's one, was proposed by Bini et
+al. On the other hand, necessary and sufficient conditions for
+schedulability were derived independently
+in~\cite{DBLP:journals/rts/SpruntSL89} and~\cite{audsley1993deadline},
+requiring more sophisticated analysis on the task set. Nevertheless,
+these results take no overhead into account, being not as realistic as
+ours. Katcher et al. did consider overhead in their schedulability
+analysis under several models based on different kinds of popular
+implementations~\cite{DBLP:journals/tse/KatcherAS93}. But as we
+mentioned at the very beginning, the ways to implement the RMS
+algorithm are countless, hence their analysis could not be applied on
+our target implementation. Furthermore, comparing with those
+theoretical analysis, our method by formal modeling and verification
+has a great advantage that if our schedulability test answers ``no'',
+it returns at the same time a real counterexample, which is able to
+guide our engineer to adjust the design.
+
+\cite{DBLP:conf/iceccs/CuiDT14} and~\cite{TianD2011} also made use of
+model checking to analyze the RMS algorithm along the same line with
+different languages and tools. They only considered the ideal setting
+as in~\cite{DBLP:journals/jacm/LiuL73}, but not an implementation
+which contains much more details. Our model of the implementation
+easily degenerates to a model of the RMS algorithm, if we let the time
+for scheduling and switching be zero and let the possible finishing
+interval of each task be a single value.
+
+Finally, Maude and Real-Time Maude have been successfully applied on
+large numbers of applications~\cite{DBLP:journals/jlp/Meseguer12},
+especially on communication protocols, real-time and cyber-physical
+systems. But few results are achieved on scheduling problems. RMS is
+investigated using Real-Time Maude for the first time.
 
 \section{Conclusion}
 \label{s:conclusion}
+We have formally modeled a realistic implementation of RMS algorithm,
+obtained from our industrial partner, using Real-Time Maude, a
+modeling language based on rewriting logic. By taking into acount the
+overhead of scheduling and switching, assuming the possible
+computation time for each task may not be constant, we believe that
+our model has enough details to be analyzed for the behaviours of the
+real system. Two important properties--schedulability and
+correctness--are verified by model checking on the model, under
+several given scenarios. We also prove at last the soundness and
+completeness of our analysis.
 
 
-\bibliographystyle{splncs03}
-\bibliography{submission}
+\bibliographystyle{splncs03} \bibliography{submission}
 \end{document}

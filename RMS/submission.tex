@@ -21,7 +21,7 @@
 %\begin{flushleft}
 %\end{flushleft}
 
-\title{Formal Analysis of Rate-Monotonic Scheduling Implementation via Real-Time Maude}
+\title{Formal Modeling and Verification of a Rate-Monotonic Scheduling Implementation with Real-Time Maude}
 \author{Jiaxiang Liu\inst{1,2}}
 \institute{School of Software, Tsinghua University, Beijing, China
   \and \'Ecole Polytechnique, Palaiseau, France}
@@ -29,89 +29,89 @@
 \thispagestyle{empty}
 
 \section{Introduction}
-Periodic task scheduling is one of the most studied topics within the
-field of real-time systems, due to the large number of control systems
-that require cyclic activities. A set of periodic tasks is said to be
-\emph{schedulable} with respect to some scheduling algorithm if all
-jobs meet their deadlines. \emph{Rate-Monotonic Scheduling}
-(\emph{RMS}) algorithm is a \emph{fixed} priority scheduling algorithm
-for preemptive hard real-time environments proposed by Liu and
-Layland~\cite{DBLP:journals/jacm/LiuL73} in 1973, which assigns
-priorities to jobs according to the periods of the corresponding
-tasks: the smaller the period, the higher the priority. As it is easy
-to implement and is proved to be the \emph{optimal} fixed priority
-scheduling algorithm~\cite{DBLP:journals/jacm/LiuL73}, in the sense
-that any set of tasks that is schedulable under \emph{some} fixed
-priority scheduling algorithm is also schedulable with respect to RMS
-algorithm, RMS is widely used in different kinds of real-time
-applications, some of which are even safety-critical, such as trains,
-avionics and so on. 
+Periodic task scheduling is one of the most important topics within
+the field of real-time systems, due to the large number of control
+systems that require cyclic activities~\cite{buttazzo2011hard}. A set
+of periodic tasks is said to be \emph{schedulable} with respect to
+some scheduling algorithm if all jobs meet their
+deadlines. \emph{Rate-Monotonic Scheduling} (\emph{RMS}) is a
+\emph{fixed} priority scheduling algorithm for preemptive hard
+real-time environments proposed by Liu and
+Layland~\cite{DBLP:journals/jacm/LiuL73}, which assigns priorities to
+jobs according to the periods of the corresponding tasks: the smaller
+period, the higher priority. It is proved to be the \emph{optimal}
+fixed priority scheduling algorithm~\cite{DBLP:journals/jacm/LiuL73},
+in the sense that any set of tasks, which is schedulable under
+\emph{some} fixed priority scheduling algorithm, is also schedulable
+with respect to RMS. It is widely used in safety-critical real-time
+applications, such as trains and avionics, thanks to its optimality
+and easiness to implement.
 
-Liu and Layland also gave a sufficient condition for the
-schedulability of a set of $n$ tasks scheduled by RMS algorithm
-in~\cite{DBLP:journals/jacm/LiuL73}:
-$\displaystyle\Sigma^n_{i=1}C_i/T_i \le n(2^{1/n}-1)$, where $C_i$ and
-$T_i$ are the computation time and the period of task $\tau_i$
-respectively. Two main directions on RMS have been explored since
-then. One is to relax the assumptions on the original RMS model, for
-instance, to allow aperiodic
-tasks~\cite{DBLP:conf/rtss/LehoczkySS87,DBLP:journals/rts/SpruntSL89,DBLP:conf/rtss/LehoczkyR92,DBLP:journals/tc/StrosniderLS95},
-to generalize it to be
-\emph{deadline-monotonic}~\cite{DBLP:journals/pe/LeungW82,audsley1993deadline},
-to allow resource sharing among tasks~\cite{DBLP:journals/tc/ShaRL90},
-to extend it on
-multiprocessors~\cite{dhall1978real,DBLP:journals/rts/LopezGDG03,DBLP:journals/tpds/LopezDG04,DBLP:journals/tc/BaruahG03},
-to enhance
-fault-tolerance~\cite{DBLP:journals/rts/OhS94,DBLP:journals/rts/GhoshMMS98,DBLP:journals/tpds/BertossiMR99}
-and so on, making RMS algorithm applicable on more systems. The other
-direction is to generate better schedulablity test conditions for the
-algorithm and its
+Liu and Layland~\cite{DBLP:journals/jacm/LiuL73} gave a sufficient
+condition for the schedulability of a set of $n$ tasks scheduled by
+RMS: $\displaystyle\Sigma^n_{i=1}C_i/T_i \le n(2^{1/n}-1)$, where
+$C_i$ and $T_i$ are the computation time and the period of task
+$\tau_i$, respectively. Two main directions on RMS have been explored
+since then. One is to relax the assumptions on the original RMS model,
+making it applicable on more systems.  For instance,
+\cite{DBLP:conf/rtss/LehoczkySS87,DBLP:journals/rts/SpruntSL89,DBLP:conf/rtss/LehoczkyR92,DBLP:journals/tc/StrosniderLS95}
+allow aperiodic tasks in the scheduling,
+\cite{DBLP:journals/pe/LeungW82,audsley1993deadline} generalize RMS to
+be \emph{deadline-monotonic}, \cite{DBLP:journals/tc/ShaRL90} allows
+resource sharing among tasks,
+\cite{dhall1978real,DBLP:journals/rts/LopezGDG03,DBLP:journals/tpds/LopezDG04,DBLP:journals/tc/BaruahG03}
+extend RMS on multiprocessors, and
+\cite{DBLP:journals/rts/OhS94,DBLP:journals/rts/GhoshMMS98,DBLP:journals/tpds/BertossiMR99}
+enhance fault-tolerance. The other direction is to generate better
+schedulablity test conditions for the algorithm and its
 extensions~\cite{DBLP:conf/rtss/LehoczkySD89,DBLP:conf/rtss/KuoM91,DBLP:journals/tc/BiniBB03,DBLP:journals/rts/LopezGDG03,DBLP:journals/tc/BaruahG03,gardner1999}. The
-RMS algorithm is of such practical importance that we certainly cannot
-exhaust all the results in the literature here.
+RMS algorithm is no doubt of practical importance.
 
-On the other hand, an increasing number of efforts to apply formal
-methods, such as model checking and theorem proving, are made to
-analyze safety-critical systems for the past few
+Extensive effort to apply formal methods, such as model checking and
+theorem proving, has been made to analyze safety-critical systems for
+the past few
 years~\cite{DBLP:journals/iandc/MeseguerR13,DBLP:journals/cacm/Leroy09,DBLP:conf/sosp/KleinEHACDEEKNSTW09}. However,
-as far as we know, few~\cite{DBLP:conf/iceccs/CuiDT14,TianD2011} are
-made to analyze the RMS algorithm, none for implementations of RMS.
+as far as we know, few~\cite{DBLP:conf/iceccs/CuiDT14,TianD2011}
+attempt to analyze the RMS algorithm, while no work for
+implementations of RMS is found.
 
 In this paper, we use \emph{Real-Time Maude}, a \emph{rewriting}-based
 modeling language and analyzing tool for real-time systems, to model a
 realistic implementation of RMS algorithm and then verify some desired
-properties on the built model. The model we built based on the
-realistic implementation extends the original ideal one proposed
+properties on the built model. Based on a realistic implementation,
+our model extends the original ideal one proposed
 in~\cite{DBLP:journals/jacm/LiuL73}, by allowing computation time of
 tasks to be non-constant, and by considering overheads and other
-realistic aspects.
+details of the enviroments.
 
-The rest of this paper is organized as follows: Section~\ref{s:rms}
+The rest of this paper is organized as follows. Section~\ref{s:background}
 introduces the standard setting of the RMS algorithm proposed
-in~\cite{DBLP:journals/jacm/LiuL73} and our considering realistic
-implementation. Section~\ref{s:rtmaude} gives a background to
+in~\cite{DBLP:journals/jacm/LiuL73} and our
+implementation. Section~\ref{s:imp} gives a background to
 Real-Time Maude. Section~\ref{s:formalism} presents how we model the
 RMS implementation using Real-Time Maude. Then
 Section~\ref{s:verification} explains how to verify the desired
 properties and to analyze the results. Related work is discussed in
-Section~\ref{s:relate} before concluding in
+Section~\ref{s:relate}. We conclude the paper in
 Section~\ref{s:conclusion}.
 
+\section{Background}
+\label{s:background}
 
-\section{Rate-Monotonic Scheduling Algorithm and the Implementation}
-\label{s:rms}
-\subsection{Formulation of the Standard Setting}
-The frequently used setting of the RMS algorithm for analysis
-considers a task set consisting only of $n$ periodic tasks
+\subsection{Rate-Monotonic Scheduling Algorithm}
+\label{ss:rms}
+%\subsection{Formulation of the Standard Setting}
+A task set consists of \emph{only} $n$ periodic tasks
 $\tau_1,\ldots,\tau_n$. Task $\tau_i$ has a period $T_i$ and a
 computation time $C_i$. First jobs of all tasks are assumed to be
-instantiated simultaneously. This means that jobs corresponding to
-task $\tau_i$ are initiated at times $kT_i, k\ge 0$. Deadlines consist
-of runability constraints only, that is, the job initiated at time
-$kT_i$ has $(k+1)T_i$ as its deadline, which is the initiation time of
-the next job. The RMS algorithm chooses the labeling such that $T_1\le
-T_2\le \ldots \le T_n$. Consequently, $\tau_i$ receives priority
-$i$. The following assumptions are made:
+initiated simultaneously. This means that jobs corresponding to task
+$\tau_i$ are initiated at times $kT_i$ with integers $k\ge
+0$. Deadlines consist of runability constraints only: the job
+initiated at time $kT_i$ has $(k+1)T_i$ as its deadline, which is the
+initiation time of the next job. The RMS algorithm chooses the
+labeling such that $T_1\le T_2\le \ldots \le T_n$. Consequently,
+$\tau_i$ receives priority $i$, assuming smaller numbers have higher
+priorities. The following assumptions are made:
 
 (A1) Computation time $C_i$ for each task $\tau_i$ is constant and
 does not vary with time.
@@ -122,12 +122,84 @@ blocking).
 
 (A3) All overhead, such as task switching times, is ignored.
 
-In this paper, we consider an implementation instead of the RMS
-algorithm itself, thus the model would be more complicated than this
-ideal formulation.  Assumptions~(A1) and (A3) will be relaxed to shape a more
-realisitc analysis model, as shown below.
+However in this paper, we consider an implementation instead of the
+RMS algorithm itself, thus the model would be more complicated than
+this ideal setting.  Assumptions~(A1) and (A3) will be relaxed later
+to obtain a more realisitc analysis model.
 
-\subsection{The Implementation of RMS}
+\subsection{Real-Time Maude}
+Based on \emph{rewriting logic}, \emph{Real-Time Maude} is a language
+and tool that extends \emph{Maude} to support the formal specification
+and analysis of real-time
+systems~\cite{DBLP:journals/lisp/OlveczkyM07}.
+
+\subsubsection{Specification}
+Real-Time Maude models a system using \emph{modules}. A module
+specifies a \emph{real-time rewrite theory} ${\cal R} = (\Sigma, E\cup
+A , IR, TR)$, where:
+\begin{itemize}
+\item $\Sigma$ is an algebraic \emph{signature}, that is, a set of
+  declarations of \emph{sorts}, \emph{subsorts} and \emph{function
+    symbols}.
+\item $(\Sigma, E\cup A)$ is a \emph{membership equational logic
+  theory}, with $E$ a set of possibly conditional equations, and $A$ a
+  set of equational axioms such as associativiy, commutativity and
+  identity.  $(\Sigma, E\cup A)$ models the system's ``static'' states
+  as an algebraic data type, and includes a built-in specification of
+  a sort \verb|Time|.
+\item $IR$ is a set of \emph{labeled conditional rewrite rules}
+  specifying the system's local transitions. Each rule has the form
+  $[l]~:~t\rightarrow t'\mbox{ \textbf{if} }\bigwedge^n_{j=1}cond_j$,
+  where each $cond_j$ is an equality $u_j=v_j$ and $l$ is a
+  \emph{label}. Such a rule specifies an \emph{instaneous transition}
+  from an instance of $t$ to the corresponding instance of $t'$,
+  \emph{provided} the conditions hold.
+\item $TR$ is a set of \emph{tick rules} $[l]~:~\{t\}\rightarrow\{t'\}
+  \mbox{ \textbf{in time} }r\mbox{ \textbf{if} }cond$ that specify
+  \emph{timed transitions} advancing time in the \emph{entire} state
+  $t$ by $r$ time units. $IR$ and $TR$ together model the ``dynamic''
+  behaviors of the system.
+\end{itemize}
+
+Real-Time Maude supports \emph{object-oriented} style specifications.
+A class declaration $\texttt{class }C\texttt{ |
+}att_1\texttt{:}s_1\texttt{,}\ldots\texttt{,}att_n\texttt{:}s_n$
+declares a class $C$ with attributes $att_1$ to $att_n$ of sorts $s_1$
+to $s_n$. An \emph{object} of class $C$ in a given state is
+represented as a term $\texttt{< } O\texttt{:} C \texttt{ | }
+att_1\texttt{:}val_1\texttt{,} \ldots
+\texttt{,}att_n\texttt{:}val_n\texttt{ >}$ of sort \verb|Object|,
+where $O$, of sort \verb|Oid|, is the object's \emph{identifier}, and
+where $val_1$ to $val_n$ are the current values of the attributes
+$att_1$ to $att_n$. A \emph{subclass} inherits all the attributes and
+rules of its superclasses.
+
+\subsubsection{Formal Analysis}
+In this paper, we only consider Real-Time Maude's \emph{linear
+  temporal logic model checker}, which analyzes whether \emph{each}
+behavior satisfies a temporal logic formula. \emph{State propositions}
+are terms of sort \verb|Prop|, and their symantics is defined by
+equations $\texttt{ceq } statePattern \texttt{ |= } prop \texttt{ = }
+b \texttt{ if } cond$, with $b$ a term of sort \verb|Bool|, stating
+that $prop$ evaluates to $b$ in states that are instances of
+$statePattern$ when the condition $cond$ holds. These equations
+together define $prop$ to hold in all states $t$ where $t \texttt{ |=
+} prop$ evaluates to \verb|true|. A temporal logic \emph{formula} is
+constructed by state propositions and temporal logic operators such as
+\verb|True|, \verb|False|, \verb|~|(negation), \verb|/\|, \verb|\/|,
+\verb|->|(implication), \verb|[]|(``always''),
+\verb|<>|(``eventually'') and \verb|U|(``until''). Real-Time Maude
+provides both \emph{unbounded} and \emph{time-bounded} LTL model
+checking. The time-bounded model checking command
+\begin{alltt}
+  (mc \(t\) |=t \(formula\) in time <= \(timeLimit\) .)
+\end{alltt}
+checks whether the temporal logic formula holds in all behaviors up to
+duration $timeLimit$ starting from the initial state $t$.
+
+
+\section{The Implementation of RMS}
+\label{s:imp}
 The algorithm of the RMS is straightforward, and it is easy to
 implement it in pratical systems. However, the way to implement it is
 not unique. Our target implementation to analyze is part of a
@@ -197,70 +269,6 @@ can be also interrupted while running some task (Line~\ref{l:function}
 in Algorithm~\ref{a:schedule}), such that the running of $schedule()$
 can be nested.
 
-\section{Real-Time Maude}
-\label{s:rtmaude}
-Real-Time Maude is a language and tool that extends Maude to support
-the formal specification and analysis of real-time systems.
-
-\subsection{Specification}
-A Real-Time Maude module specifies a \emph{real-time rewrite theory}
-${\cal R} = (\Sigma, E\cup A , IR, TR)$, where:
-\begin{itemize}
-\item $\Sigma$ is an algebraic \emph{signature}, that is, a set of
-  declarations of \emph{sorts}, \emph{subsorts} and \emph{function
-    symbols}.
-\item $(\Sigma, E\cup A)$ is a \emph{membership equational logic
-  theory}, with $E$ a set of possibly conditional equations, and $A$ a
-  set of equational axioms such as associativiy, commutativity and
-  identity.  $(\Sigma, E\cup A)$ specifies the system's state space as
-  an algebraic data type, and includes a built-in specification of a
-  sort \verb|Time|.
-\item $IR$ is a set of \emph{labeled conditional rewrite rules}
-  specifying the system's local transitions, each of which has the
-  form $[l]~:~t\rightarrow t'\mbox{ \textbf{if}
-  }\bigwedge^n_{j=1}cond_j$, where each $cond_j$ is an equality
-  $u_j=v_j$, and $l$ is a \emph{label}. Such a rule specifies an
-  \emph{instaneous transition} from an instance of $t$ to the
-  corresponding instance of $t'$, \emph{provided} the conditions hold.
-\item $TR$ is a set of \emph{tick rules} $[l]~:~\{t\}\rightarrow\{t'\}
-  \mbox{ \textbf{in time} }\tau\mbox{ \textbf{if} }cond$ that advance
-  time in the \emph{entire} state $t$ by $\tau$ time units.
-\end{itemize}
-
-A class declaration $\texttt{class }C\texttt{ |
-}att_1\texttt{:}s_1\texttt{,}\ldots\texttt{,}att_n\texttt{:}s_n$
-declares a class $C$ with attributes $att_1$ to $att_n$ of sorts $s_1$
-to $s_n$. An \emph{object} of class $C$ in a given state is
-represented as a term $\texttt{< } O\texttt{:} C \texttt{ | }
-att_1\texttt{:}val_1\texttt{,} \ldots
-\texttt{,}att_n\texttt{:}val_n\texttt{ >}$ of sort \verb|Object|,
-where $O$, of sort \verb|Oid|, is the object's \emph{identifier}, and
-where $val_1$ to $val_n$ are the current values of the attributes
-$att_1$ to $att_n$. A \emph{subclass} inherits all the attributes and
-rules of its superclasses.
-
-\subsection{Formal Analysis}
-In this paper, we only consider Real-Time Maude's \emph{linear
-  temporal logic model checker}, which analyzes whether \emph{each}
-behavior satisfies a temporal logic formula. \emph{State propositions}
-are terms of sort \verb|Prop|, and their symantics is defined by
-equations $\texttt{ceq } statePattern \texttt{ |= } prop \texttt{ = }
-b \texttt{ if } cond$, with $b$ a term of sort \verb|Bool|, stating
-that $prop$ evaluates to $b$ in states that are instances of
-$statePattern$ when the condition $cond$ holds. These equations
-together define $prop$ to hold in all states $t$ where $t \texttt{ |=
-} prop$ evaluates to \verb|true|. A temporal logic \emph{formula} is
-constructed by state propositions and temporal logic operators such as
-\verb|True|, \verb|False|, \verb|~|(negation), \verb|/\|, \verb|\/|,
-\verb|->|(implication), \verb|[]|(``always''),
-\verb|<>|(``eventually'') and \verb|U|(``until''). Real-Time Maude
-provides both \emph{unbounded} and \emph{time-bounded} LTL model
-checking. The time-bounded model checking command
-\begin{alltt}
-  (mc \(t\) |=t \(formula\) in time <= \(timeLimit\) .)
-\end{alltt}
-checks whether the temporal logic formula holds in all behaviors up to
-duration $timeLimit$ starting from the initial state $t$.
 
 \section{Formalizing the RMS Implementation}
 \label{s:formalism}

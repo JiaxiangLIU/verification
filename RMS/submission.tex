@@ -129,10 +129,10 @@ this standard, ideal setting.  Assumptions~(A1) and (A3) will be
 relaxed later to obtain a more realistic analysis model.
 
 \subsection{Real-Time Maude}
-Based on \emph{rewriting logic}, \emph{Real-Time Maude} is a language
-and tool that extends \emph{Maude} to support the formal specification
-and analysis of real-time
-systems~\cite{DBLP:journals/lisp/OlveczkyM07}.
+Based on \emph{rewriting logic}~\cite{DBLP:journals/jlp/Meseguer12},
+\emph{Real-Time Maude} is a language and tool that extends
+\emph{Maude} to support the formal specification and analysis of
+real-time systems~\cite{DBLP:journals/lisp/OlveczkyM07}.
 
 \subsubsection{Specification}
 Real-Time Maude models systems as \emph{modules}. A module specifies a
@@ -152,9 +152,10 @@ TR)$, where:
   specifying the system's local transitions. Each rule has the form
   $[l]~:~t\rightarrow t'\mbox{ \textbf{if} }\bigwedge^n_{j=1}cond_j$,
   where each $cond_j$ is an equality $u_j=v_j$ and $l$ is a
-  \emph{label}. Such a rule specifies an \emph{instaneous transition},
-  without consuming time, from an instance of $t$ to the corresponding
-  instance of $t'$, \emph{provided} the conditions hold.
+  \emph{label}. Such a rule specifies an \emph{instantaneous
+    transition}, without consuming time, from an instance of $t$ to
+  the corresponding instance of $t'$, \emph{provided} the conditions
+  hold.
 \item $TR$ is a set of (\emph{labeled}) \emph{tick rules}
   $[l]~:~\{t\}\rightarrow\{t'\} \mbox{ \textbf{in time} }r\mbox{
   \textbf{if} }cond$ that specify \emph{timed transitions} advancing
@@ -162,7 +163,12 @@ TR)$, where:
   together model the ``dynamic'' behaviors of the system.
 \end{itemize}
 
-Real-Time Maude supports specifications in \emph{object-oriented}
+In rewriting logic, rewrite rules are applied non-deterministically,
+that is, when several rules can be applied on a given $t$, any of them
+may be chosen. Hence non-deterministic behaviors can be modeled
+naturally in Real-Time Maude.
+
+Real-Time Maude also supports specifications in \emph{object-oriented}
 style.  A class declaration $\texttt{class }C\texttt{ |
 }att_1\texttt{:}s_1\texttt{,}\ldots\texttt{,}att_n\texttt{:}s_n$
 defines a class $C$ with attributes $att_1$ to $att_n$ of sorts $s_1$
@@ -197,7 +203,7 @@ is constructed by state propositions and temporal logic operators such
 as \verb|True|, \verb|False|, \verb|~|(negation), \verb|/\|,
 \verb|\/|, \verb|->|(implication), \verb|[]|(``always''),
 \verb|<>|(``eventually'') and \verb|U|(``until''). Real-Time Maude
-supports both \emph{timed} and \emph{untimed} LTL model checking. The
+supports both \emph{timed} and \emph{untimed LTL model checking}. The
 untimed model checking command
 \begin{alltt}
   (mc \(t\) |=u \(formula\) .)
@@ -328,7 +334,7 @@ its initiation time, because scheduling takes time.
 In this section, we introduce first how we model the states--the
 static aspect--of the system using algebraic data types, then how we
 specify the essential behaviors--the dynamic aspect--using rewrite
-rules. In particular, modeling of instaneous behaviors would be
+rules. In particular, modeling of instantaneous behaviors would be
 explained in Sections~\ref{ss:ir}, \ref{ss:init}
 and~\ref{ss:inthandling}, followed by timed behaviors in
 Section~\ref{ss:timedbehavior}.
@@ -352,45 +358,50 @@ operations \verb|push|, \verb|pop| and \verb|peek| on it.
   op _#_ : Nat Stack -> Stack [ctor] .
 \end{verbatim}
 
-We also need a sort \verb|Interval|
-to denote computation requirements of tasks, 
-and a sort \jx{} \verb|Counter| to
-represent the time some task has been running and the corresponding
-possible finishing interval.
+We also need a sort \verb|Interval| to denote computation requirements
+of tasks, and a sort \verb|Counter| to record execution of tasks.  We
+call \emph{execution time} the time how long a task has been executing
+for. A \verb|Counter| records the execution time and the computation
+requirement of a task.
 \begin{verbatim}
-  op [_,_] : Time Time -> Interval [ctor] .
+  op [_,_] : Time Time -> Interval [ctor] .  
   op [_/_] : Time Interval -> Counter [ctor] .
 \end{verbatim}
 
-At last, to make our model checkable by \emph{untimed model-checking},
-it is reasonable to reset the global variable $timer$ when it reaches
-an upperbound while increasing (see Line~\ref{l:timer} in
+\hide{
+At last, to make our model checkable by untimed model checking, it is
+reasonable to reset the global variable $timer$ when it reaches an
+upperbound while increasing (see Line~\ref{l:timer} in
 Algorithm~\ref{a:schedule}) in the model. Then $timer$ is of sort
 \verb|Timer| and the upperbound would be the least common multiple of
-the periods of all tasks.
+the periods of all tasks.}
+
+The global variable $timer$ is reset when it reaches an upper bound
+while increasing, which is not shown in detail in
+Algorithm~\ref{a:schedule} but is reasonable. The upper bound is the
+least common multiple of the periods of all tasks. A sort \verb|Timer|
+is defined:
 \begin{verbatim}
   op [_/_] : Nat NzNat -> Timer [ctor] .
 \end{verbatim}
 
 \subsection{Modeling the System States}
-The running system can be considered as consisting of several parts:
-the tasks which are scheduled, the scheduler itself, the hardware
-including registers and stacks, and the interrupt source. The
-scheduler, i.e. the function $schedule()$, can be described by a
-single variable $timer$. We present the models of the other parts one
-by one.
+The system can be considered as consisting of several parts: the tasks
+which are scheduled, the scheduler itself, the hardware including
+registers and stacks, and the interrupt source. The scheduler,
+i.e. the function $schedule()$, can be described by a single variable
+$timer$. We present the models of the other parts one by one.
 
 \subsubsection{Tasks}
 Each task is abstracted from its functionality as a \verb|Counter|.
-Overhead for scheduling and switching is considered in the model. They
+Overhead for scheduling and switching is considered in our model. They
 are treated as two system tasks. Every task is modeled as an object
 instance of some subclass of the base class \verb|Task|:
 \begin{verbatim}
   class Task | cnt : Counter .
   op error : -> Object [ctor] .
 \end{verbatim}
-The attribute \verb|cnt| denotes the computation time of the task,
-while \verb|error| is an object indicating some task which misses its
+where \verb|error| is an object indicating some task that misses its
 deadline.
 
 A periodic task, which is needed to be scheduled, is an object
@@ -400,7 +411,7 @@ instance of the subclass \verb|PTask| with additional attributes
   class PTask | priority : Nat, period : NzNat, status : Status .
   subclass PTask < Task .
 \end{verbatim}
-where \verb|Status| is a sort with four constant constructors, just as
+where \verb|Status| is a sort with four constant constructors, same as
 in the implementation:
 \begin{verbatim}
   ops RUNNING INTERRUPT READY DORMANT : -> Status [ctor] .
@@ -429,7 +440,7 @@ multiset of sort \verb|SysTasks|, and identified by their \verb|Oid|s.
 
 \subsubsection{Hardware}
 Our model considers two parts of hardware related to the interrupt
-handling inside the system: the registers and the stack.
+handling mechanism: the registers and the stack.
 
 The set of registers is modeled as an object instance of the class
 \verb|Regs|, with attributes \verb|pc| denoting the program counter,
@@ -462,7 +473,7 @@ time advances:
 \end{verbatim}
 
 \subsubsection{System}
-The entire system in the model is a composition of the parts
+The entire system in our model is a composition of the parts
 introduced above, with a sort \verb|System|\footnote{Some variable
   declarations are not shown for simplicity.}:
 \begin{verbatim}
@@ -475,16 +486,16 @@ introduced above, with a sort \verb|System|\footnote{Some variable
 \label{ss:ir}
 Interrupt requests are performed by the source exactly every cycle
 $T$, when the attribute \verb|val| decreases to \verb|zero|. The
-requesting is an instaneous action, and thus is modeled by the
-following instaneous conditional rule applied on \verb|System|:
+requesting is an instantaneous action, thus is modeled by the
+following instantaneous conditional rule applied on \verb|System|:
 \begin{verbatim}
   crl [interrupt-request] :
     (L T STS HW ISRC) => (L T STS (HW).intReq reset(ISRC))
     if (ISRC).timeout .
 \end{verbatim}
-where the operator \verb|_.timeout| examines whether the attribute
+where the function \verb|_.timeout| examines whether the attribute
 \verb|val| equals \verb|zero|, and \verb|_.intReq| sets the \verb|ir|
-flag indicating there is an interrupt request to be handled:
+flag indicating there exists an interrupt request to be handled:
 \begin{verbatim}
   op _.intReq : Hardware -> Hardware .
   eq [ REGS ; S ].intReq = [ (REGS).setIr ; S ] .
@@ -496,8 +507,9 @@ Section~\ref{ss:inthandling}.
 \subsection{Task Initiation}
 \label{ss:init}
 Periodic tasks are initiated sequentially by the function
-$updateStatus()$ in Algorithm~\ref{a:schedule}, which is modeled by
-the recursive operation as below:
+$updateStatus()$ in Algorithm~\ref{a:schedule}, which is treated as an
+instantaneous action in our model. It is modeled by the recursive
+function as below:
 \begin{verbatim}
   op updateStatus_with_ : TaskList Timer -> TaskList . 
   eq updateStatus null with TIMER = null .
@@ -505,9 +517,9 @@ the recursive operation as below:
        = (update TASK with TIMER) :: (updateStatus L with TIMER) .
 \end{verbatim}
 with \verb|TIMER| the current value of the global variable $timer$,
-and \verb|update_with_| updating the status of individual task
-(Lines~\ref{l:startupdate}-\ref{l:endupdate} in
-Algorithm~\ref{a:schedule})
+and function \verb|update_with_| updating the status of individual
+task (Lines~\ref{l:startupdate}-\ref{l:endupdate} in
+Algorithm~\ref{a:schedule}):
 \begin{verbatim}
   op update_with_ : Object Timer ~> Object .
   ceq update < O : PTask | period : T, status : ST > with TIMER
@@ -518,14 +530,16 @@ Algorithm~\ref{a:schedule})
        = if ST == RUNNING then < O : PTask | status : INTERRUPT >
          else < O : PTask |> fi [owise] .
 \end{verbatim}
-In the case where \verb|TIMER|($timer$) can be divided by the task's
-period, i.e. the task should be initiated, if the status is
-\verb|DORMANT|, it should be ready to run; otherwise it means the
-previous job of the task is not finished, thus it misses its deadline,
-producing an \verb|error|. In the other case where the tasks should
-not be initiated, the status of the task changes only if it is
-\verb|RUNNING|. We can see that \verb|updateStatus_with_| behaves the
-same as $updateStatus()$.
+Given a task, if \verb|TIMER|($timer$) can be divided by its period,
+this task should be initiated.  In the case where the task should be
+initiated, it is set to be \verb|READY| if its \verb|status| is
+\verb|DORMANT|; otherwise that means the previous job of this task is
+not complete, hence it misses its deadline, producing an
+\verb|error|. In the other case where the task should not be
+initiated, its \verb|status| changes only if it is \verb|RUNNING|. 
+
+We can see that \verb|updateStatus_with_| behaves the same as
+$updateStatus()$.
 
 \subsection{Interrupt Handling and Task Scheduling}
 \label{ss:inthandling}
@@ -533,58 +547,46 @@ When an interrupt request occurs, it may not be detected immediately
 by the system. It requires the \verb|mask| flag to be cleared. Once
 the request is detected, it is handled by two steps: the interrupt
 handling mechanism of the hardware (such as clearing \verb|ir|,
-pushing context into stack and so on) and to call the $schedule()$
-function. This is modeled by the following instaneous rewrite rule:
+pushing context into stack and so on), and to invoke the $schedule()$
+function. This behavior is modeled by the following instantaneous
+rewrite rule:
 \begin{verbatim}
   crl [interrupt-handle] :
     SYSTEM => ((SYSTEM).interrupt).startScheduling
     if (SYSTEM).existInt .
 \end{verbatim}
 where \verb|_.existInt| checks whether \verb|mask| is cleared
-\emph{and} \verb|ir| is set. The operation \verb|_.interrupt| models
+\emph{and} \verb|ir| is set. The function \verb|_.interrupt| models
 the interrupt handling mechanism performed by the hardware and does
 four things: (i) clearing the \verb|ir| flag, which means the request
 has been handled; (ii) pushing the current \verb|pc| value into the
 stack, storing the interrupted context; (iii) assigning
 \verb|scheduling| of sort \verb|Oid| to \verb|pc|, which indicates
-that $schedule()$ is running; and (iv) setting the \verb|mask| flag,
-to mask the coming interrupt requests. As for
-\verb|_.startScheduling|, it performs updating the status of
-$taskList$ and increasing $timer$ by $1$, corresponding to
-Lines~\ref{l:updatestatus} and \ref{l:inc} in
-Algorithm~\ref{a:schedule}.
+that the system is scheduling; and (iv) setting the \verb|mask| flag,
+to mask coming interrupt requests. 
+
+Unlike periodic tasks, even though the scheduling stage is modeled by
+a \verb|Counter|, its functionality is too important to be abandoned.
+We divide the behaviors of scheduling into three parts.  The first
+part contains its timed behaviors. This part is modeled by regarding
+scheduling as a system task of sort \verb|SysTask|. Modeling timed
+behaviors of tasks is explained in Section~\ref{ss:timedbehavior}.
+The other two parts together define its functionality. The second part
+corresponds to Lines~\ref{l:updatestatus}-\ref{l:inc} in
+Algorithm~\ref{a:schedule}. It performs updating the status of
+$taskList$ and increasing $timer$ by $1$. This part is modeled by
+function \verb|_.startScheduling| which applies instantaneously at the
+beginning of scheduling, as shown in rule \verb|interrupt-handle|:
 \begin{verbatim}
   op _.startScheduling : System -> System .
   eq (L T STS HW ISRC).startScheduling 
        = ((updateStatus L with T) inc(T) STS HW ISRC) .
 \end{verbatim}
-
-With our terminology, when the running time of the system task
-\verb|scheduling| reaches its possible finishing interval, the
-following rule may apply to finish the scheduling stage:
-\begin{verbatim}
-  crl [scheduling-finish] :
-    (L T STS HW ISRC) => (SYSTEM).finishScheduling
-    if SYSTEM := (L T STS HW ISRC) 
-       /\ (SYSTEM).running == scheduling 
-       /\ scheduling mayFinish?in STS .
-\end{verbatim}
-where operation \verb|_.running| returns the current \verb|pc| value
-of the system and \verb|_mayFinish?in_| checks if the running time of
-the task reaches its possible finishing interval:
-\begin{verbatim}
-  op _mayFinish?in_ : Oid SysTasks ~> Bool .
-  eq O mayFinish?in [ < O : SysTask | cnt : C > REST ] 
-       = C mayFinish? .
-  op _mayFinish? : Counter -> Bool .
-  eq [ R / [ MIN , MAX ] ] mayFinish?
-       = if R lt MIN then false else true fi .
-\end{verbatim}
-And the operation \verb|_.finishScheduling| performs the remaining
-instructions, which are left by \verb|_.startScheduling|, in the
-scheduling stage: finding the first should-be-run periodic task and
-setting it to run (Lines~\ref{l:startrun1st}-\ref{l:endrun1st} in
-Algorithm~\ref{a:schedule}).
+The third part corresponds to
+Lines~\ref{l:startrun1st}-\ref{l:endrun1st}, finding the first
+should-be-run periodic task and setting it to execute. It is modeled
+by function \verb|_.finishScheduling|, which applies instantaneously
+at the end of scheduling:
 \begin{verbatim}
   op _.finishScheduling : System -> System .
   eq (L T STS HW ISRC).finishScheduling
@@ -595,12 +597,36 @@ and \verb|_.run1stTask| models
 Lines~\ref{l:startrun1st}-\ref{l:endrun1st} in
 Algorithm~\ref{a:schedule}, searching the task with highest priority
 that has status \verb|INTERRUPT| or \verb|READY| then performing an
-\emph{interrupt return} or letting it run, respectively.
+\emph{interrupt return} or executing it, respectively.
 
-Similar to \verb|scheduling|, the \verb|switching| stage starts when
-the running time of the current running periodic task reaches its
-possible finishing interval and finishes when its own running time
-does so, with the two following similar rules:
+When the execution time of the system task \verb|scheduling| reaches
+its computation requirement, the scheduling stage may finish. We model
+this instantaneous action with the following rule:
+\begin{verbatim}
+  crl [scheduling-finish] :
+    (L T STS HW ISRC) => (SYSTEM).finishScheduling
+    if SYSTEM := (L T STS HW ISRC) 
+       /\ (SYSTEM).running == scheduling 
+       /\ scheduling mayFinish?in STS .
+\end{verbatim}
+where function \verb|_.running| returns the current \verb|pc| value of
+the system, and \verb|_mayFinish?in_| checks whether the execution
+time of the task reaches its computation requirement.
+\hide{
+\begin{verbatim}
+  op _mayFinish?in_ : Oid SysTasks ~> Bool .
+  eq O mayFinish?in [ < O : SysTask | cnt : C > REST ] 
+       = C mayFinish? .
+  op _mayFinish? : Counter -> Bool .
+  eq [ R / [ MIN , MAX ] ] mayFinish?
+       = if R lt MIN then false else true fi .
+\end{verbatim}}
+
+Similar to scheduling, the switching stage is divided into timed
+behaviors of \verb|switching| and its functionality. \verb|switching|
+starts when the execution time of the running periodic task reaches
+its computation requirement, and finishes when its own execution time
+does so. Two similar instantaneous rules are defined:
 \begin{verbatim}
   crl [task-finish] :
     (L T STS HW ISRC) => (SYSTEM).startSwitching
@@ -618,7 +644,7 @@ does so, with the two following similar rules:
 \label{ss:timedbehavior}
 \emph{Timed behaviors} of the system consist of two parts: the
 execution of tasks and the execution of the interrupt source. Both are
-modeled into the following one ``standard'' tick
+modeled together by the following single ``standard'' tick
 rule~\cite{DBLP:journals/entcs/OlveczkyM07a}:
 \begin{verbatim}
   crl [tick]:
@@ -627,20 +653,21 @@ rule~\cite{DBLP:journals/entcs/OlveczkyM07a}:
 \end{verbatim}
 where \verb|delta| defines the effects of time elapse on the system,
 and \verb|mte| denotes the \emph{m}aximum amount of \emph{t}ime
-allowed to \emph{e}lapse from the current state until an instaneous
-transition \emph{must} be performed. Notice that the variable $R$ is
-\emph{continuous} with respect to the specific time
-domain\footnote{Real-Time Maude contains built-in modules to define
-  the time domain to be natural numbers and rational numbers,
-  specifying \emph{discrete} time domains and \emph{dense} time
-  domains respectively.}  that we choose to instantiate the model on,
-which is different from timed automata that discretize dense time by
-defining ``clock region''.
+allowed to \emph{e}lapse from the current state until an instantaneous
+transition \emph{must} be performed. In fact, the core to model timed
+behaviors is to define functions \verb|delta| and \verb|mte|. Notice
+that the variable $R$ is \emph{continuous} with respect to the
+specific time domain\footnote{Real-Time Maude contains built-in
+  modules to define the time domain to be natural numbers and rational
+  numbers, specifying \emph{discrete} time domains and \emph{dense}
+  time domains, respectively.}  that we choose to instantiate our
+model on, which is different from timed automata that discretize dense
+time by defining ``clock region''.
 
 Time affects the system by advancing both the running task whose $ID$
 is loaded at \verb|pc| and the interrupt source simultaneously.  While
 time elapses, \verb|cnt| of the former increases and \verb|val| of the
-latter decreases, respetively.
+latter decreases, respectively:
 \begin{verbatim}
   ceq delta((L T STS HW ISRC), R)
         = ((deltaTask(ID, L, R) T STS HW (deltaIS(ISRC, R)))
@@ -651,36 +678,35 @@ to similarity. In that case, \verb|deltaTask| applies on \verb|STS|
 instead of \verb|L|.
 
 \verb|mte|, the maximum amount of time allowed to elapse, depends on
-when the next instaneous action must perform. Therefore, it is decided
-by three arguments: the remaining time to finish the running task, the
-remaining time to request the next interrupt, and whether or not there
-exists an interrupt request detected for the moment:
+when the next instantaneous action must perform. Therefore, it is
+decided by three arguments: the remaining time to finish the running
+task, the remaining time to request the next interrupt, and whether or
+not there exists an interrupt request detected for the moment:
 \begin{verbatim}
   ceq mte(L T STS HW ISRC)
         = minimum( mteTask(ID, L),
                    minimum( mteIS(ISRC), mteIr(HW)))
       if ID := (HW).getPc /\ ID :: MaybeNat .
 \end{verbatim}
-where \verb|mteIr| will return \verb|zero| if there exists a
-non-masked interrupt request in the system, or \verb|INF| which
-represents \emph{infinity} otherwise. Again we do not show the case
-where \verb|ID| is of sort \verb|Oid|, which is very similar. We
-should point out that \verb|mteTask| computes the remaining time to
-reach the maximum of the possible finishing interval of the task,
-since it is the time at which a complete transition \emph{must}
-happen.
+where \verb|mteIr| returns \verb|zero| if there exists an interrupt
+request detected in the system, or \verb|INF| which represents
+\emph{infinity} otherwise. Again we do not show the case where
+\verb|ID| is of sort \verb|Oid|, which is very similar. We should
+point out that \verb|mteTask| computes the remaining time to reach the
+maximum of the computation requirement of the task, since that is the
+time at which a \verb|task-finish| transition \emph{must} happen.
 
 \section{Formal Verification}
 \label{s:verification}
 In this section, we analyze our model of the RMS implementation within
 different realistic scenarios.  Notice that from any (reasonable)
 given initial state, the number of reachable states is finite, but may
-be unknown, thanks to the upper bound given to the $timer$, which
-provides the potential for applying the untimed model checker.
+be unknown, thanks to the upper bound given to $timer$, which provides
+the potential for applying the untimed model checker.
 
 \subsection{Properties}
 The main objective is to verify the schedulability of a given set of
-periodic tasks. Therefore, we define an atomic proposition
+periodic tasks. To this end, we define an atomic proposition
 \verb|taskTimeout| to hold if there exists an \verb|error| appearing
 in the $taskList$ of the current state:
 \begin{verbatim}
@@ -692,9 +718,9 @@ where \verb|containError| returns \verb|true| if there is an object
 property--schedulability--can be formalized as the temporal logic
 formula: \verb|[](~taskTimeout)|. As the property is not
 \emph{clocked}, given an initial state \verb|init|, the following
-untimed model-checking command returns \verb|true| if our desired
-schedulability property holds \emph{with no time limit}; otherwise a
-trace showing a counterexample is provided.
+untimed model checking command returns \verb|true| if the
+schedulability property holds with no time limit; otherwise a trace
+showing a counterexample is provided:
 \begin{verbatim}
   (mc init |=u [](~taskTimeout) .)
 \end{verbatim}
@@ -702,8 +728,9 @@ trace showing a counterexample is provided.
 Another objective is to verify the correctness of the implementation,
 in the sense that the periodic tasks are scheduled exactly with
 respect to their priorities. The atomic proposition
-\verb|scheduleCorrectly| is defined to hold if the running periodic
-task is the one requested to be run with the highest priority:
+\verb|scheduleCorrectly| is hence defined to hold if the running
+periodic task is the one requested to be executed with the highest
+priority:
 \begin{verbatim}
   op scheduleCorrectly : -> Prop [ctor] .
   ceq {L T STS HW ISRC} |= scheduleCorrectly 
@@ -719,10 +746,9 @@ the highest priority among those whose status is \verb|READY|,
 requires no \verb|error| popping up, since our defined correctness
 property makes no sense in the implementation once some task misses
 its deadline. The correctness property is formalized as the temporal
-logic formula \verb|[]scheduleCorrectly|, and can be verified by the
-following untimed model-checking command provided an initial state
-\verb|init|, which returning \verb|true| indicates the correctness
-property holds with no time limit.
+logic formula: \verb|[]scheduleCorrectly|, and can be verified by the
+following untimed model checking command provided an initial state
+\verb|init|:
 \begin{verbatim}
   (mc init |=u []scheduleCorrectly .)
 \end{verbatim}
@@ -745,21 +771,21 @@ experimental ones designed by ourselves, four of them are described
 below:
 \begin{itemize}
 \item Scenario (i) with two tasks: one having period $5ms$ and
-  possible finishing interval $[2.4ms, 3ms]$, and the other having
-  period $25ms$ and possible finishing interval $[6.1ms, 7ms]$.
+  computation requirement $[2.4ms, 3ms]$, and the other having period
+  $25ms$ and computation requirement $[6.1ms, 7ms]$.
 \item Scenario (ii) with two tasks: one having period $5ms$ and
-  possible finishing interval $[1.8ms, 2ms]$, and the other having
-  period $25ms$ and possible finishing interval $[2.1ms, 2.3ms]$.
+  computation requirement $[1.8ms, 2ms]$, and the other having period
+  $25ms$ and computation requirement $[2.1ms, 2.3ms]$.
 \item Scenario (iii) with three tasks: the first having period $5ms$
-  and possible finishing interval $[2.5ms, 2.7ms]$, the second having
-  period $10ms$ and possible finishing interval $[1.5ms, 2ms]$, and
-  the third having period $25ms$ and possible finishing interval
-  $[2.6ms, 3ms]$.
+  and computation requirement $[2.5ms, 2.7ms]$, the second having
+  period $10ms$ and computation requirement $[1.5ms, 2ms]$, and the
+  third having period $25ms$ and computation requirement $[2.6ms,
+    3ms]$.
 \item Scenario (iv) with three tasks: the first having period $5ms$
-  and possible finishing interval $[2.2ms, 2.5ms]$, the second having
-  period $10ms$ and possible finishing interval $[1.4ms, 1.5ms]$, and
-  the third having period $15ms$ and possible finishing interval
-  $[4.3ms, 4.5ms]$.
+  and computation requirement $[2.2ms, 2.5ms]$, the second having
+  period $10ms$ and computation requirement $[1.4ms, 1.5ms]$, and the
+  third having period $15ms$ and computation requirement $[4.3ms,
+    4.5ms]$.
 \end{itemize}
 
 Instantiating our model on dense time domain and choosing the
@@ -1022,41 +1048,41 @@ $r_f$ finish in their maximum possible computation time.
 
 \section{Related Work}
 \label{s:relate}
-In this section we discuss our results with related work in two
-directions.
+\jx{This section should be adjusted w.r.t. the journal which it is
+  submitted to.}  
 
-Considering schedulability test, Liu and Layland gave
-in~\cite{DBLP:journals/jacm/LiuL73} the famous sufficient condition
-that a set of periodic tasks is schedulable with respect to RMS if
-$\displaystyle \Sigma^n_{i=1} C_i/T_i \le n(2^{1/n}-1)$ holds, where
-$C_i$ and $T_i$ are the computation time and the period of task
-$\tau_i$ respectively. Then in~\cite{DBLP:journals/tc/BiniBB03}, a
-more sufficient condition, known as \emph{Hyperbolic Bound}, which has
-the same complexity as Liu and Layland's one, was proposed by Bini et
-al. On the other hand, necessary and sufficient conditions for
-schedulability were derived independently
-in~\cite{DBLP:journals/rts/SpruntSL89} and~\cite{audsley1993deadline},
-requiring more sophisticated analysis on the task set. Nevertheless,
-these results take no overhead into account, being not as realistic as
-ours. Katcher et al. did consider overhead in their schedulability
-analysis under several models based on different kinds of popular
-implementations~\cite{DBLP:journals/tse/KatcherAS93}. But as we
-mentioned at the very beginning, the ways to implement the RMS
-algorithm are countless, hence their analysis could not be applied on
-our target implementation. Furthermore, comparing with those
-theoretical analysis, our method by formal modeling and verification
-has a great advantage that if our schedulability test answers ``no'',
-it returns at the same time a real counterexample, which is able to
-guide our engineer to adjust the design.
+In this section we discuss our results with related
+work in three directions.
+
+Considering schedulability test, Liu and
+Layland~\cite{DBLP:journals/jacm/LiuL73} gave the famous sufficient
+condition that a set of periodic tasks is schedulable with respect to
+RMS if $\displaystyle \Sigma^n_{i=1} C_i/T_i \le n(2^{1/n}-1)$
+holds. Then a more sufficient condition, known as \emph{Hyperbolic
+  Bound}, which has the same complexity as Liu and Layland's one, was
+proposed in~\cite{DBLP:journals/tc/BiniBB03}. On the other hand,
+necessary and sufficient conditions for schedulability were derived
+independently in~\cite{DBLP:journals/rts/SpruntSL89}
+and~\cite{audsley1993deadline}, requiring more sophisticated analysis
+on the task set. Nevertheless, all these results take no overhead into
+account, being not as realistic as ours. Katcher et al. did consider
+overhead in their schedulability analysis, under several models based
+on different kinds of popular
+implementations~\cite{DBLP:journals/tse/KatcherAS93}.  However, our
+target implementation is not in their scope.  Furthermore, compared
+with those theoretical analysis, our method using formal modeling and
+verification has a great advantage that if our schedulability test
+answers ``no'', it returns at the same time a real counterexample,
+which is able to guide our engineer to adjust the design.
 
 \cite{DBLP:conf/iceccs/CuiDT14} and~\cite{TianD2011} also made use of
-model checking to analyze the RMS algorithm along the same line with
-different languages and tools. They only considered the ideal setting
-as in~\cite{DBLP:journals/jacm/LiuL73}, but not an implementation
-which contains much more details. Our model of the implementation
-easily degenerates to a model of the RMS algorithm, if we let the time
-for scheduling and switching be zero and let the possible finishing
-interval of each task be a single value.
+model checking to analyze the RMS algorithm along the same line but
+with different languages and tools. They considered only the ideal
+setting as in~\cite{DBLP:journals/jacm/LiuL73}, but not an
+implementation which contains much more details. Our model of the
+implementation easily degenerates to a model of the RMS algorithm, if
+we let the times for scheduling and switching be zero and let the
+computation requirement of each task be a single value.
 
 Finally, Maude and Real-Time Maude have been successfully applied on
 large numbers of applications~\cite{DBLP:journals/jlp/Meseguer12},
@@ -1066,16 +1092,15 @@ investigated using Real-Time Maude for the first time.
 
 \section{Conclusion}
 \label{s:conclusion}
-We have formally modeled a realistic implementation of RMS algorithm,
-obtained from our industrial partner, using Real-Time Maude, a
-modeling language based on rewriting logic. By taking into acount the
-overhead of scheduling and switching, assuming the possible
-computation time for each task may not be constant, we believe that
-our model has enough details to be analyzed for the behaviours of the
-real system. Two important properties--schedulability and
-correctness--are verified by model checking on the model, under
-several given scenarios. We also prove at last the soundness and
-completeness of our analysis.
+We have formally modeled a realistic implementation of RMS algorithm
+using Real-Time Maude, a modeling language based on rewriting
+logic. By taking into acount the overhead of scheduling and switching,
+assuming that the computation requirement for each task may not be
+constant, we believe that our model contains enough details to be
+analyzed for the behaviors of the real system. Two important
+properties--schedulability and correctness--are verified by model
+checking on our model, within several given scenarios. We also prove
+at last the soundness and completeness of our results.
 
 
 \bibliographystyle{splncs03} \bibliography{submission}

@@ -84,7 +84,7 @@ properties on the built model. Based on a realistic implementation,
 our model extends the standard one proposed
 in~\cite{DBLP:journals/jacm/LiuL73}, by allowing computation
 requirements of tasks to be non-constant, and by considering overhead
-and other details of the enviroments.
+and other details of the environments.
 
 The rest of this paper is organized as
 follows. Section~\ref{s:background} gives some background of the RMS
@@ -107,7 +107,7 @@ $\tau_1,\ldots,\tau_n$. Each task $\tau_i$ has a period $T_i$ and a
 computation requirement $C_i$. First jobs of all tasks are assumed to
 be initiated simultaneously. This means that jobs corresponding to
 task $\tau_i$ are initiated at times $kT_i$ with integers $k\ge
-0$. Deadlines consist of runability constraints only: the job
+0$. Deadlines consist of runnability constraints only: the job
 initiated at time $kT_i$ has $(k+1)T_i$ as its deadline, which is the
 initiation time of the next job. The RMS algorithm chooses the
 labeling such that $T_1\le T_2\le \ldots \le T_n$. Consequently,
@@ -192,7 +192,7 @@ prove properties written in \emph{membership equational logic}.
 In this paper, we only consider Real-Time Maude's \emph{linear
   temporal logic model checker}, which analyzes whether \emph{each}
 behavior satisfies a temporal logic formula. \emph{State propositions}
-are terms of sort \verb|Prop|. Their symantics is defined by equations
+are terms of sort \verb|Prop|. Their semantics is defined by equations
 of the form $\texttt{ceq } statePattern \texttt{ |= } prop \texttt{ =
 } b \texttt{ if } cond$, with $b$ a term of sort \verb|Bool|, stating
 that $prop$ evaluates to $b$ in states which are instances of
@@ -306,7 +306,7 @@ setting the \emph{next} should-be-run periodic task, and (iii) the
 time for switching context from $schedule()$ to that next
 should-be-run task.
 
-\section{Formal Model of the Implementation}
+\section{Formal Modeling of the Implementation}
 \label{s:formalism}
 We model the implementation under the following assumptions:
 
@@ -315,7 +315,7 @@ constant. It varies randomly between minimum $C^{min}_i$ and maximum
 $C^{max}_i$, i.e. within an interval $[C^{min}_i, C^{max}_i]$.
 
 (A2) Tasks are independent, such that they are ready to run at their
-initiation times and can be preempted instanly.
+initiation times and can be preempted instantly.
 
 (A3') Scheduling time and switching time are considered, while other
 overhead is ignored.
@@ -941,7 +941,7 @@ dense time domain to make it more real but giving rise to an infinite
 state space which is unfeasible to exhaust.
 
 In general, completeness of untimed model checking cannot be achieved
-for any systems, any time sampling stategies and any
+for any systems, any time sampling strategies and any
 properties. However, \"Olveczky and Meseguer proved the completeness
 of untimed temporal logic model checking, under the maximal time
 sampling strategy, for a large class of real-time

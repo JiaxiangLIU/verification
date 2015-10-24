@@ -222,7 +222,7 @@ handler function $schedule()$ will be invoked; otherwise $schedule()$
 will be pending until the interrupt mask becomes cleared.  The
 implementation is shown as $schedule()$ in Algorithm~\ref{a:schedule},
 where $taskList$ is the list of periodic tasks to be scheduled. We
-assume that the list is ordered descendingly by priorities, and both
+assume that the list is descending order of priority, and both
 variables $taskList$ and $timer$ are global. In this implementation,
 there is only one kind of interrupt, the period $T_i$ of each task is
 a multiple of $T$, and the tasks are independent, meeting

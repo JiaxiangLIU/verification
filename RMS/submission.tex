@@ -1,59 +1,3 @@
-
-%% bare_jrnl_compsoc.tex
-%% V1.4a
-%% 2014/09/17
-%% by Michael Shell
-%% See:
-%% http://www.michaelshell.org/
-%% for current contact information.
-%%
-%% This is a skeleton file demonstrating the use of IEEEtran.cls
-%% (requires IEEEtran.cls version 1.8a or later) with an IEEE
-%% Computer Society journal paper.
-%%
-%% Support sites:
-%% http://www.michaelshell.org/tex/ieeetran/
-%% http://www.ctan.org/tex-archive/macros/latex/contrib/IEEEtran/
-%% and
-%% http://www.ieee.org/
-
-%%*************************************************************************
-%% Legal Notice:
-%% This code is offered as-is without any warranty either expressed or
-%% implied; without even the implied warranty of MERCHANTABILITY or
-%% FITNESS FOR A PARTICULAR PURPOSE! 
-%% User assumes all risk.
-%% In no event shall IEEE or any contributor to this code be liable for
-%% any damages or losses, including, but not limited to, incidental,
-%% consequential, or any other damages, resulting from the use or misuse
-%% of any information contained here.
-%%
-%% All comments are the opinions of their respective authors and are not
-%% necessarily endorsed by the IEEE.
-%%
-%% This work is distributed under the LaTeX Project Public License (LPPL)
-%% ( http://www.latex-project.org/ ) version 1.3, and may be freely used,
-%% distributed and modified. A copy of the LPPL, version 1.3, is included
-%% in the base LaTeX documentation of all distributions of LaTeX released
-%% 2003/12/01 or later.
-%% Retain all contribution notices and credits.
-%% ** Modified files should be clearly indicated as such, including  **
-%% ** renaming them and changing author support contact information. **
-%%
-%% File list of work: IEEEtran.cls, IEEEtran_HOWTO.pdf, bare_adv.tex,
-%%                    bare_conf.tex, bare_jrnl.tex, bare_conf_compsoc.tex,
-%%                    bare_jrnl_compsoc.tex, bare_jrnl_transmag.tex
-%%*************************************************************************
-
-
-% *** Authors should verify (and, if needed, correct) their LaTeX system  ***
-% *** with the testflow diagnostic prior to trusting their LaTeX platform ***
-% *** with production work. IEEE's font choices and paper sizes can       ***
-% *** trigger bugs that do not appear when using other class files.       ***                          ***
-% The testflow support page is at:
-% http://www.michaelshell.org/tex/testflow/
-
-
 \documentclass[10pt,journal,compsoc]{IEEEtran}
 %
 % If IEEEtran.cls has not been installed into the LaTeX system files,
@@ -371,6 +315,7 @@
 \usepackage{alltt}
 \usepackage{epic}
 \usepackage{pstricks}
+\usepackage{tikz}
 \newcommand{\hide}[1]{\ignorespaces}
 \newcommand{\jx}[1]{{\bf Jiaxiang: }#1{ \bf End}}
 \newtheorem{theorem}{Theorem}
@@ -412,10 +357,21 @@
 % journal papers have the author affiliations above the "Manuscript
 % received ..."  text while in non-compsoc journals this is reversed. Sigh.
 
-\author{Jiaxiang~Liu% <-this % stops a space
-\IEEEcompsocitemizethanks{\IEEEcompsocthanksitem J. Liu is with the School of 
-Software, Tsinghua University, China and LIX, \'Ecole Polytechnique, France\protect\\
-E-mail: jiaxiang.liu@hotmail.com}% <-this % stops an unwanted space
+\author{Jiaxiang~Liu,
+        Min~Zhou,
+        Xiaoyu~Song,
+        Ming~Gu,
+        and~Jiaguang~Sun% <-this % stops a space
+\IEEEcompsocitemizethanks{%
+\IEEEcompsocthanksitem J. Liu is with the School of Software, Tsinghua
+University, Beijing 100084, China, and also with LIX, \'Ecole
+Polytechnique, Palaiseau 91120, France.\protect\\ E-mail:
+jiaxiang.liu@hotmail.com
+\IEEEcompsocthanksitem M. Zhou, M. Gu and J. Sun are with the School
+of Software, Tsinghua University, Beijing 100084, China.
+\IEEEcompsocthanksitem X. Song is with the Department of Electrical \&
+Computer Engineering, Portland State University, Portland, OR
+97207-0751, USA.}% <-this % stops an unwanted space
 }
 %\thanks{Manuscript received April 19, 2005; revised September 17, 2014.}}
 
@@ -735,7 +691,7 @@ Interrupts would be triggered by the clock every $T$, which we call
 system is interruptable, i.e. the interrupt mask is cleared, the
 handler function $schedule()$ will be invoked; otherwise $schedule()$
 will be pending until the interrupt mask becomes cleared.  The
-implementation is shown as $schedule()$ in Algorithm~\ref{a:schedule},
+implementation is shown as $schedule()$ in Figure~\ref{a:schedule},
 where $taskList$ is the list of periodic tasks to be scheduled. We
 assume that the list is descending order of priority, and both
 variables $taskList$ and $timer$ are global. In this implementation,
@@ -785,7 +741,7 @@ assumption~(A2).
   \label{a:schedule}
 \end{figure}
 
-In Algorithm~\ref{a:schedule}, the handler function $scheduler()$
+In Figure~\ref{a:schedule}, the handler function $scheduler()$
 first updates status of all tasks in $taskList$ via function
 $updateStatus()$. Then it traverses the list to execute the ready
 tasks one by one, or to do a return when encountering an
@@ -806,13 +762,13 @@ In the rest of this paper, we use \emph{scheduling} to refer to the
 stage, from the moment when a pending interrupt request is detected,
 to the moment when the first should-be-run periodic task starts
 executing, i.e. Line~\ref{l:function} in
-Algorithm~\ref{a:schedule}. Therefore, \emph{scheduling time} mainly
+Figure~\ref{a:schedule}. Therefore, \emph{scheduling time} mainly
 consists of three parts: (i) the time for switching context from the
 running task, possibly none, to $schedule()$ when an interrupt request
 is handled, (ii) the time spent by $schedule()$ finding and setting
 the \emph{first} should-be-run periodic task
 (Lines~\ref{l:1stline}-\ref{l:endrun1st} in
-Algorithm~\ref{a:schedule}), and (iii) the time for switching context
+Figure~\ref{a:schedule}), and (iii) the time for switching context
 from $schedule()$ to that first should-be-run task. \emph{Switching}
 refers to the stage, from the moment when a periodic task completes
 its execution, to the moment when the next should-be-run periodic task
@@ -891,13 +847,13 @@ requirement of a task.
 At last, to make our model checkable by untimed model checking, it is
 reasonable to reset the global variable $timer$ when it reaches an
 upperbound while increasing (see Line~\ref{l:timer} in
-Algorithm~\ref{a:schedule}) in the model. Then $timer$ is of sort
+Figure~\ref{a:schedule}) in the model. Then $timer$ is of sort
 \verb|Timer| and the upperbound would be the least common multiple of
 the periods of all tasks.}
 
 The global variable $timer$ is reset when it reaches an upper bound
 while increasing, which is not shown in detail in
-Algorithm~\ref{a:schedule} but is reasonable. The upper bound is the
+Figure~\ref{a:schedule} but is reasonable. The upper bound is the
 least common multiple of the periods of all tasks. A sort \verb|Timer|
 is defined:
 \begin{verbatim}
@@ -1038,7 +994,7 @@ Section~\ref{ss:inthandling}.
 \subsection{Task Initiation}
 \label{ss:init}
 Periodic tasks are initiated sequentially by the function
-$updateStatus()$ in Algorithm~\ref{a:schedule}, which is treated as an
+$updateStatus()$ in Figure~\ref{a:schedule}, which is treated as an
 instantaneous action in our model. It is modeled by the recursive
 function as below:
 \begin{verbatim}
@@ -1052,7 +1008,7 @@ function as below:
 with \verb|TIMER| the current value of the global variable $timer$,
 and function \verb|update_with_| updating the status of individual
 task (Lines~\ref{l:startupdate}-\ref{l:endupdate} in
-Algorithm~\ref{a:schedule}):
+Figure~\ref{a:schedule}):
 \begin{verbatim}
   op update_with_ : Object Timer ~> Object .
   ceq update < O : PTask | period : T, 
@@ -1113,7 +1069,7 @@ scheduling as a system task of sort \verb|SysTask|. Modeling timed
 behaviors of tasks is explained in Section~\ref{ss:timedbehavior}.
 The other two parts together define its functionality. The second part
 corresponds to Lines~\ref{l:updatestatus}-\ref{l:inc} in
-Algorithm~\ref{a:schedule}. It performs updating the status of
+Figure~\ref{a:schedule}. It performs updating the status of
 $taskList$ and increasing $timer$ by $1$. This part is modeled by
 function \verb|_.startScheduling| which applies instantaneously at the
 beginning of scheduling, as shown in rule \verb|interrupt-handle|:
@@ -1137,7 +1093,7 @@ at the end of scheduling:
 where \verb|finish_in_| resets the counter of task \verb|scheduling|,
 and \verb|_.run1stTask| models
 Lines~\ref{l:startrun1st}-\ref{l:endrun1st} in
-Algorithm~\ref{a:schedule}, searching the task with highest priority
+Figure~\ref{a:schedule}, searching the task with highest priority
 that has status \verb|INTERRUPT| or \verb|READY| then performing an
 \emph{interrupt return} or executing it, respectively.
 
@@ -1311,8 +1267,10 @@ We use the following setting for our verification, which is from the
 statistics provided by our industrial partner:
 \begin{itemize}
 \item The interrupt cycle is $5ms$.
-\item The scheduling time ranges from $5{\mu}s$ to $9{\mu}s$, and the
-switching time ranges from $2{\mu}s$ to $4{\mu}s$.
+\item The scheduling time ranges from $15{\mu}s$ to $38{\mu}s$, and the
+switching time ranges from $10{\mu}s$ to $20{\mu}s$.
+\hide{\item The scheduling time ranges from $5{\mu}s$ to $9{\mu}s$, and the
+switching time ranges from $2{\mu}s$ to $4{\mu}s$.}
 \item The initial state is with empty stack, empty \verb|pc|, cleared 
 \verb|mask| and cleared \verb|ir|.
 \end{itemize}
@@ -1472,6 +1430,45 @@ failure of schedulability.
 \end{picture}
 \caption{An Counterexample of Scenario (iv).}
 \label{f:counterexample}
+\end{figure*}
+
+\begin{figure*}[!t]
+\centering
+\begin{tikzpicture}[
+    % styles
+    system task/.style={fill=gray!70,draw=gray},
+    periodic task/.style={fill=gray!70!black,draw=gray!50!black},
+    task line/.style={gray!30,very thin},
+    time line/.style={gray!50,very thin,dashed}]
+
+  \foreach \x in {0.5,1.2,...,3.3}
+    \draw[task line] (0,\x) -- (15.7,\x);
+  \draw[->,thick] (0,0) -- (16,0);
+  \draw[thin] (0,0) -- (0,3.8);
+
+  \draw[time line] (0.5,3.3) -- (0.5,0);
+  \draw[time line] (2.5,3.3) -- (2.5,0);
+  \filldraw[system task] (0,1.2) rectangle +(0.5,0.2);
+  \filldraw[periodic task] (0.5,3.3) rectangle +(2,0.2);
+  \filldraw[system task] (2.5,0.5) rectangle +(0.25,0.2);
+  \filldraw[periodic task] (2.75,2.6) rectangle +(1.25,0.2);
+  \filldraw[system task] (4,0.5) rectangle +(0.25,0.2);
+  \filldraw[periodic task] (4.25,1.9) rectangle +(0.75,0.2);
+
+  \filldraw[system task] (5,1.2) rectangle +(0.5,0.2);
+  \filldraw[periodic task] (5.5,3.3) rectangle +(2,0.2);
+  \filldraw[system task] (7.5,0.5) rectangle +(0.25,0.2);
+  \filldraw[periodic task] (7.75,1.9) rectangle +(2.25,0.2);
+
+  \filldraw[system task] (10,1.2) rectangle +(0.5,0.2);
+  \filldraw[periodic task] (10.5,3.3) rectangle +(2,0.2);
+  \filldraw[system task] (12.5,0.5) rectangle +(0.25,0.2);
+  \filldraw[periodic task] (12.75,2.6) rectangle +(1.25,0.2);
+  \filldraw[system task] (14,0.5) rectangle +(0.25,0.2);
+  \filldraw[periodic task] (14.25,1.9) rectangle +(0.75,0.2);
+\end{tikzpicture}
+\caption{An Counterexample of Scenario (iv).}
+\label{f:tikz}
 \end{figure*}
 
 \subsection{Evaluation}
@@ -1710,12 +1707,13 @@ The authors would like to thank...
 %\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{mshell}}]{Michael Shell}
 % or if you just want to reserve a space for a photo:
 
+\hide{
+
 \begin{IEEEbiography}{Jiaxiang Liu}
 Biography text here.
 \end{IEEEbiography}
 
 
-\hide{
 % if you will not have a photo at all:
 \begin{IEEEbiographynophoto}{John Doe}
 Biography text here.

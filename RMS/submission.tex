@@ -1,4 +1,4 @@
-\documentclass[10pt,journal,compsoc]{IEEEtran}
+\documentclass[10pt,journal]{IEEEtran}
 %
 % If IEEEtran.cls has not been installed into the LaTeX system files,
 % manually specify the path to it like:
@@ -358,6 +358,7 @@
 % journal papers have the author affiliations above the "Manuscript
 % received ..."  text while in non-compsoc journals this is reversed. Sigh.
 
+\hide{
 \author{Jiaxiang~Liu,
         Min~Zhou,
         Xiaoyu~Song,
@@ -393,7 +394,7 @@ Computer Engineering, Portland State University, Portland, OR
 % you are supposed to have spaces between the names. For what it is worth,
 % this is a minor point as most people would not even notice if the said evil
 % space somehow managed to creep in.
-
+}
 
 
 % The paper headers
@@ -428,8 +429,6 @@ Computer Engineering, Portland State University, Portland, OR
 % use for special paper notices
 %\IEEEspecialpapernotice{(Invited Paper)}
 
-
-
 % for Computer Society papers, we must declare the abstract and index terms
 % PRIOR to the title within the \IEEEtitleabstractindextext IEEEtran
 % command as these need to go into the title area created by \maketitle.
@@ -440,11 +439,13 @@ Computer Engineering, Portland State University, Portland, OR
 The abstract goes here. TODO.
 \end{abstract}
 
+
 % Note that keywords are not normally used for peerreview papers.
 \begin{IEEEkeywords}
-Computer Society, IEEEtran, journal, \LaTeX, paper, template. TODO.
-\end{IEEEkeywords}}
-
+  Real-time systems, scheduling, embedded systems, modeling, formal
+  verification, rewriting logic.
+\end{IEEEkeywords}
+}
 
 % make the title area
 \maketitle
@@ -475,7 +476,8 @@ Computer Society, IEEEtran, journal, \LaTeX, paper, template. TODO.
 
 
 
-\IEEEraisesectionheading{\section{Introduction}\label{s:introduction}}
+%\IEEEraisesectionheading{\section{Introduction}\label{s:introduction}}
+\section{Introduction}\label{s:introduction}
 % Computer Society journal (but not conference!) papers do something unusual
 % with the very first section heading (almost always called "Introduction").
 % They place it ABOVE the main text! IEEEtran.cls does not automatically do
@@ -517,7 +519,7 @@ fixed priority scheduling algorithm~\cite{DBLP:journals/jacm/LiuL73},
 in the sense that any set of tasks, which is schedulable under
 \emph{some} fixed priority scheduling algorithm, is also schedulable
 with respect to RMS. It is widely used in safety-critical real-time
-applications, such as trains and avionics, thanks to its optimality
+applications, such as vehicles and avionics, thanks to its optimality
 and easiness to implement.
 
 Liu and Layland~\cite{DBLP:journals/jacm/LiuL73} gave a sufficient
@@ -541,31 +543,38 @@ schedulablity test conditions for the algorithm and its
 extensions~\cite{DBLP:conf/rtss/LehoczkySD89,DBLP:conf/rtss/KuoM91,DBLP:journals/tc/BiniBB03,DBLP:journals/rts/LopezGDG03,DBLP:journals/tc/BaruahG03,gardner1999}. The
 RMS algorithm is no doubt of practical importance.
 
-Extensive effort to apply formal methods, such as model checking and
-theorem proving, has been made to analyze safety-critical systems for
-the past few
-years~\cite{DBLP:journals/iandc/MeseguerR13,DBLP:journals/cacm/Leroy09,DBLP:conf/sosp/KleinEHACDEEKNSTW09}. However,
+It is also crucial to ensure the reliability of the implementation of
+RMS when it serves in a safety-critical system. When analyzing a
+realistic implementation instead of the algorithm, theoretical results
+may be no more applicable. For instance, switching overhead may lead
+to unschedulability even if the task set satisfies the schedulability
+condition derived from algorithm analysis. Extensive effort to apply
+formal methods, such as model checking and theorem proving, has been
+made to analyze safety-critical systems for the past few
+years~\cite{DBLP:journals/tie/MiyawakiMSYV05,DBLP:journals/iandc/MeseguerR13,DBLP:journals/cacm/Leroy09,DBLP:conf/sosp/KleinEHACDEEKNSTW09}. However,
 as far as we know, few~\cite{DBLP:conf/iceccs/CuiDT14,TianD2011}
 attempt to analyze the RMS algorithm, while no work for
 implementations of RMS is found.
 
 In this paper, we use \emph{Real-Time Maude}, a \emph{rewriting}-based
-modeling language and analyzing tool for real-time systems, to model a
-realistic implementation of RMS and then verify some desired
-properties on the built model. Based on a realistic implementation,
-our model extends the standard one proposed
+formal modeling language and analyzing tool for real-time systems, to
+model a realistic implementation of RMS, which serves as a simplified
+operating system within an avionic control system, and then verify
+several desired properties. Based on a realistic implementation, our
+model extends the standard RMS model proposed
 in~\cite{DBLP:journals/jacm/LiuL73}, by allowing computation
 requirements of tasks to be non-constant, and by considering overhead
-and other details of the environments.
+and other details of the hardware platform.
 
 The rest of this paper is organized as
-follows. Section~\ref{s:background} gives some background of the RMS
-algorithm and Real-Time Maude.  Section~\ref{s:imp} presents the RMS
-implementation that we model and analyze.  Section~\ref{s:formalism}
-introduces how we model the RMS implementation using Real-Time
-Maude. Then Section~\ref{s:verification} explains how to verify the
-desired properties and to evaluate the results. Related work is
-discussed in Section~\ref{s:relate}. We conclude the paper in
+follows. Section~\ref{s:background} gives some background of both the
+RMS algorithm and Real-Time Maude.  Section~\ref{s:imp} presents the
+RMS implementation that we model and analyze.
+Section~\ref{s:formalism} introduces how we model the RMS
+implementation using Real-Time Maude. Then
+Section~\ref{s:verification} explains how to verify the desired
+properties and to evaluate the results. Related work is discussed in
+Section~\ref{s:relate}. We conclude the paper in
 Section~\ref{s:conclusion}.
 
 \section{Background}
@@ -577,34 +586,38 @@ Section~\ref{s:conclusion}.
 A task set consists of \emph{only} $n$ periodic tasks
 $\tau_1,\ldots,\tau_n$. Each task $\tau_i$ has a period $T_i$ and a
 computation requirement $C_i$. First jobs of all tasks are assumed to
-be initiated simultaneously. This means that jobs corresponding to
-task $\tau_i$ are initiated at times $kT_i$ with integers $k\ge
-0$. Deadlines consist of runnability constraints only: the job
-initiated at time $kT_i$ has $(k+1)T_i$ as its deadline, which is the
-initiation time of the next job. The RMS algorithm chooses the
-labeling such that $T_1\le T_2\le \ldots \le T_n$. Consequently,
-$\tau_i$ receives priority $i$, assuming smaller numbers have higher
-priorities. The following assumptions are made:
+be initiated at time $0$ simultaneously.  Deadlines consist of
+runnability constraints only: the deadline of a job corresponding to
+$\tau_i$ is the initiation time of the next job corresponding to
+$\tau_i$.  The RMS algorithm chooses the labeling such that $T_1\le
+T_2\le \ldots \le T_n$. Consequently, $\tau_i$ receives priority $i$,
+assuming smaller numbers have higher priorities. The following
+assumptions are made:
 
-(A1) Computation requirement $C_i$ for each task $\tau_i$ is constant
+(A1) Jobs corresponding to task $\tau_i$ are initiated exactly at
+times $kT_i$ with integers $k\ge 0$.
+
+(A2) Computation requirement $C_i$ for each task $\tau_i$ is constant
 and does not vary with time.
 
-(A2) Tasks are independent, such that they are ready to run at their
+(A3) Tasks are independent, such that they are ready to run at their
 initiation times and can be preempted instantly (ignoring all
 blocking).
 
-(A3) All overhead, such as task switching times, is ignored.
+(A4) All overhead, such as task switching times, is ignored.
 
 However in this paper, we consider an implementation instead of the
 RMS algorithm itself, thus the model would be more complicated than
-this standard, ideal setting.  Assumptions~(A1) and (A3) will be
-relaxed later to obtain a more realistic analysis model.
+this standard, ideal setting. Assumption~(A1) will be modified because
+of the interrupt masking mechanism, while (A2) and (A4) are relaxed to
+obtain a more realistic analysis model.
 
 \subsection{Real-Time Maude}
-Based on \emph{rewriting logic}~\cite{DBLP:journals/jlp/Meseguer12},
-\emph{Real-Time Maude} is a language and tool that extends
-\emph{Maude} to support the formal specification and analysis of
-real-time systems~\cite{DBLP:journals/lisp/OlveczkyM07}.
+\emph{Real-Time Maude}~\cite{DBLP:journals/lisp/OlveczkyM07} is an
+extension of \emph{Maude}~\cite{DBLP:journals/tcs/ClavelDELMMQ02}
+which is a language and tool based on \emph{rewriting
+  logic}~\cite{DBLP:journals/jlp/Meseguer12}.  It supports formal
+specification and analysis of real-time systems.
 
 \subsubsection{Specification}
 Real-Time Maude models systems as \emph{modules}. A module specifies a
@@ -615,24 +628,24 @@ TR)$, where:
   declarations of \emph{sorts}, \emph{subsorts} and \emph{function
     symbols}. The function symbols are allowed to be mixfix.
 \item $(\Sigma, E\cup A)$ is a \emph{membership equational logic
-  theory}, with $E$ a set of conditional equations on $\Sigma$, and
-  $A$ a set of equational axioms such as associativity, commutativity
-  and identity.  $(\Sigma, E\cup A)$ models the system's ``static''
-  states as an algebraic data type, and includes a built-in
-  specification of a sort \verb|Time|.
+  theory}, with $E$ a set of conditional \emph{equations} and
+  \emph{memberships} on $\Sigma$, and $A$ a set of equational axioms
+  such as associativity, commutativity and identity.  $(\Sigma, E\cup
+  A)$ models the system's ``static'' states as an algebraic data type,
+  and is equipped with a built-in specification of a sort \verb|Time|.
 \item $IR$ is a set of \emph{labeled conditional rewrite rules}
   specifying the system's local transitions. Each rule has the form
-  $[l]~:~t\rightarrow t'\mbox{ \textbf{if} }\bigwedge^n_{j=1}cond_j$,
+  $[l]~:~s\rightarrow s'\mbox{ \textbf{if} }\bigwedge^n_{j=1}cond_j$,
   where each $cond_j$ is an equality $u_j=v_j$ and $l$ is a
   \emph{label}. Such a rule specifies an \emph{instantaneous
-    transition}, without consuming time, from an instance of $t$ to
-  the corresponding instance of $t'$, \emph{provided} the conditions
+    transition}, without consuming time, from an instance of $s$ to
+  the corresponding instance of $s'$, \emph{provided} the conditions
   hold.
-\item $TR$ is a set of (\emph{labeled}) \emph{tick rules}
-  $[l]~:~\{t\}\rightarrow\{t'\} \mbox{ \textbf{in time} }r\mbox{
-  \textbf{if} }cond$ that specify \emph{timed transitions} advancing
-  time in the \emph{entire} state $t$ by $r$ time units. $IR$ and $TR$
-  together model the ``dynamic'' behaviors of the system.
+\item $TR$ is a set of (\emph{labeled}) \emph{tick rules} of the form
+  $[l]~:~\{s\}\rightarrow\{s'\} \mbox{ \textbf{in time} }t\mbox{
+  \textbf{if} }cond$ that specify \emph{timed transitions}, which
+  advances time in the \emph{entire} state $s$ by $t$ time units. $IR$
+  and $TR$ together model the ``dynamic'' behaviors of the system.
 \end{itemize}
 
 In rewriting logic, rewrite rules are applied non-deterministically,

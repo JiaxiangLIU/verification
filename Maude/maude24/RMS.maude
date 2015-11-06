@@ -543,10 +543,16 @@ endtom)
 
   op scheduleCorrectly : System ~> Bool .
   eq scheduleCorrectly( L T SYS HW ISRC )
+       = if (HW).getPc :: MaybeNat 
+         then ((HW).getPc shouldRunIn L)
+         else true fi .
+
+***(
+  eq scheduleCorrectly( L T SYS HW ISRC )
        = (not containError(L))
          and (if (HW).getPc :: MaybeNat then ((HW).getPc shouldRunIn L)
               else true fi) .
-
+)
 endom)
 
 (tomod RMS-MODEL-CHECK is
@@ -768,8 +774,8 @@ endtom)
   eq pisrc = < 'pisrc : IntSrc | val : 0 , cycle : 5000 > .
 
   op psts : -> SysTasks .
-  eq psts = [ < scheduling : Task | cnt : [ 0 / [ 5 , 9 ] ] >
-              < switching : Task | cnt : [ 0 / [ 2 , 4 ] ] > ] .
+  eq psts = [ < scheduling : Task | cnt : [ 0 / [ 22 , 38 ] ] >
+              < switching : Task | cnt : [ 0 / [ 10 , 20 ] ] > ] .
  
   op pHW : -> Hardware .
   eq pHW = [ < 'pr : Regs | pc : none , mask : false ,

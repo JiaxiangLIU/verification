@@ -543,12 +543,16 @@ schedulablity test conditions for the algorithm and its
 extensions~\cite{DBLP:conf/rtss/LehoczkySD89,DBLP:conf/rtss/KuoM91,DBLP:journals/tc/BiniBB03,DBLP:journals/rts/LopezGDG03,DBLP:journals/tc/BaruahG03,gardner1999}. The
 RMS algorithm is no doubt of practical importance.
 
-It is also crucial to ensure the reliability of the implementation of
-RMS when it serves in a safety-critical system. When analyzing a
-realistic implementation instead of the algorithm, theoretical results
-may be no more applicable. For instance, switching overhead may lead
-to unschedulability even if the task set satisfies the schedulability
-condition derived from algorithm analysis. Extensive effort to apply
+It is even more crucial to ensure the reliability of an implementation
+instead of the algorithm, when RMS serves in a safety-critical
+system. When analyzing a realistic implementation, theoretical results
+may be no more applicable. For instance, even though the conditions
+derived from algorithm analysis are satisfied, schedulability can be
+broken by overhead in the system, or by the interrupt masking
+mechanism which may delay interrupt handling. On the other hand,
+correctness of the implementation with respect to the algorithm is
+difficult to be verified by the traditional methods such as testing
+and simulation, since they are incomplete. Extensive effort to apply
 formal methods, such as model checking and theorem proving, has been
 made to analyze safety-critical systems for the past few
 years~\cite{DBLP:journals/tie/MiyawakiMSYV05,DBLP:journals/iandc/MeseguerR13,DBLP:journals/cacm/Leroy09,DBLP:conf/sosp/KleinEHACDEEKNSTW09}. However,
@@ -606,11 +610,13 @@ blocking).
 
 (A4) All overhead, such as task switching times, is ignored.
 
-However in this paper, we consider an implementation instead of the
-RMS algorithm itself, thus the model would be more complicated than
-this standard, ideal setting. Assumption~(A1) will be modified because
-of the interrupt masking mechanism, while (A2) and (A4) are relaxed to
-obtain a more realistic analysis model.
+A simple example showing this algorithm is depicted in
+Figure~\ref{sf:rmsalg}. However in this paper, we consider an
+implementation instead of the RMS algorithm itself, thus the model
+would be more complicated than this standard, ideal
+setting. Assumption~(A1) will be modified because of the interrupt
+masking mechanism, while (A2) and (A4) are relaxed to obtain a more
+realistic analysis model.
 
 \subsection{Real-Time Maude}
 \emph{Real-Time Maude}~\cite{DBLP:journals/lisp/OlveczkyM07} is an
@@ -649,12 +655,11 @@ TR)$, where:
 \end{itemize}
 
 In rewriting logic, rewrite rules are applied non-deterministically,
-that is, when several rules can be applied on a given $t$, any of them
+that is, when several rules can be applied on a given $s$, any of them
 may be chosen. Hence non-deterministic behaviors can be modeled
-naturally in Real-Time Maude.
-
-Real-Time Maude also supports specifications in \emph{object-oriented}
-style.  A class declaration $\texttt{class }C\texttt{ |
+naturally in Real-Time Maude.  Real-Time Maude also supports
+specifications in \emph{object-oriented} style.  A class declaration
+$\texttt{class }C\texttt{ |
 }att_1\texttt{:}s_1\texttt{,}\ldots\texttt{,}att_n\texttt{:}s_n$
 defines a class $C$ with attributes $att_1$ to $att_n$ of sorts $s_1$
 to $s_n$, respectively. An \emph{object} of class $C$ is represented
@@ -662,56 +667,56 @@ as a term $\texttt{< } O\texttt{:} C \texttt{ | }
 att_1\texttt{:}val_1\texttt{,} \ldots
 \texttt{,}att_n\texttt{:}val_n\texttt{ >}$ of sort \verb|Object|,
 where $O$, of sort \verb|Oid|, is the object's \emph{identifier}, and
-$val_1$ to $val_n$ are the values of the attributes $att_1$ to
-$att_n$. A \emph{subclass} inherits all the attributes and rules of
-its superclasses.
+$val_i$ is the value of the attribute $att_i$ with $i\in [1,n]$. A
+\emph{subclass} inherits all the attributes and rules of its
+superclasses.
 
 \subsubsection{Formal Analysis}
 Real-Time Maude provides many useful commands and tools to analyze a
-model. For example, \verb|rewrite| allows to execute the model,
+given model. For example, \verb|rewrite| allows to execute the model,
 symbolically; given an initial state, \verb|search| is used to search
 reachable states satisfying the desired properties; the Maude's
 \emph{Inductive Theorem Prover} (ITP) can be applied to interactively
-prove properties written in \emph{membership equational logic}. 
+prove properties written in \emph{membership equational logic}.
 
-In this paper, we only consider Real-Time Maude's \emph{linear
-  temporal logic model checker}, which analyzes whether \emph{each}
-behavior satisfies a temporal logic formula. \emph{State propositions}
-are terms of sort \verb|Prop|. Their semantics is defined by equations
-of the form $\texttt{ceq } statePattern \texttt{ |= } prop \texttt{ =
-} b \texttt{ if } cond$, with $b$ a term of sort \verb|Bool|, stating
-that $prop$ evaluates to $b$ in states which are instances of
-$statePattern$ provided the condition $cond$ holds. These equations
-together define $prop$ to hold in all states $t$ that make $t \texttt{
-  |= } prop$ evaluate to \verb|true|. A temporal logic \emph{formula}
-is constructed by state propositions and temporal logic operators such
-as \verb|True|, \verb|False|, \verb|~|(negation), \verb|/\|,
-\verb|\/|, \verb|->|(implication), \verb|[]|(``always''),
-\verb|<>|(``eventually'') and \verb|U|(``until''). Real-Time Maude
-supports both \emph{timed} and \emph{untimed LTL model checking}. The
-untimed model checking command
+In this paper, we only consider Real-Time Maude's \emph{Linear
+  Temporal Logic (LTL) model checker}, which analyzes whether
+\emph{each} behavior satisfies a temporal logic formula. \emph{State
+  propositions} are defined as terms of sort \verb|Prop|. Their
+semantics is defined by conditional equations of the form $\texttt{ceq
+} statePattern \texttt{ |= } prop \texttt{ = } b \texttt{ if } cond$,
+with $b$ a term of sort \verb|Bool|, stating that $prop$ evaluates to
+$b$ in states which are instances of $statePattern$ provided the
+condition $cond$ holds. These equations together define $prop$ to hold
+in all states $s$ that make $s \texttt{ |= } prop$ evaluate to
+\verb|true|. A temporal logic \emph{formula} is constructed by state
+propositions and temporal logic operators such as \verb|True|,
+\verb|False|, \verb|~|(negation), \verb|/\|, \verb|\/|,
+\verb|->|(implication), \verb|[]|(``always'') and
+\verb|U|(``until''). Real-Time Maude supports both \emph{timed} and
+\emph{untimed LTL model checking}. The untimed model checking command
 \begin{alltt}
-  (mc \(t\) |=u \(formula\) .)
+  (mc \(s\) |=u \(formula\) .)
 \end{alltt}
 checks whether the temporal logic $formula$ holds in all behaviors
-starting from the initial state $t$, \emph{with no time limit}.
+starting from the initial state $s$, \emph{with no time limit}.
 
 
 \section{The Implementation of RMS}
 \label{s:imp}
-The implementation is in a realistic avionic operating system.
-Interrupts would be triggered by the clock every $T$, which we call
-\emph{interrupt cycle}. When an interrupt request occurs, if the
-system is interruptable, i.e. the interrupt mask is cleared, the
-handler function $schedule()$ will be invoked; otherwise $schedule()$
-will be pending until the interrupt mask becomes cleared.  The
-implementation is shown as $schedule()$ in Figure~\ref{a:schedule},
-where $taskList$ is the list of periodic tasks to be scheduled. We
-assume that the list is descending order of priority, and both
-variables $taskList$ and $timer$ are global. In this implementation,
-there is only one kind of interrupt, the period $T_i$ of each task is
-a multiple of $T$, and the tasks are independent, meeting
-assumption~(A2).
+The implementation is in a realistic avionic control system.
+Interrupts would be triggered by, and only by, the clock every $T$,
+which we call \emph{interrupt cycle}. When an interrupt request
+occurs, if the system is interruptable, i.e. the interrupt masking bit
+is cleared, the handler function $schedule()$ will be invoked;
+otherwise $schedule()$ will be pending until the interrupt masking bit
+becomes cleared.  The implementation is shown as $schedule()$ in
+Figure~\ref{a:schedule}, where $taskList$ is the list of periodic
+tasks to be scheduled. We assume that the list is in descending order
+of priority, and both variables $taskList$ and $timer$ are global. In
+this implementation, there is only one kind of interrupt, the period
+$T_i$ of each task is a multiple of $T$, and the tasks are
+independent, meeting assumption~(A3).
 
 \begin{figure}[!t]
 \hrule\vspace{1mm}
@@ -723,7 +728,7 @@ assumption~(A2).
   \State $p = taskList$;
   \While{$p$} \label{l:startrun1st}
     \If{$p\rightarrow status == \textit{INTERRUPT}$}
-      \State \Return;
+      \State \Return; \label{l:return}
     \ElsIf{$p\rightarrow status == \textit{READY}$}      
       \State $p\rightarrow status = \textit{RUNNING}$;
       \State \Call{$int\_on$}{$ $}; \Comment{to enable interrupts} \label{l:endrun1st}
@@ -755,69 +760,224 @@ assumption~(A2).
   \label{a:schedule}
 \end{figure}
 
-In Figure~\ref{a:schedule}, the handler function $scheduler()$
-first updates status of all tasks in $taskList$ via function
-$updateStatus()$. Then it traverses the list to execute the ready
-tasks one by one, or to do a return when encountering an
-interrupted\footnote{Note that the status \textit{INTERRUPT} indicates
-  the task is interrupted for the moment, or was interrupted before
-  but its execution is not complete yet.} task. The function
-$updateStatus()$ updates each task in two steps: firstly, if the task
-is running, it becomes interrupted; secondly for the task at its
-initiation time, if its previous job is complete, it would be set to
-be ready, otherwise it misses its deadline, producing an error. Notice
-that $schedule()$ is invoked only when the periodic interrupt is
-handled. Its execution cannot be interrupted when it is updating
+In Figure~\ref{a:schedule}, the handler function $scheduler()$ first
+updates status of all tasks in $taskList$ via function
+$updateStatus()$. This updating actually initiates tasks which should
+be scheduled in the current interrupt cycle. Then $scheduler()$
+traverses the list to execute the ready tasks one by one, or to do a
+return when encountering an interrupted\footnote{Note that the status
+  \textit{INTERRUPT} indicates the task is interrupted for the moment,
+  or was interrupted before but its execution is not complete yet.}
+task. As for the function $updateStatus()$, it updates each task in
+two steps: firstly, if the task is running, it becomes interrupted;
+secondly for the task at its initiation time, if its previous job is
+complete, it would be set to be ready, otherwise it misses its
+deadline, producing an error. Notice that $schedule()$ is invoked only
+when the interrupt request is handled, not when the interrupt is
+disabled (the interrupt masking bit is set). Due to the interrupt
+masking bit, its execution cannot be interrupted when it is updating
 status of tasks or finding the next task to execute, however, it can
 be interrupted while executing some task (Line~\ref{l:function}). This
 allows the execution of $schedule()$ to be nested.
 
-In the rest of this paper, we use \emph{scheduling} to refer to the
-stage, from the moment when a pending interrupt request is detected,
-to the moment when the first should-be-run periodic task starts
-executing, i.e. Line~\ref{l:function} in
+For simplicity, in the rest of this paper, we use \emph{scheduling} to
+refer to the stage, from the moment when a pending interrupt request
+is detected, to the moment when the first should-be-run periodic task
+starts executing, i.e. Line~\ref{l:return} or~\ref{l:function} in
 Figure~\ref{a:schedule}. Therefore, \emph{scheduling time} mainly
 consists of three parts: (i) the time for switching context from the
 running task, possibly none, to $schedule()$ when an interrupt request
 is handled, (ii) the time spent by $schedule()$ finding and setting
 the \emph{first} should-be-run periodic task
-(Lines~\ref{l:1stline}-\ref{l:endrun1st} in
-Figure~\ref{a:schedule}), and (iii) the time for switching context
-from $schedule()$ to that first should-be-run task. \emph{Switching}
-refers to the stage, from the moment when a periodic task completes
-its execution, to the moment when the next should-be-run periodic task
-starts executing. \emph{Switching time} thus also consists of three
-parts: (i) the time for switching context from the finished task back
-to $schedule()$, (ii) the time spent by $schedule()$ finding and
-setting the \emph{next} should-be-run periodic task, and (iii) the
-time for switching context from $schedule()$ to that next
-should-be-run task.
+(Lines~\ref{l:1stline}-\ref{l:endrun1st} in Figure~\ref{a:schedule}),
+and (iii) the time for switching context from $schedule()$ to that
+task. \emph{Switching} refers to the stage, from the moment when a
+periodic task completes its execution, to the moment when the next
+should-be-run periodic task starts executing. \emph{Switching time}
+thus also consists of three parts: (i) the time for switching context
+from the complete task back to $schedule()$, (ii) the time spent by
+$schedule()$ finding and setting the \emph{next} should-be-run
+periodic task, and (iii) the time for switching context from
+$schedule()$ to that task.
 
 
 \section{Formal Modeling of the Implementation}
 \label{s:formalism}
-We model the implementation under the following assumptions:
+Considering some technical details of the platform, such as interrupt
+masking mechanism, we model the implementation under the following
+assumptions:
 
-(A1') Computation requirement $C_i$ for each task $\tau_i$ is not
+(A1') Jobs corresponding to task $\tau_i$ are initiated at the
+beginning of scheduling that handles the requests triggered at times
+$kT_i$ with integers $k\ge 0$.
+
+(A2') Computation requirement $C_i$ for each task $\tau_i$ is not
 constant. It varies randomly between minimum $C^{min}_i$ and maximum
 $C^{max}_i$, i.e. within an interval $[C^{min}_i, C^{max}_i]$.
 
-(A2) Tasks are independent, such that they are ready to run at their
+(A3) Tasks are independent, such that they are ready to run at their
 initiation times and can be preempted instantly.
 
-(A3') Scheduling time and switching time are considered, while other
+(A4') Scheduling time and switching time are considered, while other
 overhead is ignored.
 
 These assumptions make our model different from the standard one. For
-instance, if an interrupt request occurs while switching is performed,
-jobs corresponding to task $\tau_i$ may not be initiated at exactly
-$kT_i$. They should wait until switching finishes and the interrupt
-mask is cleared. Note that (A2) says that jobs are ready to run at
-their initiation times, however, no one can start running at exactly
-its initiation time, because scheduling takes time.
+instance, with assumption~(A1'), an interrupt request that occurs
+while switching is performed will be pending, such that jobs of task
+$\tau_i$ cannot initiate at $kT_i$. They should wait until switching
+finishes and the interrupt masking bit is cleared, which is different
+from~(A1). Note that (A3) says that jobs are ready to run at their
+initiation times, however, no one can start running at exactly its
+initiation time, because scheduling takes time. Under these
+assumptions, an example for showing the execution of tasks scheduled
+by the implementation is depicted in Figure~\ref{sf:rmsimp}. Note that
+the second job of $\tau_1$ is initiated at time $5.5$ instead of $5$,
+because switching is performed and the interrupt masking bit is set at
+time $5$.
 
-\jx{TODO. A figure is needed here to demonstrate the scheduling under
-  the three assumptions above.}
+\begin{figure}[!t]
+\centering
+\subfloat[RMS Algorithm]{
+  \begin{tikzpicture}[font=\small,scale=1.25,
+    % styles
+    system task/.style={fill=gray!70,draw=gray},
+    periodic task/.style={fill=gray!70!black,draw=gray!50!black},
+    task line/.style={gray!30,very thin},
+    time line/.style={gray!50,very thin,dashed},
+    short line/.style={gray!50,very thin,dashed},
+    init/.style={{Triangle[fill=white,scale=1.1]}-},
+    complete/.style={{Triangle[scale=1.1]}-}]
+
+  % legend
+  \begin{scope}[xshift=-2cm]  
+    \draw [fill=gray!25,draw=gray!50,dashed] (1.5,2.3) rectangle +(4,-1);
+    \draw (1.5,2.3) node [below right] {LEGEND};
+    \draw [init] (2,1.85) -- +(0,-0.01);
+    \draw (2.1,2) node [below right] {: Initiation of Tasks};
+    \draw [complete] (2,1.42) -- +(0,0.1);
+    \draw (2.1,1.7) node [below right] {: Completion of Tasks};
+  \end{scope}
+  
+    % grid
+    \foreach \x in {0.3,0.7}
+      \draw[task line] (0,\x) -- (5.2,\x);
+
+    % axes
+    \draw[->,thick] (0,0) node [below] {$0$} -- (5.3,0) node [above] {time};
+    \draw[thin] (0,0) -- (0,1);
+
+    % time indicator
+    \draw [time line] (1.5,0.7) -- (1.5,0);
+    \draw (1.5,0) node [below] {$3$} -- +(0,2pt);
+    \draw [time line] (2.5,0.7) -- (2.5,0);
+    \draw (2.5,0) node [below] {$5$} -- +(0,2pt);
+    \draw [time line] (4,0.7) -- (4,0);
+    \draw (4,0) node [below] {$8$} -- +(0,2pt);
+    \draw [time line] (4.5,0.3) -- (4.5,0);
+    \draw (4.5,0) node [below] {$9$} -- +(0,2pt);
+    \draw [time line] (5,0.7) -- (5,0);
+    \draw (5,0) node [below] {$10$} -- +(0,2pt);
+    
+    % tasks
+    \draw [periodic task] (0,0.7) rectangle +(1.5,0.14);
+    \draw [periodic task] (1.5,0.3) rectangle +(1,0.14);
+    \draw [periodic task] (2.5,0.7) rectangle +(1.5,0.14);
+    \draw [periodic task] (4,0.3) rectangle +(0.5,0.14);
+
+    % text
+    \draw (0,0.75) node [left] {$\tau_1$};
+    \draw (0,0.35) node [left] {$\tau_2$};
+    \path (0,0.75) node [left,text opacity=0] {scheduling};
+    \path (0,0.35) node [left,text opacity=0] {switching};    
+
+    % initiation of tasks
+    \foreach \x in {0,2.5,5}
+      \draw [init] (\x,0.7) -- +(0,-0.01);
+    \foreach \x in {0,5}
+      \draw [init] (\x,0.3) -- +(0,-0.01);  
+
+    % completion of tasks
+    \draw [complete] (1.5,0.84) -- +(0,0.01);
+    \draw [complete] (4,0.84) -- +(0,0.01);
+    \draw [complete] (4.5,0.44) -- +(0,0.01);
+  \end{tikzpicture}
+\label{sf:rmsalg}}\\
+\subfloat[RMS Implementation]{
+  \begin{tikzpicture}[font=\small,scale=1.25,
+    % styles
+    system task/.style={fill=gray!70,draw=gray},
+    periodic task/.style={fill=gray!70!black,draw=gray!50!black},
+    task line/.style={gray!30,very thin},
+    time line/.style={gray!50,very thin,dashed},
+    short line/.style={gray!50,very thin,dashed},
+    init/.style={{Triangle[fill=white,scale=1.1]}-},
+    complete/.style={{Triangle[scale=1.1]}-}]
+
+    % grid
+    \foreach \x in {0.3,0.7,1.1,1.5}
+      \draw[task line] (0,\x) -- (5.2,\x);
+
+    % axes
+    \draw[->,thick] (0,0) node [below] {$0$} -- (5.3,0) node [above] {time};
+    \draw[thin] (0,0) -- (0,1.8);
+
+    % time indicator
+    \draw [time line] (0.5,1.5) -- (0.5,0);
+    \draw (0.5,0) node [below] {$1$} -- +(0,2pt);
+    \draw [time line] (1.25,1.5) -- (1.25,0);
+    \draw (1.25,0) node [below] {$2.5$} -- +(0,2pt);
+    \draw [time line] (1.75,1.1) -- (1.75,0);
+    \draw (1.75,0) node [below] {$3.5$} -- +(0,2pt);
+    \draw [time line] (2.25,1.1) -- (2.25,0);
+    \draw (2.25,0) node [below] {$4.5$} -- +(0,2pt);
+    \draw [time line] (2.75,1.5) -- (2.75,0);
+    \draw (2.75,0) node [below] {$5.5$} -- +(0,2pt);
+    \draw [time line] (3.25,1.5) -- (3.25,0);
+    \draw (3.25,0) node [below] {$6.5$} -- +(0,2pt);
+    \draw [time line] (4.25,1.5) -- (4.25,0);
+    \draw (4.25,0) node [below] {$8.5$} -- +(0,2pt);
+    \draw [time line] (4.75,0.3) -- (4.75,0);
+    \draw (4.75,0) -- +(0,2pt);
+    \draw (4.65,0) node [below] {$9.5$};
+    \draw [time line] (5,1.5) -- (5,0);
+    \draw (5,0) node [below] {$10$} -- +(0,2pt);
+    
+    % tasks
+    \draw [system task] (0,0.7) rectangle +(0.5,0.14);
+    \draw [periodic task] (0.5,1.5) rectangle +(0.75,0.14);
+    \draw [system task] (1.25,0.3) rectangle +(0.5,0.14);
+    \draw [periodic task] (1.75,1.1) rectangle +(0.5,0.14);
+    \draw [system task] (2.25,0.3) rectangle +(0.5,0.14);
+    \draw [system task] (2.75,0.7) rectangle +(0.5,0.14);
+    \draw [periodic task] (3.25,1.5) rectangle +(1,0.14);
+    \draw [system task] (4.25,0.3) rectangle +(0.5,0.14);
+
+    % text
+    \draw (0,1.55) node [left] {$\tau_1$};
+    \draw (0,1.15) node [left] {$\tau_2$};
+    \draw (0,0.75) node [left] {scheduling};
+    \draw (0,0.35) node [left] {switching};    
+
+    % initiation of tasks
+    \foreach \x in {0,2.75,5}
+      \draw [init] (\x,1.5) -- +(0,-0.01);
+    \foreach \x in {0,5}
+      \draw [init] (\x,1.1) -- +(0,-0.01);  
+
+    % completion of tasks
+    \draw [complete] (1.25,1.64) -- +(0,0.01);
+    \draw [complete] (2.25,1.24) -- +(0,0.01);
+    \draw [complete] (4.25,1.64) -- +(0,0.01);
+  \end{tikzpicture}
+\label{sf:rmsimp}}
+\caption{A task set scheduled under RMS algorithm and the
+  implementation, respectively. $T=T_1=5$, $T_2=10$.  In
+  Figure~\ref{sf:rmsalg}, with assumption~(A2), $C_1=3$, $C_2=3$. In
+  Figure~\ref{sf:rmsimp}, with assumption~(A2'), $C_1\in [1,3]$ and
+  $C_2\in [1,3]$, assuming both scheduling time and switching time are
+  $1$.}
+\label{f:example}
+\end{figure}
 
 In this section, we introduce first how we model the states--the
 static aspect--of the system using algebraic data types, then how we

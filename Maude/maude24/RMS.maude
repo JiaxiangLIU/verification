@@ -565,7 +565,7 @@ endom)
 endtom)
 
 (tomod INSTANTIATION is 
-  protecting NAT-TIME-DOMAIN-WITH-INF .
+  protecting POSRAT-TIME-DOMAIN-WITH-INF .
   including INTERRUPT-SOURCE .
   including PERIODIC-TASK .
   including SYSTEM .
@@ -813,5 +813,37 @@ endtom)
   eq pinit2 = { pl2 [ 0 / 5 ] psts pHW pisrc } .
   eq pinit3 = { pl3 [ 0 / 10 ] psts pHW pisrc } .
   eq pinit4 = { pl4 [ 0 / 6 ] psts pHW pisrc } .
+
+  op src-ce : -> Object .
+  eq src-ce = < 'i : IntSrc | val : 0, cycle : 20 > .
+  
+  op sts-ce : -> SysTasks .
+  eq sts-ce = [ < scheduling : Task | cnt : [ 0 / [ 4 , 4 ] ] >
+                < switching : Task | cnt : [ 0 / [ 2 , 2 ] ] > ] .
+ 
+  op HW-ce : -> Hardware .
+  eq HW-ce = [ < 'pr : Regs | pc : none , mask : false ,
+                              ir : false , temp : none >
+	       ; bottom ] .
+
+  ops l-ce-y l-ce-n : -> TaskList .
+  eq l-ce-y = < 't1 : PTask | priority : 3 , period : 2 , status : DORMANT ,
+                              cnt : [ 0 / [ 8 , 8 ] ] >
+              :: < 't2 : PTask | priority : 2 , period : 3 , status : DORMANT ,
+                                 cnt : [ 0 / [ 27 , 27 ] ] >
+              :: < 't3 : PTask | priority : 1 , period : 12 , status : DORMANT ,
+                                 cnt : [ 0 / [ 10 , 10 ] ] >
+              :: null .
+  eq l-ce-n = < 't1 : PTask | priority : 3 , period : 2 , status : DORMANT ,
+                              cnt : [ 0 / [ 8 , 8 ] ] >
+              :: < 't2 : PTask | priority : 2 , period : 3 , status : DORMANT ,
+                                 cnt : [ 0 / [ 27 , 27 ] ] >
+              :: < 't3 : PTask | priority : 1 , period : 12 , status : DORMANT ,
+                                 cnt : [ 0 / [ (79 / 10) , (79 / 10) ] ] >
+              :: null .
+
+  ops init-ce-y init-ce-n : -> GlobalSystem .
+  eq init-ce-y = { l-ce-y [ 0 / 12 ] sts-ce HW-ce src-ce } .
+  eq init-ce-n = { l-ce-n [ 0 / 12 ] sts-ce HW-ce src-ce } .
 
 endtom)

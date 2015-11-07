@@ -525,7 +525,7 @@ deadlines. \emph{Rate-Monotonic Scheduling} (\emph{RMS}) is a
 real-time environments proposed by Liu and
 Layland~\cite{DBLP:journals/jacm/LiuL73}, which assigns priorities to
 jobs according to the periods of the corresponding tasks: the smaller
-period, the higher priority. RMS is proved to be the \emph{optimal}
+period, the higher priority. RMS is proven to be the \emph{optimal}
 fixed priority scheduling algorithm~\cite{DBLP:journals/jacm/LiuL73},
 in the sense that any set of tasks, which is schedulable under
 \emph{some} fixed priority scheduling algorithm, is also schedulable
@@ -550,7 +550,7 @@ resource sharing among tasks,
 extend RMS on multiprocessors, and
 \cite{DBLP:journals/rts/OhS94,DBLP:journals/rts/GhoshMMS98,DBLP:journals/tpds/BertossiMR99}
 enhance fault-tolerance. The other direction is to generate better
-schedulablity test conditions for the algorithm and its
+schedulability test conditions for the algorithm and its
 extensions~\cite{DBLP:conf/rtss/LehoczkySD89,DBLP:conf/rtss/KuoM91,DBLP:journals/tc/BiniBB03,DBLP:journals/rts/LopezGDG03,DBLP:journals/tc/BaruahG03,gardner1999}. The
 RMS algorithm is no doubt of practical importance.
 
@@ -572,14 +572,13 @@ attempt to analyze the RMS algorithm, while no work for
 implementations of RMS is found.
 
 In this paper, we use \emph{Real-Time Maude}, a \emph{rewriting}-based
-formal modeling language and analyzing tool for real-time systems, to
+formal modeling language and analysis tool for real-time systems, to
 model a realistic implementation of RMS, which serves as a simplified
 operating system within an avionic control system, and then verify
 several desired properties. Based on a realistic implementation, our
 model extends the standard RMS model proposed
-in~\cite{DBLP:journals/jacm/LiuL73}, by allowing computation
-requirements of tasks to be non-constant, and by considering overhead
-and other details of the hardware platform.
+in~\cite{DBLP:journals/jacm/LiuL73}, by considering overhead and other
+details of the hardware platform.
 
 The rest of this paper is organized as
 follows. Section~\ref{s:background} gives some background of both the
@@ -619,20 +618,20 @@ and does not vary with time.
 initiation times and can be preempted instantly (ignoring all
 blocking).
 
-(A4) All overhead, such as task switching times, is ignored.
+(A4) All overhead, such as task switching time, is ignored.
 
 A simple example showing this algorithm is depicted in
 Figure~\ref{sf:rmsalg}. However in this paper, we consider an
 implementation instead of the RMS algorithm itself, thus the model
 would be more complicated than this standard, ideal
 setting. Assumption~(A1) will be modified because of the interrupt
-mask mechanism, while (A2) and (A4) are relaxed to obtain a more
-realistic analysis model.
+mask mechanism, while (A4) is relaxed to obtain a more realistic
+analysis model.
 
 \subsection{Real-Time Maude}
-\emph{Real-Time Maude}~\cite{DBLP:journals/lisp/OlveczkyM07} is an
-extension of \emph{Maude}~\cite{DBLP:journals/tcs/ClavelDELMMQ02}
-which is a language and tool based on \emph{rewriting
+Real-Time Maude~\cite{DBLP:journals/lisp/OlveczkyM07} is an extension
+of \emph{Maude}~\cite{DBLP:journals/tcs/ClavelDELMMQ02} which is a
+language and tool based on \emph{rewriting
   logic}~\cite{DBLP:journals/jlp/Meseguer12}.  It supports formal
 specification and analysis of real-time systems.
 
@@ -707,21 +706,22 @@ propositions and temporal logic operators such as \verb|True|,
 \verb|U|(``until''). Real-Time Maude supports both \emph{timed} and
 \emph{untimed LTL model checking}. The untimed model checking command
 \begin{alltt}
-  (mc \(s\) |=u \(formula\) .)
+  (mc \(s\) |=u \(\Phi\) .)
 \end{alltt}
-checks whether the temporal logic $formula$ holds in all behaviors
-starting from the initial state $s$, \emph{with no time limit}.
+checks whether the temporal logic formula $\Phi$ holds in all
+behaviors starting from the initial state $s$, \emph{with no time
+  limit}.
 
 
 \section{The Implementation of RMS}
 \label{s:imp}
-The implementation is in a realistic avionic control system.
+The implementation is in an industrial avionic control system.
 Interrupts would be triggered by, and only by, the clock every $T$,
 which we call \emph{interrupt cycle}. When an interrupt request
-occurs, if the system is interruptable, i.e. the interrupt mask bit
-is cleared, the handler function $schedule()$ will be invoked;
-otherwise $schedule()$ will be pending until the interrupt mask bit
-becomes cleared.  The implementation is shown as $schedule()$ in
+occurs, if the system is interruptable, i.e. the interrupt mask bit is
+cleared, the handler function $schedule()$ will be invoked; otherwise
+$schedule()$ will be pending until the interrupt mask bit becomes
+cleared.  The implementation is shown as $schedule()$ in
 Figure~\ref{a:schedule}, where $taskList$ is the list of periodic
 tasks to be scheduled. We assume that the list is in descending order
 of priority, and both variables $taskList$ and $timer$ are global. In
@@ -773,7 +773,7 @@ independent, meeting assumption~(A3).
 
 In Figure~\ref{a:schedule}, the handler function $schedule()$ first
 updates status of all tasks in $taskList$ via function
-$updateStatus()$. This updating actually initiates tasks which should
+$updateStatus()$. This updating actually initiates tasks that should
 be scheduled in the current interrupt cycle. Then $schedule()$
 traverses the list to execute the ready tasks one by one, or to do a
 return when encountering an interrupted\footnote{Note that the status
@@ -782,14 +782,14 @@ return when encountering an interrupted\footnote{Note that the status
 task. As for the function $updateStatus()$, it updates each task in
 two steps: firstly, if the task is running, it becomes interrupted;
 secondly for the task at its initiation time, if its previous job is
-complete, it would be set to be ready, otherwise it misses its
-deadline, producing an error. Notice that $schedule()$ is invoked only
-when the interrupt request is handled, not when the interrupt is
-disabled (the interrupt mask bit is set). Due to the interrupt
-mask bit, its execution cannot be interrupted when it is updating
-status of tasks or finding the next task to execute, however, it can
-be interrupted while executing some task (Line~\ref{l:function}). This
-allows the execution of $schedule()$ to be nested.
+complete, it would be set ready, otherwise it misses its deadline,
+producing an error. Notice that $schedule()$ is invoked only when the
+interrupt request is handled, not when the interrupt is disabled (the
+interrupt mask bit is set). Due to the interrupt mask bit, its
+execution cannot be interrupted when it is updating status of tasks or
+searching the next task to execute, however, it can be interrupted while
+executing some task (Line~\ref{l:function}). This allows the execution
+of $schedule()$ to be nested.
 
 For simplicity, in the rest of this paper, we use \emph{scheduling} to
 refer to the stage, from the moment when a pending interrupt request
@@ -798,7 +798,7 @@ starts executing, i.e. Line~\ref{l:return} or~\ref{l:function} in
 Figure~\ref{a:schedule}. Therefore, \emph{scheduling time} mainly
 consists of three parts: (i) the time for switching context from the
 running task, possibly none, to $schedule()$ when an interrupt request
-is handled, (ii) the time spent by $schedule()$ finding and setting
+is handled, (ii) the time spent by $schedule()$ searching and setting
 the \emph{first} should-be-run periodic task
 (Lines~\ref{l:1stline}-\ref{l:endrun1st} in Figure~\ref{a:schedule}),
 and (iii) the time for switching context from $schedule()$ to that
@@ -807,7 +807,7 @@ periodic task completes its execution, to the moment when the next
 should-be-run periodic task starts executing. \emph{Switching time}
 thus also consists of three parts: (i) the time for switching context
 from the complete task back to $schedule()$, (ii) the time spent by
-$schedule()$ finding and setting the \emph{next} should-be-run
+$schedule()$ searching and setting the \emph{next} should-be-run
 periodic task, and (iii) the time for switching context from
 $schedule()$ to that task.
 
@@ -822,9 +822,8 @@ assumptions:
 beginning of scheduling that handles the requests triggered at times
 $kT_i$ with integers $k\ge 0$.
 
-(A2') Computation requirement $C_i$ for each task $\tau_i$ is not
-constant. It varies randomly between minimum $C^{min}_i$ and maximum
-$C^{max}_i$, i.e. within an interval $[C^{min}_i, C^{max}_i]$.
+(A2) Computation requirement $C_i$ for each task $\tau_i$ is constant
+and does not vary with time.
 
 (A3) Tasks are independent, such that they are ready to run at their
 initiation times and can be preempted instantly.
@@ -834,17 +833,17 @@ overhead is ignored.
 
 These assumptions make our model different from the standard one. For
 instance, with assumption~(A1'), an interrupt request that occurs
-while switching is performed will be pending, such that jobs of task
-$\tau_i$ cannot initiate at $kT_i$. They should wait until switching
-finishes and the interrupt mask bit is cleared, which is different
+during switching will be pending, such that jobs of task $\tau_i$
+cannot initiate at $kT_i$. They should wait until switching finishes
+and the interrupt mask bit is cleared, which is different
 from~(A1). Note that (A3) says that jobs are ready to run at their
 initiation times, however, no one can start running at exactly its
 initiation time, because scheduling takes time. Under these
-assumptions, an example for showing the execution of tasks scheduled
-by the implementation is depicted in Figure~\ref{sf:rmsimp}. Note that
-the second job of $\tau_1$ is initiated at time $5.5$ instead of $5$,
-because switching is performed and the interrupt mask bit is set at
-time $5$.
+assumptions, an example showing the execution of tasks scheduled by
+the implementation is depicted in Figure~\ref{sf:rmsimp}. Note that
+the second job instance of $\tau_1$ is initiated at time $11$ instead
+of $10$, because switching is performed and the interrupt mask bit is
+set at time $10$.
 
 \begin{figure}[!t]
 \centering
@@ -878,22 +877,22 @@ time $5$.
     \draw[thin] (0,0) -- (0,1);
 
     % time indicator
-    \draw [time line] (1.5,0.7) -- (1.5,0);
-    \draw (1.5,0) node [below] {$3$} -- +(0,2pt);
+    \draw [time line] (0.75,0.7) -- (0.75,0);
+    \draw (0.75,0) node [below] {$3$} -- +(0,2pt);
+    \draw [time line] (1.25,0.3) -- (1.25,0);
+    \draw (1.25,0) node [below] {$5$} -- +(0,2pt);
     \draw [time line] (2.5,0.7) -- (2.5,0);
-    \draw (2.5,0) node [below] {$5$} -- +(0,2pt);
-    \draw [time line] (4,0.7) -- (4,0);
-    \draw (4,0) node [below] {$8$} -- +(0,2pt);
-    \draw [time line] (4.5,0.3) -- (4.5,0);
-    \draw (4.5,0) node [below] {$9$} -- +(0,2pt);
+    \draw (2.5,0) node [below] {$10$} -- +(0,2pt);
+    \draw [time line] (3.25,0.7) -- (3.25,0);
+    \draw (3.25,0) node [below] {$13$} -- +(0,2pt);
+
     \draw [time line] (5,0.7) -- (5,0);
-    \draw (5,0) node [below] {$10$} -- +(0,2pt);
+    \draw (5,0) node [below] {$20$} -- +(0,2pt);
     
     % tasks
-    \draw [periodic task] (0,0.7) rectangle +(1.5,0.14);
-    \draw [periodic task] (1.5,0.3) rectangle +(1,0.14);
-    \draw [periodic task] (2.5,0.7) rectangle +(1.5,0.14);
-    \draw [periodic task] (4,0.3) rectangle +(0.5,0.14);
+    \draw [periodic task] (0,0.7) rectangle +(0.75,0.14);
+    \draw [periodic task] (0.75,0.3) rectangle +(0.5,0.14);
+    \draw [periodic task] (2.5,0.7) rectangle +(0.75,0.14);
 
     % text
     \draw (0,0.75) node [left] {$\tau_1$};
@@ -908,9 +907,9 @@ time $5$.
       \draw [init] (\x,0.3) -- +(0,-0.01);  
 
     % completion of tasks
-    \draw [complete] (1.5,0.84) -- +(0,0.01);
-    \draw [complete] (4,0.84) -- +(0,0.01);
-    \draw [complete] (4.5,0.44) -- +(0,0.01);
+    \draw [complete] (0.75,0.84) -- +(0,0.01);
+    \draw [complete] (3.25,0.84) -- +(0,0.01);
+    \draw [complete] (1.25,0.44) -- +(0,0.01);
   \end{tikzpicture}
 \label{sf:rmsalg}}\\
 \subfloat[RMS Implementation]{
@@ -934,24 +933,24 @@ time $5$.
 
     % time indicator
     \draw [time line] (0.5,1.5) -- (0.5,0);
-    \draw (0.5,0) node [below] {$1$} -- +(0,2pt);
+    \draw (0.5,0) node [below] {$2$} -- +(0,2pt);
     \draw [time line] (1.25,1.5) -- (1.25,0);
-    \draw (1.25,0) node [below] {$2.5$} -- +(0,2pt);
+    \draw (1.25,0) node [below] {$5$} -- +(0,2pt);
     \draw [time line] (1.75,1.1) -- (1.75,0);
-    \draw (1.75,0) node [below] {$3.5$} -- +(0,2pt);
+    \draw (1.75,0) node [below] {$7$} -- +(0,2pt);
     \draw [time line] (2.25,1.1) -- (2.25,0);
-    \draw (2.25,0) node [below] {$4.5$} -- +(0,2pt);
+    \draw (2.25,0) node [below] {$9$} -- +(0,2pt);
     \draw [time line] (2.75,1.5) -- (2.75,0);
-    \draw (2.75,0) node [below] {$5.5$} -- +(0,2pt);
+    \draw (2.75,0) node [below] {$11$} -- +(0,2pt);
     \draw [time line] (3.25,1.5) -- (3.25,0);
-    \draw (3.25,0) node [below] {$6.5$} -- +(0,2pt);
-    \draw [time line] (4.25,1.5) -- (4.25,0);
-    \draw (4.25,0) node [below] {$8.5$} -- +(0,2pt);
-    \draw [time line] (4.75,0.3) -- (4.75,0);
-    \draw (4.75,0) -- +(0,2pt);
-    \draw (4.65,0) node [below] {$9.5$};
+    \draw (3.25,0) node [below] {$13$} -- +(0,2pt);
+    \draw [time line] (4,1.5) -- (4,0);
+    \draw (4,0) node [below] {$16$} -- +(0,2pt);
+    \draw [time line] (4.5,0.3) -- (4.5,0);
+    \draw (4.5,0) -- +(0,2pt);
+    \draw (4.5,0) node [below] {$18$};
     \draw [time line] (5,1.5) -- (5,0);
-    \draw (5,0) node [below] {$10$} -- +(0,2pt);
+    \draw (5,0) node [below] {$20$} -- +(0,2pt);
     
     % tasks
     \draw [system task] (0,0.7) rectangle +(0.5,0.14);
@@ -960,8 +959,8 @@ time $5$.
     \draw [periodic task] (1.75,1.1) rectangle +(0.5,0.14);
     \draw [system task] (2.25,0.3) rectangle +(0.5,0.14);
     \draw [system task] (2.75,0.7) rectangle +(0.5,0.14);
-    \draw [periodic task] (3.25,1.5) rectangle +(1,0.14);
-    \draw [system task] (4.25,0.3) rectangle +(0.5,0.14);
+    \draw [periodic task] (3.25,1.5) rectangle +(0.75,0.14);
+    \draw [system task] (4,0.3) rectangle +(0.5,0.14);
 
     % text
     \draw (0,1.55) node [left] {$\tau_1$};
@@ -978,15 +977,13 @@ time $5$.
     % completion of tasks
     \draw [complete] (1.25,1.64) -- +(0,0.01);
     \draw [complete] (2.25,1.24) -- +(0,0.01);
-    \draw [complete] (4.25,1.64) -- +(0,0.01);
+    \draw [complete] (4,1.64) -- +(0,0.01);
   \end{tikzpicture}
 \label{sf:rmsimp}}
-\caption{A task set scheduled under RMS algorithm and the
-  implementation, respectively. $T=T_1=5$, $T_2=10$.  In
-  Figure~\ref{sf:rmsalg}, with assumption~(A2), $C_1=3$, $C_2=3$. In
-  Figure~\ref{sf:rmsimp}, with assumption~(A2'), $C_1\in [1,3]$ and
-  $C_2\in [1,3]$, assuming both scheduling time and switching time are
-  $1$.}
+\caption{A set of $2$ periodic tasks scheduled under RMS algorithm and
+  the implementation, respectively. $T=T_1=10$, $T_2=20$, $C_1=3$,
+  $C_2=2$. In Figure~\ref{sf:rmsimp}, we assume both scheduling time
+  and switching time are $2$.}
 \label{f:example}
 \end{figure}
 
@@ -1017,15 +1014,14 @@ operations \verb|push|, \verb|pop| and \verb|peek| on it.
  op _#_ : Nat Stack -> Stack [ctor] .
 \end{verbatim}
 
-We also need a sort \verb|Interval| to denote computation requirements
-of tasks, and a sort \verb|Counter| to record execution of tasks.  We
-call \emph{execution time} the time how long a task has been executing
+We also need
+%a sort \verb|Interval| to denote computation requirements of tasks, and 
+a sort \verb|Counter| to record the execution of tasks.  We call
+\emph{execution time} the time how long a task has been executing
 for. A \verb|Counter| records the execution time and the computation
 requirement of a task.
 \begin{verbatim}
- op [_,_] : Time Time -> Interval [ctor] .  
- op [_/_] : Time Interval 
-              -> Counter [ctor] .
+ op [_/_] : Time Time -> Counter [ctor] .
 \end{verbatim}
 
 \hide{
@@ -1096,7 +1092,7 @@ Periodic tasks are identified by their indexes in the list.
 On the other hand, a system task is an object instance of the subclass
 \verb|SysTask| of \verb|Task| with no extra attributes:
 \begin{verbatim}
- class SysTask .            
+ class SysTask | .            
  subclass SysTask < Task .
 \end{verbatim}
 Different from periodic tasks, system tasks are organized in a
@@ -1213,11 +1209,11 @@ Figure~\ref{a:schedule}):
 \end{verbatim}
 Given a task, if \verb|TIMER|($timer$) can be divided by its period,
 this task should be initiated.  In the case where the task should be
-initiated, it is set to be \verb|READY| if its \verb|status| is
+initiated, it is set \verb|READY| if its \verb|status| is
 \verb|DORMANT|; otherwise that means the previous job of this task is
 not complete, hence it misses its deadline, producing an
 \verb|error|. In the other case where the task should not be
-initiated, its \verb|status| changes only if it is \verb|RUNNING|. 
+initiated, its \verb|status| changes only if it is \verb|RUNNING|.
 
 We can see that \verb|updateStatus_with_| behaves the same as
 $updateStatus()$.
@@ -1225,11 +1221,11 @@ $updateStatus()$.
 \subsection{Interrupt Handling and Task Scheduling}
 \label{ss:inthandling}
 When an interrupt request occurs, it may not be detected immediately
-by the system. It requires the \verb|mask| bit to be cleared. Once the
+by the system. It requires the bit \verb|mask| to be cleared. Once the
 request is detected, it is handled in two steps: the interrupt
 handling mechanism of the hardware (such as clearing \verb|ir|,
-pushing context into stack and so on), and to invoke the $schedule()$
-function. This behavior is modeled by the following instantaneous
+pushing context into stack and so on), and to invoke the function
+$schedule()$. This behavior is modeled by the following instantaneous
 rewrite rule:
 \begin{verbatim}
  crl [interrupt-handle] :
@@ -1240,11 +1236,11 @@ rewrite rule:
 where \verb|_.existInt| checks whether \verb|mask| is cleared
 \emph{and} \verb|ir| is set. The function \verb|_.interrupt| models
 the interrupt handling mechanism performed by the hardware and does
-four things: (i) clearing the \verb|ir| bit, which means the request
+four things: (i) clearing the bit \verb|ir|, which means the request
 has been handled; (ii) pushing the current \verb|pc| value into the
 stack, storing the interrupted context; (iii) assigning
 \verb|scheduling| of sort \verb|Oid| to \verb|pc|, which indicates
-that the system is scheduling; and (iv) setting the \verb|mask| bit,
+that the system is scheduling; and (iv) setting the bit \verb|mask|,
 to mask coming interrupt requests.
 
 Unlike periodic tasks, even though the scheduling stage is modeled by
@@ -1266,7 +1262,7 @@ beginning of scheduling, as shown in rule \verb|interrupt-handle|:
        inc(T) STS HW ISRC) .
 \end{verbatim}
 The third part corresponds to
-Lines~\ref{l:startrun1st}-\ref{l:endrun1st}, finding the first
+Lines~\ref{l:startrun1st}-\ref{l:endrun1st}, searching the first
 should-be-run periodic task and setting it to execute. It is modeled
 by function \verb|_.finishScheduling|, which applies instantaneously
 at the end of scheduling:
@@ -1292,11 +1288,11 @@ this instantaneous action with the following rule:
    => (SYSTEM).finishScheduling
    if SYSTEM := (L T STS HW ISRC) 
       /\ (SYSTEM).running == scheduling 
-      /\ scheduling mayFinish?in STS .
+      /\ scheduling isComplete?in STS .
 \end{verbatim}
 where function \verb|_.running| returns the current \verb|pc| value of
-the system, and \verb|_mayFinish?in_| checks whether the execution
-time of the task reaches its computation requirement.
+the system, and \verb|_isComplete?in_| checks whether the execution
+time of the task reaches its computation requirement.  
 \hide{
 \begin{verbatim}
   op _mayFinish?in_ : Oid SysTasks ~> Bool .
@@ -1319,13 +1315,13 @@ functionality of switching:
    => (SYSTEM).startSwitching
    if SYSTEM := (L T STS HW ISRC)
       /\ some N := (SYSTEM).running
-      /\ some N mayFinish?in L .
+      /\ some N isComplete?in L .
  crl [switching-finish] :
    (L T STS HW ISRC) 
    => (SYSTEM).finishSwitching
    if SYSTEM := (L T STS HW ISRC)
       /\ (SYSTEM).running == switching
-      /\ switching mayFinish?in STS .
+      /\ switching isComplete?in STS .
 \end{verbatim}
 
 \subsection{Timed Behaviors of the System}
@@ -1384,11 +1380,13 @@ not there exists an interrupt request detected for the moment:
 where \verb|mteIr| returns \verb|zero| if there exists an interrupt
 request detected in the system, or \verb|INF| which represents
 \emph{infinity} otherwise. Again we do not show the case where
-\verb|ID| is of sort \verb|Oid|, which is very similar. We should
+\verb|ID| is of sort \verb|Oid|, which is very similar. 
+\hide{
+We should
 point out that \verb|mteTask| computes the remaining time to reach the
 maximum of the computation requirement of the task, since that is the
 time at which a \verb|task-finish| transition \emph{must} happen.
-
+}
 
 \section{Formal Verification}
 \label{s:verification}
@@ -1407,7 +1405,8 @@ their priorities and periods.
 
 To verify the schedulability of a given set of periodic tasks, we
 define an atomic proposition \verb|taskTimeout| to hold if there
-exists an \verb|error| appearing in $taskList$ of the current state:
+exists an \verb|error| appearing in $taskList$ of the current state,
+that is, some task misses its deadline:
 \begin{verbatim}
  op taskTimeout : -> Prop [ctor] .
  eq {L T STS HW ISRC} |= taskTimeout 
@@ -1457,10 +1456,11 @@ We use the following setting for our verification, which is from the
 statistics provided by our industrial partner:
 \begin{itemize}
 \item The interrupt cycle $T$ is $5ms$.
-\item The scheduling time ranges from $15{\mu}s$ to $38{\mu}s$, and the
-switching time ranges from $10{\mu}s$ to $20{\mu}s$.
-\hide{\item The scheduling time ranges from $5{\mu}s$ to $9{\mu}s$, and the
-switching time ranges from $2{\mu}s$ to $4{\mu}s$.}
+\item The scheduling time is $38{\mu}s$ and the switching time is
+  $20{\mu}s$.  
+\hide{\item The scheduling time ranges from $5{\mu}s$
+  to $9{\mu}s$, and the switching time ranges from $2{\mu}s$ to
+  $4{\mu}s$.}
 \item The initial state is with empty stack, empty \verb|pc|, cleared 
 \verb|mask| and cleared \verb|ir|.
 \end{itemize}
@@ -1471,15 +1471,15 @@ experimental ones designed by ourselves, four of them are described
 below:
 \begin{itemize}
 \item Scenario~(i) with two tasks $\tau_1$ and $\tau_2$: $T_1=5ms$,
-  $C_1\in [2.4ms, 3ms]$, $T_2=25ms$ and $C_2\in [6.1ms, 7ms]$.
+  $C_1=3ms$, $T_2=25ms$ and $C_2=7ms$.
 \item Scenario~(ii) with two tasks $\tau_1$ and $\tau_2$: $T_1=5ms$,
-  $C_1\in [1.8ms, 2ms]$, $T_2=25ms$ and $C_2\in [2.1ms, 2.3ms]$.
+  $C_1=2ms$, $T_2=25ms$ and $C_2=2.3ms$.
 \item Scenario~(iii) with three tasks $\tau_1$, $\tau_2$ and $\tau_3$:
-  $T_1=5ms$, $C_1\in [2.5ms, 2.7ms]$, $T_2=10ms$, $C_2\in [1.5ms,
-  2ms]$, $T_3=25ms$ and $C_3\in [2.6ms, 3ms]$.
+  $T_1=5ms$, $C_1=2.7ms$, $T_2=10ms$, $C_2=2ms$, $T_3=25ms$ and
+  $C_3=3ms$.
 \item Scenario~(iv) with three tasks $\tau_1$, $\tau_2$ and $\tau_3$:
-  $T_1=5ms$, $C_1\in [2.2ms, 2.5ms]$, $T_2=10ms$, $C_2\in [1.4ms,
-  1.5ms]$, $T_3=15ms$ and $C_3\in [4.3ms, 4.5ms]$.
+  $T_1=5ms$, $C_1=2.5ms$, $T_2=10ms$, $C_2=1.5ms$, $T_3=15ms$ and
+$C_3=4.5ms$.
 \end{itemize}
 
 \hide{
@@ -1506,8 +1506,8 @@ below:
 Instantiating our model on dense time domain and choosing the
 \emph{maximal time sampling strategy}, the results of the model
 checking show that the correctness property holds in all scenarios. As
-to the schedulability property, it holds in Scenarios~(i-iii), but not
-in Scenario~(iv).  One counterexample of the schedulability for
+to the schedulability property, it holds in Scenarios~(i-iii), but
+fails in Scenario~(iv).  One counterexample of the schedulability for
 Scenario~(iv), returned by the model checking command, is pictured in
 Figure~\ref{f:counterexample}, where the third task $\tau_3$ misses
 its deadline at the time $15ms$.
@@ -1768,24 +1768,23 @@ its deadline at the time $15ms$.
   \end{scope}
   
 \end{tikzpicture}
-\caption{A counterexample of schedulablity in Scenario~(iv). Each job
-  of each task executes for the maximum of its computation
-  requirement. The first job of $\tau_3$ misses its deadline at time
-  $15ms$, which is the initiation time for the second job of
-  $\tau_3$.}
+\caption{A counterexample of schedulablity in Scenario~(iv). The first
+  job instance of $\tau_3$ misses its deadline at time $15ms$, which
+  is the initiation time for the second job instance of $\tau_3$.}
 \label{f:counterexample}
 \end{figure*}
 
 \subsection{Evaluation}
 %\subsection{Soundness and Completeness of the Analysis}
-We now show our results are both \emph{sound} and \emph{complete} in
-this section.
+We now show in this section that our results are both sound and
+complete.
+
 
 An analysis method is called \emph{sound} if any counterexample found
 using such a method is a real counterexample of the question, and
 \emph{complete} if the fact that no counterexample can be found using
 such a method implies no counterexample exists for the question in
-analysis. The soundness of our results is easy to check, simply by
+analysis. The soundness of our results is trivial to check, simply by
 examining the counterexamples found. For instance, the counterexample
 shown in Figure~\ref{f:counterexample} is a real counterexample,
 implying that the result for schedulability of Scenario~(iv) is
@@ -1802,13 +1801,27 @@ systems~\cite{DBLP:journals/entcs/OlveczkyM07a}:
 \begin{theorem}[\cite{DBLP:journals/entcs/OlveczkyM07a}]
 \label{t:completeness}
 Given a \emph{time-robust} real-time rewrite theory $\cal R$, a set
-$P$ of \emph{tick-stabilizing} atomic propositions, an LTL formula
+$AP$ of \emph{tick-stabilizing} atomic propositions, an LTL formula
 $\Phi$ (excluding the \emph{next} operator $\bigcirc$) whose atomic
-propositions are contained in $P$. The untimed temporal logic model
+propositions are contained in $AP$. The untimed temporal logic model
 checking verifying $\Phi$ is \emph{complete} under the maximal time
 sampling strategy.
 \end{theorem}
 
+Therefore, we achieve the following theorem, showing that the results
+in Section~\ref{ss:results} are complete.
+\begin{theorem} 
+Our approach using untimed model checking to verify the schedulability
+and the correctness of our model is complete.
+\end{theorem}
+\begin{IEEEproof}
+By showing that our model is time-robust and that the two defined
+atomic propositions--\verb|taskTimeout| and \verb|correct|--are
+tick-stabilizing, then using Theorem~\ref{t:completeness}.
+\end{IEEEproof}
+
+
+\hide{
 In order to prove the completeness of our verification, we need little
 adjustments to our model.  For each task $\tau_i$, we collapse its
 computation requirement $[C_i^{min},C_i^{max}]$ into the single value
@@ -1870,7 +1883,7 @@ tick-stabilizing, our analysis using untimed model checking on the
 adjusted model is complete by Theorem~\ref{t:completeness}. Therefore
 by Theorem~\ref{th:max}, the results shown in Section~\ref{ss:results}
 for our original model are complete.
-
+}
 
 \hide{
 To apply Theorem~\ref{t:completeness} on our analysis to show the
@@ -1944,19 +1957,18 @@ overhead in their schedulability analysis, under several models based
 on different kinds of popular
 implementations~\cite{DBLP:journals/tse/KatcherAS93}.  However, our
 target implementation is not in their scope.  Furthermore, compared
-with those theoretical analysis, our method using formal modeling and
-verification has a great advantage that if our schedulability test
+with those theoretical analyses, our approach based on formal modeling
+and verification has a great advantage that if our schedulability test
 answers ``no'', it returns at the same time a real counterexample,
 which is able to guide our engineer to adjust the design.
 
 \cite{DBLP:conf/iceccs/CuiDT14} and~\cite{TianD2011} also made use of
 model checking to analyze the RMS algorithm along the same line but
 with different languages and tools. They considered only the ideal
-setting as in~\cite{DBLP:journals/jacm/LiuL73}, but not an
+setting as in~\cite{DBLP:journals/jacm/LiuL73}, instead of an
 implementation which contains much more complex details. Our model of
 the implementation easily degenerates to a model of the RMS algorithm,
-if we let the times for scheduling and switching be zero and let the
-computation requirement of each task collapse to a single value.
+if we let the times for scheduling and switching be zero.
 
 Finally, Maude and Real-Time Maude have been successfully applied on
 large numbers of applications~\cite{DBLP:journals/jlp/Meseguer12},
@@ -1968,14 +1980,12 @@ investigated using Real-Time Maude for the first time.
 \label{s:conclusion}
 We have formally modeled a realistic implementation of RMS using
 Real-Time Maude, a modeling language based on rewriting logic. By
-taking into acount the overhead of scheduling and switching, assuming
-that the computation requirement for each task may not be constant,
-and modeling some mechanism of the hardware, our model contains
-sufficient details to be analyzed for the behaviors of real
-systems. Two important properties--schedulability and correctness--are
-verified by model checking on our model, within several key
-scenarios. We demonstrate the soundness and completeness of our
-results.
+taking into acount the overhead of scheduling and switching, and by
+modeling some mechanism of the hardware, our model contains sufficient
+details to be analyzed for the behaviors of real systems. Two
+important properties--schedulability and correctness--are verified by
+model checking on our model, within several key scenarios. We
+demonstrate the soundness and completeness of our results.
 
 
 \hide{

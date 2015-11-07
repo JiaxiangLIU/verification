@@ -718,7 +718,7 @@ behaviors starting from the initial state $s$, \emph{with no time
 The implementation is in an industrial avionic control system.
 Interrupts would be triggered by, and only by, the clock every $T$,
 which we call \emph{interrupt cycle}. When an interrupt request
-occurs, if the system is interruptable, i.e. the interrupt mask bit is
+occurs, if the system is interruptible, i.e. the interrupt mask bit is
 cleared, the handler function $schedule()$ will be invoked; otherwise
 $schedule()$ will be pending until the interrupt mask bit becomes
 cleared.  The implementation is shown as $schedule()$ in
@@ -759,7 +759,7 @@ independent, meeting assumption~(A3).
       \If{$p\rightarrow status == \textit{DORMANT}$} \Comment{the previous job finishes} 
         \State $p\rightarrow status = \textit{READY}$;
       \Else \Comment{the status is \textit{READY} or \textit{INTERRUPT}}
-	\State \Call{$reportTaskError$}{$p$}; \Comment{the task misses its deadline}
+  \State \Call{$reportTaskError$}{$p$}; \Comment{the task misses its deadline}
       \EndIf
     \EndIf \label{l:endupdate}
     \State $p = p\rightarrow next$;
@@ -767,7 +767,7 @@ independent, meeting assumption~(A3).
 \EndFunction
   \end{algorithmic}
 \hrule
-  \caption{The C-Like Pseudocode of $schedule()$}
+  \caption{The C-Like Pseudo-code of $schedule()$}
   \label{a:schedule}
 \end{figure}
 
@@ -1027,9 +1027,9 @@ requirement of a task.
 \hide{
 At last, to make our model checkable by untimed model checking, it is
 reasonable to reset the global variable $timer$ when it reaches an
-upperbound while increasing (see Line~\ref{l:timer} in
+upper bound while increasing (see Line~\ref{l:timer} in
 Figure~\ref{a:schedule}) in the model. Then $timer$ is of sort
-\verb|Timer| and the upperbound would be the least common multiple of
+\verb|Timer| and the upper bound would be the least common multiple of
 the periods of all tasks.}
 
 The global variable $timer$ is reset when it reaches an upper bound
@@ -1768,7 +1768,7 @@ its deadline at the time $15ms$.
   \end{scope}
   
 \end{tikzpicture}
-\caption{A counterexample of schedulablity in Scenario~(iv). The first
+\caption{A counterexample of schedulability in Scenario~(iv). The first
   job instance of $\tau_3$ misses its deadline at time $15ms$, which
   is the initiation time for the second job instance of $\tau_3$.}
 \label{f:counterexample}
@@ -1946,7 +1946,7 @@ Layland~\cite{DBLP:journals/jacm/LiuL73} gave the famous sufficient
 condition that a set of periodic tasks is schedulable with respect to
 RMS if $\displaystyle \Sigma^n_{i=1} C_i/T_i \le n(2^{1/n}-1)$
 holds. Then a more sufficient condition, known as \emph{Hyperbolic
-  Bound}, which has the same complexity as Liu and Layland's one, was
+  Bound}, which has the same complexity as Liu and Layland's, was
 proposed in~\cite{DBLP:journals/tc/BiniBB03}. On the other hand,
 necessary and sufficient conditions for schedulability were derived
 independently in~\cite{DBLP:journals/rts/SpruntSL89}
@@ -1980,7 +1980,7 @@ investigated using Real-Time Maude for the first time.
 \label{s:conclusion}
 We have formally modeled a realistic implementation of RMS using
 Real-Time Maude, a modeling language based on rewriting logic. By
-taking into acount the overhead of scheduling and switching, and by
+taking into account the overhead of scheduling and switching, and by
 modeling some mechanism of the hardware, our model contains sufficient
 details to be analyzed for the behaviors of real systems. Two
 important properties--schedulability and correctness--are verified by

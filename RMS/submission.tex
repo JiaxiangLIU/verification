@@ -313,14 +313,19 @@
 % to submit to, of course. )
 
 \usepackage{alltt}
-%\usepackage{epic}
-%\usepackage{pstricks}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta}
 \newcommand{\hide}[1]{\ignorespaces}
 \newcommand{\jx}[1]{{\bf Jiaxiang: }#1{ \bf End}}
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}{Lemma}
+
+% Define the fontsize in environment {verbatim}
+\makeatletter
+\def\verbatim{\small\@verbatim \frenchspacing\@vobeyspaces \@xverbatim}
+%\def\verbatim@font{\small\ttfamily}
+\makeatother
+
 
 % correct bad hyphenation here
 \hyphenation{op-tical net-works semi-conduc-tor}
@@ -731,7 +736,7 @@ independent, meeting assumption~(A3).
 
 \begin{figure}[!t]
 \hrule\vspace{1mm}
-  \begin{algorithmic}[1]
+  \begin{algorithmic}[1]\small
 \Function{$schedule$}{$ $}{}
   \State \Call{$int\_o\!f\!\!f$}{$ $}; \Comment{to disable interrupts} \label{l:1stline}
   \State \Call{$updateStatus$}{$taskList$}; \label{l:updatestatus}
@@ -759,7 +764,7 @@ independent, meeting assumption~(A3).
       \If{$p\rightarrow status == \textit{DORMANT}$} \Comment{the previous job finishes} 
         \State $p\rightarrow status = \textit{READY}$;
       \Else \Comment{the status is \textit{READY} or \textit{INTERRUPT}}
-  \State \Call{$reportTaskError$}{$p$}; \Comment{the task misses its deadline}
+  \State \Call{$reportTaskError$}{$p$}; \Comment{task misses its deadline}
       \EndIf
     \EndIf \label{l:endupdate}
     \State $p = p\rightarrow next$;
@@ -1002,16 +1007,16 @@ in the $taskList$. We define a sort \verb|MaybeNat| wrapping
 followed by a \verb|Nat| $n$ indicating the task indexed $n$, and
 \verb|none| for no task:
 \begin{verbatim}
- op none : -> MaybeNat [ctor] .
- op some_ : Nat -> MaybeNat [ctor] .
+  op none : -> MaybeNat [ctor] .
+  op some_ : Nat -> MaybeNat [ctor] .
 \end{verbatim}
 
 A sort \verb|Stack| is introduced to model the stack of the system,
 storing the tasks that are being interrupted, and equipped with
 operations \verb|push|, \verb|pop| and \verb|peek| on it.
 \begin{verbatim}
- op bottom : -> Stack [ctor] .
- op _#_ : Nat Stack -> Stack [ctor] .
+  op bottom : -> Stack [ctor] .
+  op _#_ : Nat Stack -> Stack [ctor] .
 \end{verbatim}
 
 We also need
@@ -1021,7 +1026,7 @@ a sort \verb|Counter| to record the execution of tasks.  We call
 for. A \verb|Counter| records the execution time and the computation
 requirement of a task.
 \begin{verbatim}
- op [_/_] : Time Time -> Counter [ctor] .
+  op [_/_] : Time Time -> Counter [ctor] .
 \end{verbatim}
 
 \hide{
@@ -1038,7 +1043,7 @@ Figure~\ref{a:schedule} but is reasonable. The upper bound is the
 least common multiple of the periods of all tasks. A sort \verb|Timer|
 is defined:
 \begin{verbatim}
- op [_/_] : Nat NzNat -> Timer [ctor] .
+  op [_/_] : Nat NzNat -> Timer [ctor] .
 \end{verbatim}
 
 \subsection{Modeling the System States}
@@ -1054,8 +1059,8 @@ Overhead for scheduling and switching is considered in our model. They
 are treated as two system tasks. Every task is modeled as an object
 instance of some subclass of the base class \verb|Task|:
 \begin{verbatim}
- class Task | cnt : Counter .
- op error : -> Object [ctor] .
+  class Task | cnt : Counter .
+  op error : -> Object [ctor] .
 \end{verbatim}
 where \verb|error| is an object indicating some task that misses its
 deadline.
@@ -1064,36 +1069,35 @@ A periodic task, which needs to be scheduled, is an object instance of
 the subclass \verb|PTask| of \verb|Task| with additional attributes
 \verb|priority|, \verb|period| and \verb|status|:
 \begin{verbatim}
- class PTask | priority : Nat, 
-               period : NzNat, 
-               status : Status .
- subclass PTask < Task .
+  class PTask | priority : Nat, period : NzNat, 
+                status : Status .
+  subclass PTask < Task .
 \end{verbatim}
 where \verb|Status| is a sort with four constant constructors, same as
 in the implementation:
 \begin{verbatim}
- ops RUNNING INTERRUPT READY DORMANT 
-       : -> Status [ctor] .
+  ops RUNNING INTERRUPT READY DORMANT 
+        : -> Status [ctor] .
 \end{verbatim}
 The list of periodic tasks, the variable $taskList$ in the
 implementation, is modeled as an instance of the sort \verb|TaskList|,
 which is a list of \verb|PTask|s\footnote{Following the Maude
   convention, variables would be written in capital letters.}:
 \begin{verbatim}
- op null : -> TaskList [ctor] .
- op _::_ : Object TaskList 
-             ~> TaskList [ctor] .
- mb (< O:Oid : PTask |> :: L:TaskList) 
-      : TaskList .
- mb (error :: L:TaskList) : TaskList .
+  op null : -> TaskList [ctor] .
+  op _::_ : Object TaskList 
+              ~> TaskList [ctor] .
+  mb (< O:Oid : PTask |> :: L:TaskList) 
+       : TaskList .
+  mb (error :: L:TaskList) : TaskList .
 \end{verbatim}
 Periodic tasks are identified by their indexes in the list.
 
 On the other hand, a system task is an object instance of the subclass
 \verb|SysTask| of \verb|Task| with no extra attributes:
 \begin{verbatim}
- class SysTask | .            
- subclass SysTask < Task .
+  class SysTask | .            
+  subclass SysTask < Task .
 \end{verbatim}
 Different from periodic tasks, system tasks are organized in a
 multiset of sort \verb|SysTasks|, and identified by their \verb|Oid|s.
@@ -1109,23 +1113,22 @@ The set of registers is modeled as an object instance of the class
 \verb|mask| for the interrupt mask bit and \verb|ir| for the interrupt
 request bit, respectively.
 \begin{verbatim}
- class Regs | pc : TaskID, 
-              mask : Bool, ir : Bool .
+  class Regs | pc : TaskID, 
+               mask : Bool, ir : Bool .
 \end{verbatim}
 where the sort \verb|TaskID| is a supersort of \verb|MaybeNat| and
 \verb|Oid|, referring to some task.
 \begin{verbatim}
- subsorts MaybeNat Oid < TaskID .
+  subsorts MaybeNat Oid < TaskID .
 \end{verbatim}
 Some operations, such as \verb|getPc| and \verb|setMask|, are defined
 on the class \verb|Regs|.
 
 Then the hardware is described by the sort \verb|Hardware|:
 \begin{verbatim}
- op [_;_] : Object Stack 
-              ~> Hardware [ctor] .
- mb ([ < O:Oid : Regs |> ; S:Stack ]) 
-      : Hardware .
+  op [_;_] : Object Stack ~> Hardware [ctor] .
+  mb ([ < O:Oid : Regs |> ; S:Stack ]) 
+       : Hardware .
 \end{verbatim}
 
 \subsubsection{Interrupt Source}
@@ -1134,7 +1137,7 @@ with attributes \verb|cycle| denoting the interrupt cycle $T$, and
 \verb|val| for the value which will decrease from $T$ to $0$ while
 time advances:
 \begin{verbatim}
- class IntSrc | val : Time, cycle : Time .
+  class IntSrc | val : Time, cycle : Time .
 \end{verbatim}
 
 \subsubsection{System}
@@ -1142,11 +1145,10 @@ The entire system in our model is a composition of the parts
 introduced above, of a sort \verb|System|\footnote{Some variable
   declarations are not shown for simplicity.}:
 \begin{verbatim}
- op _____ : TaskList Timer 
-            SysTasks Hardware Object 
-              ~> System [ctor] .
- mb (L T STS HW < O:Oid : IntSrc |>) 
-      : System .
+  op _____ : TaskList Timer 
+             SysTasks Hardware Object 
+               ~> System [ctor] .
+  mb (L T STS HW < O : IntSrc |>) : System .
 \end{verbatim}
 
 \subsection{Interrupt Requests}
@@ -1156,18 +1158,18 @@ $T$, when the attribute \verb|val| decreases to \verb|zero|. The
 requesting is an instantaneous action, thus is modeled by the
 following instantaneous conditional rule applied on \verb|System|:
 \begin{verbatim}
- crl [interrupt-request] :
-   (L T STS HW ISRC) 
-   => (L T STS (HW).intReq reset(ISRC))
-   if (ISRC).timeout .
+  crl [interrupt-request] :
+    (L T STS HW ISRC) 
+    => (L T STS (HW).intReq reset(ISRC))
+    if (ISRC).timeout .
 \end{verbatim}
 where the function \verb|_.timeout| examines whether the attribute
 \verb|val| equals \verb|zero|, and \verb|_.intReq| sets the \verb|ir|
 bit indicating there exists an interrupt request to be handled:
 \begin{verbatim}
- op _.intReq : Hardware -> Hardware .
- eq [ REGS ; S ].intReq 
-    = [ (REGS).setIr ; S ] .
+  op _.intReq : Hardware -> Hardware .
+  eq [ REGS ; S ].intReq 
+       = [ (REGS).setIr ; S ] .
 \end{verbatim}
 Then the request will wait to be handled, which is explained in
 Section~\ref{ss:inthandling}.
@@ -1179,33 +1181,31 @@ $updateStatus()$ in Figure~\ref{a:schedule}, which is treated as an
 instantaneous action in our model. It is modeled by the recursive
 function as below:
 \begin{verbatim}
- op updateStatus_with_ : TaskList Timer 
-                           -> TaskList . 
- eq updateStatus null with TIMER = null .
- eq updateStatus (TASK :: L) with TIMER
-    = (update TASK with TIMER) 
-      :: (updateStatus L with TIMER) .
+  op updateStatus_with_ : TaskList Timer 
+                            -> TaskList . 
+  eq updateStatus null with TIMER = null .
+  eq updateStatus (TASK :: L) with TIMER
+     = (update TASK with TIMER) 
+       :: (updateStatus L with TIMER) .
 \end{verbatim}
 with \verb|TIMER| the current value of the global variable $timer$,
 and function \verb|update_with_| updating the status of individual
 task (Lines~\ref{l:startupdate}-\ref{l:endupdate} in
 Figure~\ref{a:schedule}):
 \begin{verbatim}
- op update_with_ : Object Timer 
-                     ~> Object .
- ceq update < O : PTask | period : T, 
-                          status : ST > 
+  op update_with_ : Object Timer ~> Object .
+  ceq update < O : PTask | period : T, 
+                           status : ST > 
+        with TIMER
+      = if ST == DORMANT 
+        then < O : PTask | status : READY >
+        else error fi
+      if TIMER rem T == 0 .
+  eq update < O : PTask | status : ST > 
        with TIMER
-     = if ST == DORMANT 
-       then < O : PTask | status : READY >
-       else error fi
-     if TIMER rem T == 0 .
- eq update < O : PTask | status : ST > 
-      with TIMER
-    = if ST == RUNNING 
-      then < O : PTask | status 
-                           : INTERRUPT >
-      else < O : PTask |> fi [owise] .
+     = if ST == RUNNING 
+       then < O : PTask | status : INTERRUPT >
+       else < O : PTask |> fi [owise] .
 \end{verbatim}
 Given a task, if \verb|TIMER|($timer$) can be divided by its period,
 this task should be initiated.  In the case where the task should be
@@ -1228,10 +1228,10 @@ pushing context into stack and so on), and to invoke the function
 $schedule()$. This behavior is modeled by the following instantaneous
 rewrite rule:
 \begin{verbatim}
- crl [interrupt-handle] :
-   SYSTEM 
-   => ((SYSTEM).interrupt).startScheduling
-   if (SYSTEM).existInt .
+  crl [interrupt-handle] :
+    SYSTEM 
+    => ((SYSTEM).interrupt).startScheduling
+    if (SYSTEM).existInt .
 \end{verbatim}
 where \verb|_.existInt| checks whether \verb|mask| is cleared
 \emph{and} \verb|ir| is set. The function \verb|_.interrupt| models
@@ -1256,10 +1256,10 @@ increases $timer$ by $1$. This part is modeled by function
 \verb|_.startScheduling| which applies instantaneously at the
 beginning of scheduling, as shown in rule \verb|interrupt-handle|:
 \begin{verbatim}
- op _.startScheduling : System -> System .
- eq (L T STS HW ISRC).startScheduling 
-    = ((updateStatus L with T) 
-       inc(T) STS HW ISRC) .
+  op _.startScheduling : System -> System .
+  eq (L T STS HW ISRC).startScheduling 
+     = ((updateStatus L with T) 
+        inc(T) STS HW ISRC) .
 \end{verbatim}
 The third part corresponds to
 Lines~\ref{l:startrun1st}-\ref{l:endrun1st}, searching the first
@@ -1267,10 +1267,10 @@ should-be-run periodic task and setting it to execute. It is modeled
 by function \verb|_.finishScheduling|, which applies instantaneously
 at the end of scheduling:
 \begin{verbatim}
- op _.finishScheduling : System -> System .
- eq (L T STS HW ISRC).finishScheduling
-    = (L T (finish scheduling in STS) 
-       HW ISRC).run1stTask .
+  op _.finishScheduling : System -> System .
+  eq (L T STS HW ISRC).finishScheduling
+     = (L T (finish scheduling in STS) 
+        HW ISRC).run1stTask .
 \end{verbatim}
 where \verb|finish_in_| resets the counter of task \verb|scheduling|,
 and \verb|_.run1stTask| models
@@ -1283,12 +1283,12 @@ When the execution time of the system task \verb|scheduling| reaches
 its computation requirement, the scheduling stage may finish. We model
 this instantaneous action with the following rule:
 \begin{verbatim}
- crl [scheduling-finish] :
-   (L T STS HW ISRC) 
-   => (SYSTEM).finishScheduling
-   if SYSTEM := (L T STS HW ISRC) 
-      /\ (SYSTEM).running == scheduling 
-      /\ scheduling isComplete?in STS .
+  crl [scheduling-finish] :
+    (L T STS HW ISRC) 
+    => (SYSTEM).finishScheduling
+    if SYSTEM := (L T STS HW ISRC) 
+       /\ (SYSTEM).running == scheduling 
+       /\ scheduling isComplete?in STS .
 \end{verbatim}
 where function \verb|_.running| returns the current \verb|pc| value of
 the system, and \verb|_isComplete?in_| checks whether the execution
@@ -1310,18 +1310,18 @@ its computation requirement, and finishes when its own execution time
 does so. Two similar instantaneous rules are defined to model the
 functionality of switching:
 \begin{verbatim}
- crl [task-finish] :
-   (L T STS HW ISRC) 
-   => (SYSTEM).startSwitching
-   if SYSTEM := (L T STS HW ISRC)
-      /\ some N := (SYSTEM).running
-      /\ some N isComplete?in L .
- crl [switching-finish] :
-   (L T STS HW ISRC) 
-   => (SYSTEM).finishSwitching
-   if SYSTEM := (L T STS HW ISRC)
-      /\ (SYSTEM).running == switching
-      /\ switching isComplete?in STS .
+  crl [task-finish] :
+    (L T STS HW ISRC) 
+    => (SYSTEM).startSwitching
+    if SYSTEM := (L T STS HW ISRC)
+       /\ some N := (SYSTEM).running
+       /\ some N isComplete?in L .
+  crl [switching-finish] :
+    (L T STS HW ISRC) 
+    => (SYSTEM).finishSwitching
+    if SYSTEM := (L T STS HW ISRC)
+       /\ (SYSTEM).running == switching
+       /\ switching isComplete?in STS .
 \end{verbatim}
 
 \subsection{Timed Behaviors of the System}
@@ -1331,10 +1331,9 @@ tasks and the execution of the interrupt source. Both are modeled
 together by the following single ``standard'' tick
 rule~\cite{DBLP:journals/entcs/OlveczkyM07a}:
 \begin{verbatim}
- crl [tick]:
-   {SYSTEM} 
-   => {delta(SYSTEM, R)} in time R 
-   if R le mte(SYSTEM) [nonexec] .
+  crl [tick]:
+    {SYSTEM} => {delta(SYSTEM, R)} in time R 
+    if R le mte(SYSTEM) [nonexec] .
 \end{verbatim}
 where \verb|delta| defines the effects of time elapse on the system,
 and \verb|mte| denotes the \emph{m}aximum amount of \emph{t}ime
@@ -1354,11 +1353,10 @@ is loaded at \verb|pc| and the interrupt source simultaneously.  While
 time elapses, \verb|cnt| of the former increases and \verb|val| of the
 latter decreases, respectively:
 \begin{verbatim}
- ceq delta((L T STS HW ISRC), R)
-     = ((deltaTask(ID, L, R) 
-        T STS HW (deltaIS(ISRC, R)))
-     if ID := (HW).getPc 
-        /\ ID :: MaybeNat .
+  ceq delta((L T STS HW ISRC), R)
+      = ((deltaTask(ID, L, R) 
+         T STS HW (deltaIS(ISRC, R)))
+      if ID := (HW).getPc /\ ID :: MaybeNat .
 \end{verbatim}
 We omit details for the case where \verb|ID| is of sort \verb|Oid| due
 to similarity. In that case, \verb|deltaTask| applies on \verb|STS|
@@ -1370,12 +1368,11 @@ decided by three arguments: the remaining time to complete the running
 task, the remaining time to request the next interrupt, and whether or
 not there exists an interrupt request detected for the moment:
 \begin{verbatim}
- ceq mte(L T STS HW ISRC)
-     = minimum( mteTask(ID, L),
-                minimum( mteIS(ISRC), 
-                         mteIr(HW)))
-     if ID := (HW).getPc 
-        /\ ID :: MaybeNat .
+  ceq mte(L T STS HW ISRC)
+      = minimum( mteTask(ID, L),
+                 minimum( mteIS(ISRC), 
+                          mteIr(HW)))
+      if ID := (HW).getPc /\ ID :: MaybeNat .
 \end{verbatim}
 where \verb|mteIr| returns \verb|zero| if there exists an interrupt
 request detected in the system, or \verb|INF| which represents
@@ -1408,9 +1405,9 @@ define an atomic proposition \verb|taskTimeout| to hold if there
 exists an \verb|error| appearing in $taskList$ of the current state,
 that is, some task misses its deadline:
 \begin{verbatim}
- op taskTimeout : -> Prop [ctor] .
- eq {L T STS HW ISRC} |= taskTimeout 
-    = containError(L) .
+  op taskTimeout : -> Prop [ctor] .
+  eq {L T STS HW ISRC} |= taskTimeout 
+     = containError(L) .
 \end{verbatim}
 where \verb|containError| returns \verb|true| if there is an object
 \verb|error| existing in \verb|L|. Then our desired
@@ -1429,12 +1426,11 @@ The atomic proposition \verb|correct| is hence defined to hold if the
 running periodic task is the one requested to be executed with the
 highest priority:
 \begin{verbatim}
- op correct : -> Prop [ctor] .
- ceq {L T STS HW ISRC} |= correct
-     = if ID :: MaybeNat 
-       then shouldRun(ID, L)
-       else true fi
-     if ID := (HW).getPc .
+  op correct : -> Prop [ctor] .
+  ceq {L T STS HW ISRC} |= correct
+      = if ID :: MaybeNat then shouldRun(ID, L)
+        else true fi
+      if ID := (HW).getPc .
 \end{verbatim}
 where \verb|shouldRun(ID, L)| returns \verb|true| if the task
 identified by \verb|ID|, probably \verb|none|, is the one possessing
@@ -1446,8 +1442,8 @@ correctness property is formalized by the temporal logic formula:
 the following untimed model checking command provided an initial state
 \verb|init|:
 \begin{verbatim}
- (mc init |=u (correct U taskTimeout) 
-              \/ ([]correct) .)
+  (mc init |=u ([]correct) 
+               \/ (correct U taskTimeout) .)
 \end{verbatim}
 
 \subsection{Scenarios}

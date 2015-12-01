@@ -45,15 +45,27 @@ static inline void socket_comm_init(void);
 
 int to_init(void) {
 
-    to_log_init();
+    to_log_init(); // jiaxiang: log初始化，不关心
+
     /* 线程池初始化 */
-    thread_pool_init();
+    thread_pool_init(); // jiaxiang: 申请线程池（全局变量pool），并没有任何线程运行
 
     /* 消息队列初始化 */
     message_queue_init();
+    /*
+     * jiaxiang: 申请队列（全局变量queues）。根据schedule的状况，可知queues只包含
+     * 单一类型事件。
+     */
 
     /* 调度初始化 */
     schedule_init();
+    /*
+     * jiaxiang: 启了一个线程运行schedule函数，schedule函数轮询queues，
+     * 从queues中取event，执行event_handle()处理该event。利用event_handle()
+     * 处理事件时会启动一个单独线程。注意：目前这个schedule函数/线程形同虚设，它只
+     * 处理一种事件：EVENT_TRIP_INIT_START（控制盒行程初始化启动命令），然后就
+     * 无限循环。
+     */
 
     /* socket通信初始化 */
     socket_comm_init();

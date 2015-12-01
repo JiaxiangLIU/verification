@@ -1,0 +1,28 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+BOARD_PORT	socket.h	19;"	d
+COM_0_ADDR	socket.h	11;"	d
+COM_1_ADDR	socket.h	12;"	d
+CORE_0_ADDR	socket.h	13;"	d
+CORE_1_ADDR	socket.h	14;"	d
+CORE_2_ADDR	socket.h	15;"	d
+CORE_3_ADDR	socket.h	16;"	d
+MAX_SOCKET_NUM	socket.h	21;"	d
+SOCKET_FAILURE	socket.h	/^    SOCKET_FAILURE = -1$/;"	e	enum:socket_result
+SOCKET_H_	socket.h	5;"	d
+SOCKET_RESULT	socket.h	/^}SOCKET_RESULT;$/;"	t	typeref:enum:socket_result
+SOCKET_SUCCESS	socket.h	/^    SOCKET_SUCCESS = 0,$/;"	e	enum:socket_result
+VOTE_0_ADDR	socket.h	17;"	d
+board_addr	socket.c	/^    const char *board_addr;$/;"	m	struct:board_addr_t	file:
+board_addr	socket.c	/^static struct board_addr_t board_addr;$/;"	v	typeref:struct:board_addr_t	file:
+board_addr_t	socket.c	/^struct board_addr_t$/;"	s	file:
+loc_sockets	socket.c	/^static struct socket_t loc_sockets[MAX_SOCKET_NUM]; $/;"	v	typeref:struct:socket_t	file:
+port	socket.c	/^    uint16_t    port;$/;"	m	struct:board_addr_t	file:
+socket_fd	socket.c	/^    int      socket_fd;$/;"	m	struct:socket_t	file:
+socket_result	socket.h	/^typedef enum socket_result$/;"	g
+socket_t	socket.c	/^struct socket_t$/;"	s	file:
+socket_type	socket.c	/^    uint8_t  socket_type;   $/;"	m	struct:socket_t	file:

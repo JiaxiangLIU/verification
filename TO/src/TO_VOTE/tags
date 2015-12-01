@@ -1,0 +1,303 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+APP_SOCKET_H_	app_socket/app_socket.h	15;"	d
+BOARD_PORT	app_socket/app_socket.h	28;"	d
+COMMAND_FRAME_CODE	app_socket/protocal.h	11;"	d
+COMMAND_FRAME_SIZE	app_socket/protocal.h	13;"	d
+COMM_0	global.h	28;"	d
+COMM_1	global.h	29;"	d
+COM_0_ADDR	app_socket/app_socket.h	20;"	d
+COM_1_ADDR	app_socket/app_socket.h	21;"	d
+CONTROL_BOX	message_queue/event.h	/^    CONTROL_BOX = 0x02,$/;"	e	enum:event_source
+CORE_0	global.h	30;"	d
+CORE_0_ADDR	app_socket/app_socket.h	22;"	d
+CORE_1	global.h	31;"	d
+CORE_1_ADDR	app_socket/app_socket.h	23;"	d
+CORE_2	global.h	32;"	d
+CORE_2_ADDR	app_socket/app_socket.h	24;"	d
+CORE_3	global.h	33;"	d
+CORE_3_ADDR	app_socket/app_socket.h	25;"	d
+CTRBOX_CMD	ctrbox_comm.h	/^}CTRBOX_CMD;$/;"	t	typeref:enum:ctrbox_cmd
+CTRBOX_CMD_LAUNCHED	ctrbox_comm.h	/^    CTRBOX_CMD_LAUNCHED = 2,   \/\/启动完成状态$/;"	e	enum:ctrbox_cmd
+CTR_DEBUG	log.h	38;"	d
+DATA_FD	app_socket/protocal.c	/^}DATA_FD;$/;"	t	typeref:struct:data_frame_descriptor	file:
+DATA_FRAME_CODE	app_socket/protocal.h	10;"	d
+DATA_FRAME_HEAD_SIZE	app_socket/protocal.h	15;"	d
+DRIVER_CONTROLLER	message_queue/event.h	/^    DRIVER_CONTROLLER = 0x03,$/;"	e	enum:event_source
+EVENT_FINISH	message_queue/event.h	/^    EVENT_FINISH = 0XFF     \/\/event_finish是一种特殊的事件，代表旧事件结束$/;"	e	enum:event_type
+EVENT_H_	message_queue/event.h	4;"	d
+EVENT_MANAGE_FAILURE	message_queue/event.h	/^    EVENT_MANAGE_FAILURE = -1$/;"	e	enum:event_manage_result
+EVENT_MANAGE_RESULT	message_queue/event.h	/^}EVENT_MANAGE_RESULT;$/;"	t	typeref:enum:event_manage_result
+EVENT_MANAGE_SUCCESS	message_queue/event.h	/^    EVENT_MANAGE_SUCCESS = 0,$/;"	e	enum:event_manage_result
+EVENT_ROUTE_EXTRACT	message_queue/event.h	/^    EVENT_ROUTE_EXTRACT = 0X10,$/;"	e	enum:event_type
+EVENT_SOURCE	message_queue/event.h	/^}EVENT_SOURCE;$/;"	t	typeref:enum:event_source
+EVENT_STATUS	message_queue/event.h	/^}EVENT_STATUS;$/;"	t	typeref:enum:event_status
+EVENT_TYPE	message_queue/event.h	/^}EVENT_TYPE;$/;"	t	typeref:enum:event_type
+EXCEPTION	message_queue/event.h	/^    EXCEPTION = 4   \/*异常*\/$/;"	e	enum:event_status
+FINISH	message_queue/event.h	/^    FINISH = 3,     \/*完成*\/$/;"	e	enum:event_status
+FINISHED_EVENT	message_queue/event.h	/^    FINISHED_EVENT = 0X04$/;"	e	enum:event_source
+FRAME_ENCAP_FAILURE	app_socket/protocal.h	/^    FRAME_ENCAP_FAILURE = -3,$/;"	e	enum:protocal_result
+FRAME_ERROR	app_socket/protocal.h	/^    FRAME_ERROR = -2,$/;"	e	enum:protocal_result
+GLOBAL_H_	global.h	12;"	d
+HANDLE_H_	handle.h	10;"	d
+IMX287_CC	Makefile	/^IMX287_CC :=$(IMX287_CROSS_COMPILE)gcc$/;"	m
+IMX287_CROSS_COMPILE	Makefile	/^IMX287_CROSS_COMPILE := arm-imx28-linux-$/;"	m
+INC	Makefile	/^INC := -I.$/;"	m
+INITIAL_FAILURE	app_socket/app_socket.h	/^    INITIAL_FAILURE = -3,$/;"	e	enum:socket_result
+LOCK_FAILURE	message_queue/message_queue.h	/^    LOCK_FAILURE = 70,$/;"	e	enum:queue_manage_result
+LOG_ALERT	log.h	6;"	d
+LOG_DEBUG	log.h	11;"	d
+LOG_EMERG	log.h	5;"	d
+LOG_ERROR	log.h	7;"	d
+LOG_H	log.h	2;"	d
+LOG_INFO	log.h	10;"	d
+LOG_LEVEL	log.h	14;"	d
+LOG_NOTICE	log.h	9;"	d
+LOG_WARNING	log.h	8;"	d
+MALLOC_ERROR	app_socket/protocal.h	/^    MALLOC_ERROR = -23$/;"	e	enum:protocal_result
+MAX_DATA_FRAME_SIZE	app_socket/protocal.h	14;"	d
+MAX_RCV_BUF_SIZE	app_socket/app_socket.h	40;"	d
+MAX_SND_BUF_SIZE	app_socket/app_socket.h	41;"	d
+MAX_SOCKET_NUM	app_socket/app_socket.h	38;"	d
+MAX_TASK_NUM	global.h	20;"	d
+MESSAGE_NODE	message_queue/message_queue.h	/^typedef struct message_node MESSAGE_NODE;$/;"	t	typeref:struct:message_node
+MESSAGE_QUEUE	message_queue/message_queue.h	/^typedef struct message_queue MESSAGE_QUEUE;$/;"	t	typeref:struct:message_queue
+MESSAGE_QUEUE_H_	message_queue/message_queue.h	14;"	d
+MODEL_INCLUDE_H_	app_socket/socket_include.h	10;"	d
+MUTEX_ERR	message_queue/schedule.h	/^    MUTEX_ERR = -2$/;"	e	enum:schedule_result
+OPT_DEBUG	log.h	35;"	d
+PROTOCAL_FAILURE	app_socket/protocal.h	/^    PROTOCAL_FAILURE = -1,$/;"	e	enum:protocal_result
+PROTOCAL_H_	app_socket/protocal.h	4;"	d
+PROTOCAL_RESULT	app_socket/protocal.h	/^}PROTOCAL_RESULT;$/;"	t	typeref:enum:protocal_result
+PROTOCAL_SUCCESS	app_socket/protocal.h	/^    PROTOCAL_SUCCESS = 0,$/;"	e	enum:protocal_result
+QUEUE_CREATE_FAILURE	message_queue/message_queue.h	/^    QUEUE_CREATE_FAILURE = 1,$/;"	e	enum:queue_manage_result
+QUEUE_EMPTY	message_queue/message_queue.h	/^    QUEUE_EMPTY = 23,$/;"	e	enum:queue_manage_result
+QUEUE_MALLOC_FAILURE	message_queue/message_queue.h	/^    QUEUE_MALLOC_FAILURE = 71$/;"	e	enum:queue_manage_result
+QUEUE_MANAGE_FAILURE	message_queue/message_queue.h	/^    QUEUE_MANAGE_FAILURE = -1,$/;"	e	enum:queue_manage_result
+QUEUE_MANAGE_RESULT	message_queue/message_queue.h	/^}QUEUE_MANAGE_RESULT;$/;"	t	typeref:enum:queue_manage_result
+QUEUE_MANAGE_SUCCESS	message_queue/message_queue.h	/^    QUEUE_MANAGE_SUCCESS = 0,$/;"	e	enum:queue_manage_result
+QUEUE_NOT_EXIST	message_queue/message_queue.h	/^    QUEUE_NOT_EXIST = 22,$/;"	e	enum:queue_manage_result
+QUEUE_NUM	global.h	24;"	d
+RCV_FAILURE	app_socket/app_socket.h	/^    RCV_FAILURE = -6,$/;"	e	enum:socket_result
+READY	message_queue/event.h	/^    READY = 0,      \/*创建完成*\/$/;"	e	enum:event_status
+REALTIME_INFO	message_queue/event.h	/^    REALTIME_INFO = 0x01,$/;"	e	enum:event_source
+REGISTER_FAILURE	app_socket/app_socket.h	/^    REGISTER_FAILURE = -4,$/;"	e	enum:socket_result
+RUNNING	message_queue/event.h	/^    RUNNING = 2,    \/*正在运行*\/$/;"	e	enum:event_status
+SCHEDULE_FAILURE	message_queue/schedule.h	/^    SCHEDULE_FAILURE = -1,$/;"	e	enum:schedule_result
+SCHEDULE_H_	message_queue/schedule.h	3;"	d
+SCHEDULE_RESULT	message_queue/schedule.h	/^}SCHEDULE_RESULT;$/;"	t	typeref:enum:schedule_result
+SCHEDULE_SUCCESS	message_queue/schedule.h	/^    SCHEDULE_SUCCESS = 0,$/;"	e	enum:schedule_result
+SND_FAILURE	app_socket/app_socket.h	/^    SND_FAILURE = -7$/;"	e	enum:socket_result
+SOCKET_CONNECT_FAILURE	app_socket/app_socket.h	/^    SOCKET_CONNECT_FAILURE = -2,$/;"	e	enum:socket_result
+SOCKET_FAILURE	app_socket/app_socket.h	/^    SOCKET_FAILURE = -1,$/;"	e	enum:socket_result
+SOCKET_NOT_EXIST	app_socket/app_socket.h	/^    SOCKET_NOT_EXIST = -5,$/;"	e	enum:socket_result
+SOCKET_RESULT	app_socket/app_socket.h	/^}SOCKET_RESULT;$/;"	t	typeref:enum:socket_result
+SOCKET_SND_FAILURE	app_socket/protocal.h	/^    SOCKET_SND_FAILURE = -11,$/;"	e	enum:protocal_result
+SOCKET_SUCCESS	app_socket/app_socket.h	/^    SOCKET_SUCCESS = 0,$/;"	e	enum:socket_result
+SOCKET_TYPE_0	app_socket/app_socket.h	31;"	d
+SOCKET_TYPE_1	app_socket/app_socket.h	32;"	d
+SOCKET_TYPE_2	app_socket/app_socket.h	33;"	d
+SOCKET_TYPE_3	app_socket/app_socket.h	34;"	d
+SOCKET_TYPE_4	app_socket/app_socket.h	35;"	d
+SOCKET_TYPE_5	app_socket/app_socket.h	36;"	d
+SOCKET_TYPE_ERR	app_socket/protocal.h	/^    SOCKET_TYPE_ERR = -10,$/;"	e	enum:protocal_result
+SYSTEM_STATUS	to_status.h	/^}SYSTEM_STATUS;$/;"	t	typeref:enum:system_status
+SYS_AUTOCONTROL	to_status.h	/^    SYS_AUTOCONTROL = 6$/;"	e	enum:system_status
+SYS_FAULT	to_status.h	/^    SYS_FAULT = 1,$/;"	e	enum:system_status
+SYS_LAUNCHED	to_status.h	/^    SYS_LAUNCHED = 3,$/;"	e	enum:system_status
+SYS_MAINTENANCE	to_status.h	/^    SYS_MAINTENANCE = 2,$/;"	e	enum:system_status
+SYS_NORMAL	to_status.h	/^    SYS_NORMAL = 5,$/;"	e	enum:system_status
+SYS_STANDBY	to_status.h	/^    SYS_STANDBY = 4,$/;"	e	enum:system_status
+TARGETDIR_vote	Makefile	/^TARGETDIR_vote := ~\/rootfs\/rootfs_imx287\/root\/$/;"	m
+THREADPOOL_FLAG_AUTO	threadpool/threadpool.h	/^	THREADPOOL_FLAG_AUTO,$/;"	e	enum:__anon5
+THREADPOOL_FLAG_AVG	threadpool/threadpool.h	/^	THREADPOOL_FLAG_AVG,$/;"	e	enum:__anon5
+THREADPOOL_FLAG_COMMON	threadpool/threadpool.h	/^	THREADPOOL_FLAG_COMMON	= 0,$/;"	e	enum:__anon5
+THREAD_ERROR	app_socket/protocal.h	/^    THREAD_ERROR = -22,$/;"	e	enum:protocal_result
+THREAD_NUM	global.h	19;"	d
+VOTE	global.h	34;"	d
+VOTE_0_ADDR	app_socket/app_socket.h	26;"	d
+WAITING	message_queue/event.h	/^    WAITING = 1,    \/*在消息队列内等待*\/$/;"	e	enum:event_status
+_COMM_CHECK_H_	comm_check.h	2;"	d
+_CTRBOX_COMM_H_	ctrbox_comm.h	3;"	d
+_GNU_SOURCE	threadpool/threadpool.c	33;"	d	file:
+_THREADPOOL_H_	threadpool/threadpool.h	30;"	d
+_TO_INIT_H_	to_init.h	3;"	d
+_TO_STATUS_H_	to_status.h	8;"	d
+_VOTE_INIT_H_	vote_init.h	3;"	d
+add_command	message_queue/schedule.c	/^SCHEDULE_RESULT add_command(struct event_t *event)$/;"	f
+argument	threadpool/threadpool.c	/^    void *argument;$/;"	m	struct:__anon2	file:
+board_addr	app_socket/app_socket.c	/^static struct board_addr_t board_addr;$/;"	v	typeref:struct:board_addr_t	file:
+board_addr_t	app_socket/app_socket.c	/^struct board_addr_t$/;"	s	file:
+can_check_flag	comm_check.c	/^int can_check_flag = 0;$/;"	v
+check_flag_mutex	comm_check.c	/^static pthread_mutex_t check_flag_mutex = PTHREAD_MUTEX_INITIALIZER;$/;"	v	file:
+cnt_event	message_queue/schedule.c	/^static struct event_t *cnt_event;   \/\/当前正在处理的事件$/;"	v	typeref:struct:event_t	file:
+comm_check	comm_check.c	/^int comm_check() {$/;"	f
+comm_check_feedback	comm_check.c	/^int comm_check_feedback(char *data)$/;"	f
+comm_check_flag	comm_check.c	/^static uint16_t comm_check_flag = 0;$/;"	v	file:
+comm_check_init	vote_init.c	/^int comm_check_init(void) {$/;"	f
+comm_check_mutex	frame_rcv_handle.c	/^static pthread_mutex_t comm_check_mutex = PTHREAD_MUTEX_INITIALIZER; $/;"	v	file:
+comm_register	comm_check.c	/^int comm_register(int boardid)$/;"	f
+command_frame_encap	app_socket/protocal.c	/^static char *command_frame_encap(char *command, char *data, uint16_t des, int *frame_len)$/;"	f	file:
+command_frame_rcv_handle	frame_rcv_handle.c	/^void command_frame_rcv_handle(void *cmd)$/;"	f
+cond	message_queue/schedule.c	/^    pthread_cond_t cond;$/;"	m	struct:schedule_mutex_t	file:
+count	threadpool/threadpool.c	/^  int count;$/;"	m	struct:threadpool_t	file:
+ctr_log_error	log.h	46;"	d
+ctr_log_error	log.h	60;"	d
+ctr_log_error	log.h	74;"	d
+ctr_log_info	log.h	48;"	d
+ctr_log_info	log.h	62;"	d
+ctr_log_info	log.h	76;"	d
+ctr_log_notice	log.h	49;"	d
+ctr_log_notice	log.h	63;"	d
+ctr_log_notice	log.h	77;"	d
+ctr_log_warning	log.h	47;"	d
+ctr_log_warning	log.h	61;"	d
+ctr_log_warning	log.h	75;"	d
+ctrbox_cmd	ctrbox_comm.h	/^typedef enum ctrbox_cmd$/;"	g
+ctrbox_comm	ctrbox_comm.c	/^int ctrbox_comm(CTRBOX_CMD cmd){$/;"	f
+data	message_queue/event.h	/^    void *data;$/;"	m	struct:event_t
+data_frame_descriptor	app_socket/protocal.c	/^typedef struct data_frame_descriptor$/;"	s	file:
+data_frame_encap	app_socket/protocal.c	/^static char *data_frame_encap(char command[2], char *data, uint16_t des, DATA_FD fd, int data_len, int *frame_len)$/;"	f	file:
+data_frame_rcv_handle	frame_rcv_handle.c	/^void data_frame_rcv_handle(char *data, uint8_t length, char *cmd, int amount, int count)$/;"	f
+dequeue	message_queue/message_queue.c	/^void *dequeue(struct multilevel_queue_t *multi_queue, int *ret)$/;"	f
+enqueue	message_queue/message_queue.c	/^QUEUE_MANAGE_RESULT enqueue(struct multilevel_queue_t *multi_queue, void *value, uint8_t priority)$/;"	f
+event	message_queue/schedule.c	/^    struct event_t *event;$/;"	m	struct:event_mutex_t	typeref:struct:event_mutex_t::event_t	file:
+event_create	message_queue/event.c	/^struct event_t *event_create(EVENT_TYPE type, EVENT_SOURCE  source, uint8_t parameter)$/;"	f
+event_delete	message_queue/event.c	/^void event_delete(struct event_t *event)$/;"	f
+event_handle	message_queue/schedule.c	/^static inline void event_handle(struct event_t *event)$/;"	f	file:
+event_manage_result	message_queue/event.h	/^typedef enum event_manage_result$/;"	g
+event_mutex_t	message_queue/schedule.c	/^struct event_mutex_t$/;"	s	file:
+event_source	message_queue/event.h	/^typedef enum event_source$/;"	g
+event_status	message_queue/event.h	/^typedef enum event_status$/;"	g
+event_t	message_queue/event.h	/^struct event_t$/;"	s
+event_type	message_queue/event.h	/^typedef enum event_type$/;"	g
+f_cnt_num	app_socket/protocal.c	/^    uint16_t f_cnt_num;     \/*当前帧序号*\/$/;"	m	struct:data_frame_descriptor	file:
+f_total_num	app_socket/protocal.c	/^    uint16_t f_total_num;   \/*帧总数*\/$/;"	m	struct:data_frame_descriptor	file:
+frame_encap	app_socket/protocal.c	/^PROTOCAL_RESULT frame_encap(uint8_t stype, uint16_t des, uint8_t ftype, char command[2], char *data, int length)$/;"	f
+frame_parse	app_socket/protocal.c	/^PROTOCAL_RESULT frame_parse(char *buf, int length)$/;"	f
+function	threadpool/threadpool.c	/^    void (*function)(void *);$/;"	m	struct:__anon2	file:
+get_loc_socket_by_type	app_socket/app_socket.c	/^static int get_loc_socket_by_type(uint8_t type)$/;"	f	file:
+get_sys_status	to_status.c	/^SYSTEM_STATUS get_sys_status(void)$/;"	f
+graceful_shutdown	threadpool/threadpool.c	/^    graceful_shutdown  = 2$/;"	e	enum:__anon1	file:
+head	threadpool/threadpool.c	/^  int head;$/;"	m	struct:threadpool_t	file:
+heartbeat_check	comm_check.c	/^void heartbeat_check()$/;"	f
+host_addr	app_socket/app_socket.c	/^    const char *host_addr;$/;"	m	struct:board_addr_t	file:
+id	message_queue/event.h	/^    uint8_t id;$/;"	m	struct:event_t
+immediate_shutdown	threadpool/threadpool.c	/^    immediate_shutdown = 1,$/;"	e	enum:__anon1	file:
+length	message_queue/message_queue.h	/^    uint8_t length;$/;"	m	struct:message_queue
+loc_sockets	app_socket/app_socket.c	/^static struct socket_t loc_sockets[MAX_SOCKET_NUM]; \/\/存放socket_fd及对应优先级$/;"	v	typeref:struct:socket_t	file:
+lock	threadpool/threadpool.c	/^  pthread_mutex_t lock;$/;"	m	struct:threadpool_t	file:
+log	log.h	18;"	d
+log_error	log.h	50;"	d
+log_error	log.h	64;"	d
+log_error	log.h	78;"	d
+log_info	log.h	52;"	d
+log_info	log.h	66;"	d
+log_info	log.h	80;"	d
+log_notice	log.h	53;"	d
+log_notice	log.h	67;"	d
+log_notice	log.h	81;"	d
+log_warning	log.h	51;"	d
+log_warning	log.h	65;"	d
+log_warning	log.h	79;"	d
+main	to_vote.c	/^int main(void)$/;"	f
+message_node	message_queue/message_queue.h	/^struct message_node$/;"	s
+message_queue	message_queue/message_queue.h	/^struct message_queue$/;"	s
+message_queue_init	to_init.c	/^static inline void message_queue_init(void)$/;"	f	file:
+multilevel_queue_t	message_queue/message_queue.h	/^struct multilevel_queue_t$/;"	s
+mutex	message_queue/schedule.c	/^    pthread_mutex_t mutex;$/;"	m	struct:event_mutex_t	file:
+mutex	message_queue/schedule.c	/^    pthread_mutex_t mutex;$/;"	m	struct:schedule_mutex_t	file:
+new_event	message_queue/schedule.c	/^    int new_event;$/;"	m	struct:schedule_mutex_t	file:
+next	message_queue/message_queue.h	/^    struct message_node *next;$/;"	m	struct:message_node	typeref:struct:message_node::message_node
+notify	threadpool/threadpool.c	/^  pthread_cond_t notify;$/;"	m	struct:threadpool_t	file:
+number	message_queue/message_queue.h	/^    uint8_t number; \/* 队列个数 *\/$/;"	m	struct:multilevel_queue_t
+opt_log_error	log.h	42;"	d
+opt_log_error	log.h	56;"	d
+opt_log_error	log.h	70;"	d
+opt_log_info	log.h	44;"	d
+opt_log_info	log.h	58;"	d
+opt_log_info	log.h	72;"	d
+opt_log_notice	log.h	45;"	d
+opt_log_notice	log.h	59;"	d
+opt_log_notice	log.h	73;"	d
+opt_log_warning	log.h	43;"	d
+opt_log_warning	log.h	57;"	d
+opt_log_warning	log.h	71;"	d
+parameter	message_queue/event.h	/^    uint8_t parameter;  \/*参数，可不填*\/$/;"	m	struct:event_t
+pool	to_init.c	/^threadpool_t *pool;                 \/\/定义全局线程池$/;"	v
+port	app_socket/app_socket.c	/^    uint16_t    port;$/;"	m	struct:board_addr_t	file:
+pre	message_queue/message_queue.h	/^    struct message_node *pre;$/;"	m	struct:message_node	typeref:struct:message_node::message_node
+priority	message_queue/event.h	/^    uint8_t priority;$/;"	m	struct:event_t
+priority	message_queue/message_queue.h	/^    uint8_t priority;$/;"	m	struct:message_queue
+protocal_result	app_socket/protocal.h	/^typedef enum protocal_result$/;"	g
+put_event_mutex	message_queue/schedule.c	/^static struct event_mutex_t put_event_mutex = {NULL, PTHREAD_MUTEX_INITIALIZER};  \/\/提交事件锁$/;"	v	typeref:struct:event_mutex_t	file:
+q_front	message_queue/message_queue.h	/^    MESSAGE_NODE *q_front;  $/;"	m	struct:message_queue
+q_rear	message_queue/message_queue.h	/^    MESSAGE_NODE *q_rear;$/;"	m	struct:message_queue
+queue	threadpool/threadpool.c	/^  threadpool_task_t *queue;$/;"	m	struct:threadpool_t	file:
+queue_clear_all	message_queue/message_queue.c	/^QUEUE_MANAGE_RESULT queue_clear_all(struct multilevel_queue_t *multi_queue)$/;"	f
+queue_create	message_queue/message_queue.c	/^struct multilevel_queue_t *queue_create(uint8_t number)$/;"	f
+queue_destroy	message_queue/message_queue.c	/^QUEUE_MANAGE_RESULT queue_destroy(struct multilevel_queue_t *multi_queue)$/;"	f
+queue_lock	message_queue/message_queue.c	/^static int queue_lock()$/;"	f	file:
+queue_manage_result	message_queue/message_queue.h	/^typedef enum queue_manage_result$/;"	g
+queue_mutex	message_queue/message_queue.c	/^static pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER;$/;"	v	file:
+queue_size	threadpool/threadpool.c	/^  int queue_size;$/;"	m	struct:threadpool_t	file:
+queue_unlock	message_queue/message_queue.c	/^static int queue_unlock()$/;"	f	file:
+queues	message_queue/message_queue.h	/^    MESSAGE_QUEUE *queues;  \/* 队列数组，按优先级从高到低排列 *\/$/;"	m	struct:multilevel_queue_t
+queues	to_init.c	/^struct multilevel_queue_t *queues;  \/\/定义全局消息队列$/;"	v	typeref:struct:multilevel_queue_t
+regID	comm_check.c	/^static unsigned char regID[7];  $/;"	v	file:
+reg_mutex	comm_check.c	/^static pthread_mutex_t reg_mutex = PTHREAD_MUTEX_INITIALIZER;$/;"	v	file:
+route_init	vote_init.c	/^int route_init(void) $/;"	f
+routine	message_queue/event.h	/^    void *routine;$/;"	m	struct:event_t
+schedule	message_queue/schedule.c	/^void schedule(void *arg)$/;"	f
+schedule_init	to_init.c	/^static inline void schedule_init(void)$/;"	f	file:
+schedule_mutex	message_queue/schedule.c	/^static struct schedule_mutex_t schedule_mutex = {0, PTHREAD_MUTEX_INITIALIZER, PTHREAD_COND_INITIALIZER};$/;"	v	typeref:struct:schedule_mutex_t	file:
+schedule_mutex_t	message_queue/schedule.c	/^struct schedule_mutex_t$/;"	s	file:
+schedule_result	message_queue/schedule.h	/^typedef enum schedule_result$/;"	g
+set_board_addr	app_socket/app_socket.c	/^int set_board_addr(int board)$/;"	f
+set_loc_socket_by_type	app_socket/app_socket.c	/^static int set_loc_socket_by_type(uint8_t type, int socket_fd)$/;"	f	file:
+set_sys_status	to_status.c	/^void set_sys_status(SYSTEM_STATUS status)$/;"	f
+shutdown	threadpool/threadpool.c	/^  int shutdown;$/;"	m	struct:threadpool_t	file:
+socket_comm_init	to_init.c	/^static inline void socket_comm_init(void)$/;"	f	file:
+socket_connect	app_socket/app_socket.c	/^SOCKET_RESULT socket_connect(uint8_t type)$/;"	f
+socket_err_handle	app_socket/app_socket.c	/^static void socket_err_handle(int err_code, void *arg)$/;"	f	file:
+socket_fd	app_socket/app_socket.c	/^    int      socket_fd;$/;"	m	struct:socket_t	file:
+socket_rcv	app_socket/app_socket.c	/^void socket_rcv(void *arg)$/;"	f
+socket_register	app_socket/app_socket.c	/^static int socket_register(int socket_fd, uint8_t type)$/;"	f	file:
+socket_result	app_socket/app_socket.h	/^typedef enum socket_result$/;"	g
+socket_snd	app_socket/app_socket.c	/^SOCKET_RESULT socket_snd(uint8_t type, char *data, int length)$/;"	f
+socket_t	app_socket/app_socket.c	/^struct socket_t$/;"	s	file:
+socket_type	app_socket/app_socket.c	/^    uint8_t  socket_type;   $/;"	m	struct:socket_t	file:
+source	message_queue/event.h	/^    EVENT_SOURCE source;$/;"	m	struct:event_t
+started	threadpool/threadpool.c	/^  int started;$/;"	m	struct:threadpool_t	file:
+status	message_queue/event.h	/^    EVENT_STATUS status;$/;"	m	struct:event_t
+sys_status	to_status.c	/^static SYSTEM_STATUS sys_status;$/;"	v	file:
+system_status	to_status.h	/^typedef enum system_status$/;"	g
+tail	threadpool/threadpool.c	/^  int tail;$/;"	m	struct:threadpool_t	file:
+thread_count	threadpool/threadpool.c	/^  int thread_count;$/;"	m	struct:threadpool_t	file:
+thread_pool_init	to_init.c	/^static inline void thread_pool_init(void)$/;"	f	file:
+threadpool_add	threadpool/threadpool.c	/^int threadpool_add(threadpool_t *pool, void (*function)(void *),$/;"	f
+threadpool_create	threadpool/threadpool.c	/^threadpool_t *threadpool_create(int thread_cnt, int queue_size, int flags)$/;"	f
+threadpool_create_flags_t	threadpool/threadpool.h	/^} threadpool_create_flags_t;$/;"	t	typeref:enum:__anon5
+threadpool_destroy	threadpool/threadpool.c	/^int threadpool_destroy(threadpool_t *pool, int flags)$/;"	f
+threadpool_destroy_flags_t	threadpool/threadpool.h	/^} threadpool_destroy_flags_t;$/;"	t	typeref:enum:__anon4
+threadpool_error_t	threadpool/threadpool.h	/^} threadpool_error_t;$/;"	t	typeref:enum:__anon3
+threadpool_free	threadpool/threadpool.c	/^int threadpool_free(threadpool_t *pool)$/;"	f
+threadpool_graceful	threadpool/threadpool.h	/^    threadpool_graceful       = 1$/;"	e	enum:__anon4
+threadpool_invalid	threadpool/threadpool.h	/^    threadpool_invalid        = -1,$/;"	e	enum:__anon3
+threadpool_lock_failure	threadpool/threadpool.h	/^    threadpool_lock_failure   = -2,$/;"	e	enum:__anon3
+threadpool_queue_full	threadpool/threadpool.h	/^    threadpool_queue_full     = -3,$/;"	e	enum:__anon3
+threadpool_shutdown	threadpool/threadpool.h	/^    threadpool_shutdown       = -4,$/;"	e	enum:__anon3
+threadpool_shutdown_t	threadpool/threadpool.c	/^} threadpool_shutdown_t;$/;"	t	typeref:enum:__anon1	file:
+threadpool_t	threadpool/threadpool.c	/^struct threadpool_t {$/;"	s	file:
+threadpool_t	threadpool/threadpool.h	/^typedef struct threadpool_t threadpool_t;$/;"	t	typeref:struct:threadpool_t
+threadpool_task_t	threadpool/threadpool.c	/^} threadpool_task_t;$/;"	t	typeref:struct:__anon2	file:
+threadpool_thread	threadpool/threadpool.c	/^static void *threadpool_thread(void *threadpool)$/;"	f	file:
+threadpool_thread_failure	threadpool/threadpool.h	/^    threadpool_thread_failure = -5$/;"	e	enum:__anon3
+threads	threadpool/threadpool.c	/^  pthread_t *threads;$/;"	m	struct:threadpool_t	file:
+to_init	to_init.c	/^int to_init(void) {$/;"	f
+type	message_queue/event.h	/^    EVENT_TYPE type;$/;"	m	struct:event_t
+value	message_queue/message_queue.h	/^    void *value;$/;"	m	struct:message_node

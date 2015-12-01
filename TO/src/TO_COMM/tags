@@ -1,0 +1,112 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+APP_SOCKET_H_	app_socket/app_socket.h	15;"	d
+BOARD_PORT	app_socket/app_socket.h	29;"	d
+COMMAND_FRAME_CODE	app_socket/protocal.h	11;"	d
+COMMAND_FRAME_SIZE	app_socket/protocal.h	13;"	d
+COMM_GLOBAL_H_	comm_global.h	12;"	d
+COM_0_ADDR	app_socket/app_socket.h	21;"	d
+COM_1_ADDR	app_socket/app_socket.h	22;"	d
+CORE_0_ADDR	app_socket/app_socket.h	23;"	d
+CORE_1_ADDR	app_socket/app_socket.h	24;"	d
+CORE_2_ADDR	app_socket/app_socket.h	25;"	d
+CORE_3_ADDR	app_socket/app_socket.h	26;"	d
+DATA_FD	app_socket/protocal.c	/^}DATA_FD;$/;"	t	typeref:struct:data_frame_descriptor	file:
+DATA_FRAME_CODE	app_socket/protocal.h	10;"	d
+DATA_FRAME_HEAD_SIZE	app_socket/protocal.h	15;"	d
+FRAME_ENCAP_FAILURE	app_socket/protocal.h	/^    FRAME_ENCAP_FAILURE = -3,$/;"	e	enum:protocal_result
+FRAME_ERROR	app_socket/protocal.h	/^    FRAME_ERROR = -2,$/;"	e	enum:protocal_result
+INITIAL_FAILURE	app_socket/app_socket.h	/^    INITIAL_FAILURE = -3,$/;"	e	enum:socket_result
+MAX_DATA_FRAME_SIZE	app_socket/protocal.h	14;"	d
+MAX_RCV_BUF_SIZE	app_socket/app_socket.h	41;"	d
+MAX_SND_BUF_SIZE	app_socket/app_socket.h	42;"	d
+MAX_SOCKET_NUM	app_socket/app_socket.h	39;"	d
+PROTOCAL_FAILURE	app_socket/protocal.h	/^    PROTOCAL_FAILURE = -1,$/;"	e	enum:protocal_result
+PROTOCAL_H_	app_socket/protocal.h	4;"	d
+PROTOCAL_RESULT	app_socket/protocal.h	/^}PROTOCAL_RESULT;$/;"	t	typeref:enum:protocal_result
+PROTOCAL_SUCCESS	app_socket/protocal.h	/^    PROTOCAL_SUCCESS = 0,$/;"	e	enum:protocal_result
+RCV_FAILURE	app_socket/app_socket.h	/^    RCV_FAILURE = -6,$/;"	e	enum:socket_result
+REGISTER_FAILURE	app_socket/app_socket.h	/^    REGISTER_FAILURE = -4,$/;"	e	enum:socket_result
+SND_FAILURE	app_socket/app_socket.h	/^    SND_FAILURE = -7$/;"	e	enum:socket_result
+SOCKET_CONNECT_FAILURE	app_socket/app_socket.h	/^    SOCKET_CONNECT_FAILURE = -2,$/;"	e	enum:socket_result
+SOCKET_FAILURE	app_socket/app_socket.h	/^    SOCKET_FAILURE = -1,$/;"	e	enum:socket_result
+SOCKET_NOT_EXIST	app_socket/app_socket.h	/^    SOCKET_NOT_EXIST = -5,$/;"	e	enum:socket_result
+SOCKET_RESULT	app_socket/app_socket.h	/^}SOCKET_RESULT;$/;"	t	typeref:enum:socket_result
+SOCKET_SND_FAILURE	app_socket/protocal.h	/^    SOCKET_SND_FAILURE = -11$/;"	e	enum:protocal_result
+SOCKET_SUCCESS	app_socket/app_socket.h	/^    SOCKET_SUCCESS = 0,$/;"	e	enum:socket_result
+SOCKET_TYPE_0	app_socket/app_socket.h	32;"	d
+SOCKET_TYPE_1	app_socket/app_socket.h	33;"	d
+SOCKET_TYPE_2	app_socket/app_socket.h	34;"	d
+SOCKET_TYPE_3	app_socket/app_socket.h	35;"	d
+SOCKET_TYPE_4	app_socket/app_socket.h	36;"	d
+SOCKET_TYPE_5	app_socket/app_socket.h	37;"	d
+SOCKET_TYPE_ERR	app_socket/protocal.h	/^    SOCKET_TYPE_ERR = -10,$/;"	e	enum:protocal_result
+THREADPOOL_FLAG_AUTO	threadpool/threadpool.h	/^	THREADPOOL_FLAG_AUTO,$/;"	e	enum:__anon5
+THREADPOOL_FLAG_AVG	threadpool/threadpool.h	/^	THREADPOOL_FLAG_AVG,$/;"	e	enum:__anon5
+THREADPOOL_FLAG_COMMON	threadpool/threadpool.h	/^	THREADPOOL_FLAG_COMMON	= 0,$/;"	e	enum:__anon5
+VOTE_0_ADDR	app_socket/app_socket.h	27;"	d
+_GNU_SOURCE	threadpool/threadpool.c	33;"	d	file:
+_THREADPOOL_H_	threadpool/threadpool.h	30;"	d
+argument	threadpool/threadpool.c	/^    void *argument;$/;"	m	struct:__anon2	file:
+board_addr	app_socket/app_socket.c	/^static struct board_addr_t board_addr;$/;"	v	typeref:struct:board_addr_t	file:
+board_addr_t	app_socket/app_socket.c	/^struct board_addr_t$/;"	s	file:
+command_frame_encap	app_socket/protocal.c	/^static char *command_frame_encap(char *command, char *data, uint16_t des, int *frame_len)$/;"	f	file:
+count	threadpool/threadpool.c	/^  int count;$/;"	m	struct:threadpool_t	file:
+data_frame_descriptor	app_socket/protocal.c	/^typedef struct data_frame_descriptor$/;"	s	file:
+data_frame_encap	app_socket/protocal.c	/^static char *data_frame_encap(char command[2], char *data, uint16_t des, DATA_FD fd, int data_len, int *frame_len)$/;"	f	file:
+f_cnt_num	app_socket/protocal.c	/^    uint16_t f_cnt_num;     \/*当前帧序号*\/$/;"	m	struct:data_frame_descriptor	file:
+f_total_num	app_socket/protocal.c	/^    uint16_t f_total_num;   \/*帧总数*\/$/;"	m	struct:data_frame_descriptor	file:
+frame_encap	app_socket/protocal.c	/^PROTOCAL_RESULT frame_encap(uint8_t stype, uint16_t des, uint8_t ftype, char command[2], char *data, int length)$/;"	f
+frame_parse	app_socket/protocal.c	/^PROTOCAL_RESULT frame_parse(char *buf, int length)$/;"	f
+function	threadpool/threadpool.c	/^    void (*function)(void *);$/;"	m	struct:__anon2	file:
+get_loc_socket_by_type	app_socket/app_socket.c	/^static socket_t *get_loc_socket_by_type(uint8_t type)$/;"	f	file:
+graceful_shutdown	threadpool/threadpool.c	/^    graceful_shutdown  = 2$/;"	e	enum:__anon1	file:
+head	threadpool/threadpool.c	/^  int head;$/;"	m	struct:threadpool_t	file:
+host_addr	app_socket/app_socket.c	/^    const char *host_addr;$/;"	m	struct:board_addr_t	file:
+immediate_shutdown	threadpool/threadpool.c	/^    immediate_shutdown = 1,$/;"	e	enum:__anon1	file:
+loc_sockets	app_socket/app_socket.c	/^static struct socket_t loc_sockets[MAX_SOCKET_NUM]; \/\/存放socket_fd及对应优先级$/;"	v	typeref:struct:socket_t	file:
+lock	threadpool/threadpool.c	/^  pthread_mutex_t lock;$/;"	m	struct:threadpool_t	file:
+main	to_comm.c	/^int main(void)$/;"	f
+notify	threadpool/threadpool.c	/^  pthread_cond_t notify;$/;"	m	struct:threadpool_t	file:
+port	app_socket/app_socket.c	/^    uint16_t    port;$/;"	m	struct:board_addr_t	file:
+protocal_result	app_socket/protocal.h	/^typedef enum protocal_result$/;"	g
+queue	threadpool/threadpool.c	/^  threadpool_task_t *queue;$/;"	m	struct:threadpool_t	file:
+queue_size	threadpool/threadpool.c	/^  int queue_size;$/;"	m	struct:threadpool_t	file:
+set_board_addr	app_socket/app_socket.c	/^int set_board_addr(int board)$/;"	f
+set_loc_socket_by_type	app_socket/app_socket.c	/^static int set_loc_socket_by_type(uint8_t type, int socket_fd)$/;"	f	file:
+shutdown	threadpool/threadpool.c	/^  int shutdown;$/;"	m	struct:threadpool_t	file:
+socket_connect	app_socket/app_socket.c	/^SOCKET_RESULT socket_connect(uint8_t type)$/;"	f
+socket_err_handle	app_socket/app_socket.c	/^static void socket_err_handle(int err_code, void *arg)$/;"	f	file:
+socket_fd	app_socket/app_socket.c	/^    int      socket_fd;$/;"	m	struct:socket_t	file:
+socket_rcv	app_socket/app_socket.c	/^void socket_rcv(uint8_t type)$/;"	f
+socket_register	app_socket/app_socket.c	/^static int socket_register(int socket_fd, uint8_t type)$/;"	f	file:
+socket_result	app_socket/app_socket.h	/^typedef enum socket_result$/;"	g
+socket_snd	app_socket/app_socket.c	/^SOCKET_RESULT socket_snd(uint8_t type, char *data, int length)$/;"	f
+socket_t	app_socket/app_socket.c	/^struct socket_t$/;"	s	file:
+socket_type	app_socket/app_socket.c	/^    uint8_t  socket_type;   $/;"	m	struct:socket_t	file:
+started	threadpool/threadpool.c	/^  int started;$/;"	m	struct:threadpool_t	file:
+tail	threadpool/threadpool.c	/^  int tail;$/;"	m	struct:threadpool_t	file:
+thread_count	threadpool/threadpool.c	/^  int thread_count;$/;"	m	struct:threadpool_t	file:
+threadpool_add	threadpool/threadpool.c	/^int threadpool_add(threadpool_t *pool, void (*function)(void *),$/;"	f
+threadpool_create	threadpool/threadpool.c	/^threadpool_t *threadpool_create(int thread_cnt, int queue_size, int flags)$/;"	f
+threadpool_create_flags_t	threadpool/threadpool.h	/^} threadpool_create_flags_t;$/;"	t	typeref:enum:__anon5
+threadpool_destroy	threadpool/threadpool.c	/^int threadpool_destroy(threadpool_t *pool, int flags)$/;"	f
+threadpool_destroy_flags_t	threadpool/threadpool.h	/^} threadpool_destroy_flags_t;$/;"	t	typeref:enum:__anon4
+threadpool_error_t	threadpool/threadpool.h	/^} threadpool_error_t;$/;"	t	typeref:enum:__anon3
+threadpool_free	threadpool/threadpool.c	/^int threadpool_free(threadpool_t *pool)$/;"	f
+threadpool_graceful	threadpool/threadpool.h	/^    threadpool_graceful       = 1$/;"	e	enum:__anon4
+threadpool_invalid	threadpool/threadpool.h	/^    threadpool_invalid        = -1,$/;"	e	enum:__anon3
+threadpool_lock_failure	threadpool/threadpool.h	/^    threadpool_lock_failure   = -2,$/;"	e	enum:__anon3
+threadpool_queue_full	threadpool/threadpool.h	/^    threadpool_queue_full     = -3,$/;"	e	enum:__anon3
+threadpool_shutdown	threadpool/threadpool.h	/^    threadpool_shutdown       = -4,$/;"	e	enum:__anon3
+threadpool_shutdown_t	threadpool/threadpool.c	/^} threadpool_shutdown_t;$/;"	t	typeref:enum:__anon1	file:
+threadpool_t	threadpool/threadpool.c	/^struct threadpool_t {$/;"	s	file:
+threadpool_t	threadpool/threadpool.h	/^typedef struct threadpool_t threadpool_t;$/;"	t	typeref:struct:threadpool_t
+threadpool_task_t	threadpool/threadpool.c	/^} threadpool_task_t;$/;"	t	typeref:struct:__anon2	file:
+threadpool_thread	threadpool/threadpool.c	/^static void *threadpool_thread(void *threadpool)$/;"	f	file:
+threadpool_thread_failure	threadpool/threadpool.h	/^    threadpool_thread_failure = -5$/;"	e	enum:__anon3
+threads	threadpool/threadpool.c	/^  pthread_t *threads;$/;"	m	struct:threadpool_t	file:

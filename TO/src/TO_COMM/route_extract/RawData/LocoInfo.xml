@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Config desp="locomotive information">
+	<Item name="locoType">HXN5</Item>
+	<Item name="locoTypeInfo">
+	<!-- 机车类型信息 -->
+		<Property name="brakecyLinderDiameter">abc</Property><!-- 制动缸直径 -->
+		<Property name="brakeparas">_int</Property><!-- 制动系数 -->
+		<Property name="brakeshoetype">_int</Property><!-- 制动闸瓦类型 -->
+		<Property name="davis0">_int</Property><!--阻力系数a-->
+		<Property name="davis1">_int</Property><!--阻力系数b-->
+		<Property name="drivetype">_int</Property><!--驱动类型-->
+		<Property name="locoLength">_int</Property><!-- 车长 -->
+		<Property name="locotype">_int</Property><!--机车型号-->
+		<Property name="maxcaltraction">_int</Property><!--最大计算牵引力-->
+		<Property name="mincalspeed">_int</Property><!--最低计算速度-->
+		<Property name="pre_distance">_int</Property><!--限速安全距离-->
+		<Property name="throttleatauto">_int</Property><!--初始档位-->
+		<Property name="tractionthrottles">_int</Property><!--牵引手柄数-->
+		<Property name="transmissiontype">_int</Property><!--有级无级-->
+		<Property name="wheeldiameter">_int</Property><!--轮径-->
+		<Property name="wheelnum">_int</Property><!--轮数-->
+		<Property name="StartTractionCount">_int</Property><!--计算起动牵引力-->
+		<Property name="OilConsume">_int</Property><!--内燃惰性时平均燃油消耗量-->
+		<Property name="runpowercurrent">_int</Property><!--牵引运行时自用电有功电流-->
+		<Property name="bowvoltage">_int</Property><!--受电弓处网压-->
+		<Property name="brakepowercurrent">_int</Property><!--制动时自用有功电流-->
+		<Property name="brakethrottles">_int</Property><!--动力制动手柄位数-->
+		<Property name="braketype">_int</Property><!--制动机型号-->
+		<Property name="calculatedweight">_int</Property><!--计算重量-->
+		<Property name="davis2">_int</Property><!--阻力系数c-->
+	</Item>
+	
+	<Item name="cntLocoInfo"><!-- 本机车信息 -->
+		<Property name="controlType">_int[0..1]</Property><!--控制方式-->
+		<Property name="loconum">_unsigned int</Property><!--本机车号-->
+		<Property name="locotype">_unsigned int</Property><!--本机车型号-->
+		<Property name="routeSearchMode">_unsigned int[0..1]</Property><!--交路提取方式-->
+		<Property name="workmode">unsigned int[0..1]</Property><!--工作模式-->
+		<Property name=""></Property><!-- 当前车次不需要 -->
+	</Item>
+	
+	<Item name="dragFeature"><!-- 牵引特性 -->
+		<Porperty name="path">./dragForce</Porperty><!-- 相对路径 -->
+	</Item>
+	
+	<Item name="brakeFeature"><!--制动特性-->
+		<Property name="path">./brakeForce</Property>
+	</Item>
+	
+	<Item name="dragConsumption"><!--欣杰-->
+		<Property name="drag0"></Property>
+		<Property name="drag1"></Property>
+	</Item>
+	
+	<Item name="brakeConsumption"><!--欣杰-->
+		<Property name="brake1"></Property>
+	</Item>
+	
+	<Item name="DragConsumption">
+		<Property name="energyconsumption">_float</Property><!--能耗-->
+		<Property name="throttle">_int</Property><!--档位-->
+		<Property name="turnspeed">_float</Property><!--转速-->
+		<Property name="locotype">_unsigned int</Property><!--机车型号-->
+	</Item>
+	
+	<Item name="DragBrakeFeature"><!--牵引制动特性-->
+		<Property name="dragbraketype">_unsigned int[0..1]</Property><!--牵引制动-->
+		<Property name="dragforce">_float</Property><!--牵引力-->
+		<Property name="locotype">_unsigned int[0..4]</Property><!--机车型号-->
+		<Property name="speed">_float</Property><!--牵引速度-->
+		<Property name="throttlenum">_int</Property><!--档位-->
+		<Property name="turnspeed">_float</Property><!--转速-->
+	</Item>
+</Config>

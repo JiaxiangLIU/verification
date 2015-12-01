@@ -1,0 +1,15 @@
+
+核心板
+
+IP地址: 192.168.1.30
+
+整合: 多线程环境, socket通信模块 
+
+需要修改：
+frame_rcv_handle.c
+Makefile
+core_global.h
+handle.h
+to_core.c
+schedule.c
+event.h

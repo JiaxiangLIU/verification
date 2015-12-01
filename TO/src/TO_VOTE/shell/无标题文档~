@@ -1,0 +1,29 @@
+begin to recv :Recv len = 9 
+c30000000007080001
+front throttle num is 5
+write circ buf throttle: 5 auto: 1
+front enqueue is 5
+ begin to recv  
+read circ datalen is: 1
+read circ buf throttle: 5 auto: 1
+ret:1
+in_recv rt_gear is 5, auto is 1
+
+
+
+
+ret:1
+in_recv rt_gear is 5, auto is 1
+ret:1
+in_recv rt_gear is 5, auto is 1
+ begin to recv :Recv len = 9 
+c3000000000a080001
+front throttle num is 4
+write circ buf throttle: 4 auto: 1
+front enqueue is 4
+ begin to recv  
+ret:1
+in_recv rt_gear is 5, auto is 1
+ret:1
+in_recv rt_gear is 5, auto is 1
+

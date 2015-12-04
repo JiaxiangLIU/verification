@@ -24,6 +24,9 @@ struct circ_buf {
 
 static struct circ_buf send_buf = {PTHREAD_MUTEX_INITIALIZER};
 
+/*
+ * jiaxiang: copy _len_ bytes from _value_ to _buf_
+ */
 static int write_circ_buf(struct circ_buf *buf, char *value, int len)
 {
 	int i, space_len, ret = -1;
@@ -47,6 +50,9 @@ static int write_circ_buf(struct circ_buf *buf, char *value, int len)
 	return ret;
 }
 
+/*
+ * jiaxiang: copy _len_ bytes from _buf_ to _value_
+ */
 static int read_circ_buf(struct circ_buf *buf, char *value, int len)
 {
 	int i, data_len, ret = -1;
@@ -224,7 +230,7 @@ void *control_box_thread(void *arg)
 	char *ip;
 	uint16_t type;
 	cb_sent_buf_t *cb = &cb_sent_buf;
-	port = PORT_CAN2NET;
+	port = PORT_CAN2NET; // jiaxiang: 端口指向本机负责与控制盒通信的can2net程序
 	ip = "127.0.0.1";
 
 	
@@ -235,11 +241,18 @@ void *control_box_thread(void *arg)
 		return 0;
 	}
 	
+	/*
+	 * jiaxiang: 将与CAN-CTRL连接的socket放入socket数组loc_sockets
+	 */
 	set_loc_socket_by_type(SOCKET_TYPE_CAN2NET, socket_fd);
 	type = SOCKET_TYPE_CAN2NET;
 
 	int ret;
 
+	/*
+	 * jiaxiang: 在线程池中新启动线程运行socket_rcv负责监听处理类型为
+	 * SOCKET_TYPE_CAN2NET的事件
+	 */
     ret = threadpool_add(pool, socket_rcv, (void *)&type, 0);    
     if (ret != 0)
     {
@@ -249,8 +262,14 @@ void *control_box_thread(void *arg)
     }
 
 
-	
+	/*
+	 * jiaxiang: 本线程开始负责把缓冲区里的数据发送到CAN2NET对应的socket中
+	 */
 	while (1) {
+		/*
+		 * jiaxiang: 将数据从send_buf复制到temp_sent_buf，并将temp_sent_buf通过
+		 * 函数control_box_sent_handle发送到socket_fd（CAN2NET）中。
+		 */
 		data_len = read_circ_buf(&send_buf, temp_sent_buf.data, PACKET_MAX_LEN);
 		if (data_len > 0) {
 			temp_sent_buf.len = data_len;

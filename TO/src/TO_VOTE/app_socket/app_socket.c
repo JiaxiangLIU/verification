@@ -219,7 +219,7 @@ static void socket_err_handle(int err_code, void *arg);
 
 int set_board_addr(int board)
 {
-    switch(board)
+    switch(board) // jiaxiang: 无用的switch
     {
         case 0:
             board_addr.host_addr = COM_0_ADDR;
@@ -246,6 +246,7 @@ int set_board_addr(int board)
 			log_warning("to_vote warning: %s\n", error_code_name(ERROR_CODE_PARAMETER));
             return ERROR_CODE_PARAMETER;
     }
+    // jiaxiang: PORT端口指向与底层（内CAN）通信的message服务器
     board_addr.host_addr = "127.0.0.1";
     board_addr.port = BOARD_PORT;
     return 0; 
@@ -319,7 +320,10 @@ SOCKET_RESULT socket_connect(uint8_t type)
         close(s_fd);
         return REGISTER_FAILURE;
     }    
-    log_info("log: socket connect success.s_fd: %d\n", s_fd);    
+    log_info("log: socket connect success.s_fd: %d\n", s_fd);
+    /*
+     * jiaxiang: 把新建的socket放到（全局）socket数组loc_sockets里
+     */
     ret = set_loc_socket_by_type(type, s_fd);
     
     log_info("register: soc type %d: %d\n", type, get_loc_socket_by_type(type)); 
@@ -501,6 +505,9 @@ void socket_rcv(void *arg)
 #define CAN_ID_LEN 4
 #define CAN_LENGTH_LEN 4
 
+/*
+ * jiaxiang: 作为单独线程监听某个socket，并对到达的数据进行解析和处理。
+ */
 void socket_rcv(void *arg)
 {
     int soc;
@@ -533,8 +540,10 @@ void socket_rcv(void *arg)
 
     while(1)
     {
+    	// jiaxiang: 与内CAN（其他板子）通信
     	if ((uint8_t)SOCKET_TYPE_CAN2NET != type)
 			ret = read(s_fd, rcv_buf, sizeof(rcv_buf));
+    	// jiaxiang:　与控制盒通信
 		else {
 			ret = 0;
 			temp_ret = 0;
@@ -588,6 +597,13 @@ void socket_rcv(void *arg)
 				handle_len = recv_check(dest_buf, &dest_len, rcv_buf, ret);
 
 				if (dest_len > 0) {
+					/*
+					 * jiaxiang: frame_parse负责处理收到的命令/数据。
+					 * - 如果是命令command，则启动一个新线程运行
+					 *   command_frame_rcv_handle去处理该命令；
+					 * - 如果是数据data，则直接执行data_frame_rcv_handle
+					 *   进行处理。
+					 */
 					p_ret = frame_parse(dest_buf, dest_len);
 
 					int test_i;

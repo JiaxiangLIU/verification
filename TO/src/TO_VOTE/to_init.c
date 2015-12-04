@@ -60,7 +60,7 @@ int to_init(void) {
     /* 调度初始化 */
     schedule_init();
     /*
-     * jiaxiang: 启了一个线程运行schedule函数，schedule函数轮询queues，
+     * jiaxiang: 从线程池启了一个线程运行schedule函数，schedule函数轮询queues，
      * 从queues中取event，执行event_handle()处理该event。利用event_handle()
      * 处理事件时会启动一个单独线程。注意：目前这个schedule函数/线程形同虚设，它只
      * 处理一种事件：EVENT_TRIP_INIT_START（控制盒行程初始化启动命令），然后就
@@ -68,6 +68,11 @@ int to_init(void) {
      */
 
     /* socket通信初始化 */
+    /*
+     * jiaxiang: 与内CAN建立socket连接，建立类型为0~5的6个socket，并存在socket
+     * 数组loc_sockets里。从线程池启动6个线程分别对每个类型的socket进行监听并处理，根据接收
+     * 帧的类型执行frame_rcv_handle处理，若为命令帧，需要另启新线程。
+     */
     socket_comm_init();
     
     return 0;
@@ -118,7 +123,11 @@ static inline void socket_comm_init(void)
     set_board_addr(0);  //0代表COMM_0 
 
     type = SOCKET_TYPE_0;
-    sock_ret = socket_connect(type); 
+    sock_ret = socket_connect(type);
+    /*
+     * jiaxiang: 注册类型为SOCKET_TYPE_0的socket，并将该socket加入全局的
+     * socket数组loc_sockets里。
+     */
     if (sock_ret == SOCKET_CONNECT_FAILURE)
     {
         fprintf(stderr, "failed to connect socket.\n");
@@ -131,7 +140,7 @@ static inline void socket_comm_init(void)
     }    
    
     type = SOCKET_TYPE_1;
-    sock_ret = socket_connect(type); 
+    sock_ret = socket_connect(type); // jiaxiang: 注册类型为SOCKET_TYPE_1的socket
     if (sock_ret == SOCKET_CONNECT_FAILURE)
     {
         fprintf(stderr, "failed to connect socket.\n");
@@ -144,7 +153,7 @@ static inline void socket_comm_init(void)
     }    
    
     type = SOCKET_TYPE_2;
-    sock_ret = socket_connect(type); 
+    sock_ret = socket_connect(type); // jiaxiang: 注册类型为SOCKET_TYPE_2的socket
     if (sock_ret == SOCKET_CONNECT_FAILURE)
     {
         fprintf(stderr, "failed to connect socket.\n");
@@ -157,7 +166,7 @@ static inline void socket_comm_init(void)
     }    
     
     type = SOCKET_TYPE_3;
-    sock_ret = socket_connect(type); 
+    sock_ret = socket_connect(type); // jiaxiang: 注册类型为SOCKET_TYPE_3的socket
     if (sock_ret == SOCKET_CONNECT_FAILURE)
     {
         fprintf(stderr, "failed to connect socket.\n");
@@ -170,7 +179,7 @@ static inline void socket_comm_init(void)
     }    
     
     type = SOCKET_TYPE_4;
-    sock_ret = socket_connect(type); 
+    sock_ret = socket_connect(type); // jiaxiang: 注册类型为SOCKET_TYPE_4的socket
     if (sock_ret == SOCKET_CONNECT_FAILURE)
     {
         fprintf(stderr, "failed to connect socket.\n");
@@ -184,7 +193,7 @@ static inline void socket_comm_init(void)
     
 
     type = SOCKET_TYPE_5;
-    sock_ret = socket_connect(type); 
+    sock_ret = socket_connect(type); // jiaxiang: 注册类型为SOCKET_TYPE_5的socket
     if (sock_ret == SOCKET_CONNECT_FAILURE)
     {
         fprintf(stderr, "failed to connect socket.\n");
@@ -197,6 +206,12 @@ static inline void socket_comm_init(void)
     } 
 
     type_0 = 0x80;
+    /*
+     * jiaxiang: 启动单独线程监听类型为SOCKET_TYPE_0的socket，并对到来的
+     * 信息进行解析和处理（分command和data，具体操作见socket_rcv）。
+     *
+     * 接下来的操作是分别对各类型的socket进行单独监听和处理。
+     */
     ret = threadpool_add(pool, socket_rcv, (void *)&type_0, 0);    
     if (ret != 0)
     {

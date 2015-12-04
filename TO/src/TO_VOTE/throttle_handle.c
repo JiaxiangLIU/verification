@@ -194,7 +194,10 @@ static int set_throttle_to_data(uint8_t *data, int buf_size, int throttle_num, i
 }
 
 
-
+/*
+ * jiaxiang: 从_data_中读取档位_throttle_num_以及手动自动标志_auto_or_manual_，
+ * 如果是前进档则返回1，如果是后退档则返回0
+ */
 static int get_throttle_from_data(uint8_t *data, int len, int *throttle_num, int *auto_or_manual)
 {
 	int value;
@@ -263,7 +266,8 @@ void *receive_throttle(void *arg)
 	int ret;
 
 
-    cssl_start();
+    cssl_start(); // jiaxiang: cssl是与输入输出板通信的方法
+    // jiaxiang: 建立与CAN-IN-OUT的通信，与输入板输出板的通信不分端口
 	serout = cssl_open(can_in_out, NULL, 0, 921600, 8, 0, 1);
     serin = serout;
 	if (serout == NULL) {
@@ -274,6 +278,7 @@ void *receive_throttle(void *arg)
 
 	while (1) {
 		log_info(" begin to recv  \n");
+		// jiaxiang: 接收数据放入recvbuf
 		len = cssl_getdata(serin, (uint8_t *)recvbuf, sizeof(recvbuf));
 		log_info(" begin to recv :Recv len = %d \n", len);
 		for (i = 0 ; i < len; i++) {
@@ -282,15 +287,21 @@ void *receive_throttle(void *arg)
 		log_info("\n");
 
 		if (len > 0) {
+			/*
+			 * jiaxiang: 从_recvbuf_中读取档位信息到_throttle_num_，手动自动信息到
+			 * _auto_or_manual_
+			 */
 			if ((temp = get_throttle_from_data(recvbuf, len, &throttle_num, &auto_or_manual)) == 1) {
 				log_info("front throttle num is %d\n", throttle_num);
+				// jiaxiang: 将档位和手/自动信息写入环形缓冲区throttle_recv_queue
 				ret = write_recv_throttle_queue(throttle_num, auto_or_manual);
 				if (ret <= 0)
 					log_warning("enqueue err\n");
 				else
 					log_info("front enqueue is %d\n",throttle_num);
-			} else if (temp == 0) {
+			} else if (temp == 0) { // jiaxiang: 负档位的case
 				log_info("back throttle num is %d\n", throttle_num);
+				// jiaxiang: 将档位的绝对值写入环形缓冲区throttle_recv_queue
 				ret = write_recv_throttle_queue(throttle_num * (-1), auto_or_manual);
 				if (ret <= 0)
 					log_warning("back enqueue err\n");
@@ -323,8 +334,10 @@ void *sent_throttle(void *arg)
 	bzero(send_buf, sizeof(send_buf));
 	
 	while (1) {
+		// jiaxiang: 从发送缓冲区throttle_sent_queue中读取档位信息和手/自动信息
 		ret = read_sent_throttle_queue(&throttle_num, &auto_or_manual);
 		if (ret > 0) {
+			// jiaxiang: 将档位信息和手/自动信息发送到CAN-IN-OUT
 			set_throttle_to_data(send_buf, sizeof(send_buf), throttle_num, auto_or_manual);
 			cssl_putdata(serin, (uint8_t *)send_buf, sizeof(send_buf));
 			log_info("sent enqueue is %d\n",throttle_num);

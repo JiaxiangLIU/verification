@@ -133,7 +133,7 @@ PROTOCAL_RESULT frame_encap(uint8_t stype, uint16_t des, uint8_t ftype, char com
             if (buf == NULL)
                 return FRAME_ENCAP_FAILURE;
 
-						ack_send_handle((int)stype, buf, buf_len);
+			ack_send_handle((int)stype, buf, buf_len);
             snd_ret = socket_snd(stype, buf, buf_len);
             free(buf);
             if(snd_ret == SOCKET_NOT_EXIST)

@@ -168,7 +168,7 @@ PROTOCAL_RESULT frame_encap(uint8_t stype, uint16_t des, uint8_t ftype, char com
             while(data_to_send_len != 0)
             {
                 data_fd.f_cnt_num ++;
-                /*����֡���*/
+                /*����֡���*/
                 buf = data_frame_encap(command_index, data_index, des, data_fd, data_to_send_len, &buf_len);
 #if 0
                 int _i;
@@ -184,6 +184,8 @@ PROTOCAL_RESULT frame_encap(uint8_t stype, uint16_t des, uint8_t ftype, char com
 				ack_send_handle(stype, buf, buf_len);
                 snd_ret = socket_snd(stype, buf, buf_len);
 			
+
+                // jiaxiang: 下面这几个while循环作用不明。是在校验重发？
 				int route_data_confirm_count = 1;
 				while(command_index[1] == EVENT_ROUTE_DATA_SEND) {
 					usleep(900000);
@@ -237,6 +239,7 @@ PROTOCAL_RESULT frame_encap(uint8_t stype, uint16_t des, uint8_t ftype, char com
 					socket_snd(stype, buf, buf_len);
 				} 			 				
 				
+				// jiaxiang: bug? 跳出时已经等于6了
 				if(route_data_confirm_count == 5) {
 					set_abnormal_code(SYS_ERROR_ROUTE_EXTRACT_FAILURE, 0X08);
 				}

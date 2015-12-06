@@ -22,8 +22,9 @@
 int main(void) {
 	
    led_packet_init();
-   init_ack_and_resend_table();//��ʼ��Ӧ����
-   to_init();
+   init_ack_and_resend_table();//��ʼ��Ӧ����
+
+   to_init(); // jiaxiang: 初始化（其中有建立新线程的操作）
 #if 1
 	while(comm_register() != 0) {
          log_error("communication check err");

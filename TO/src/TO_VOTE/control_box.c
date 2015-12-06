@@ -95,6 +95,9 @@ static void control_box_recv_handler(int socket_fd, unsigned char *data, int dat
 {
 }
 
+/*
+ * jiaxiang: 将_buf_中的数据通过_socket_fd_发送出去
+ */
 static int control_box_sent_handler(int socket_fd, cb_sent_buf_t *buf)
 {
 	int bytes, i;
@@ -267,7 +270,7 @@ void *control_box_thread(void *arg)
 	 */
 	while (1) {
 		/*
-		 * jiaxiang: 将数据从send_buf复制到temp_sent_buf，并将temp_sent_buf通过
+		 * jiaxiang: 将数据从缓冲区send_buf复制到temp_sent_buf，并将temp_sent_buf通过
 		 * 函数control_box_sent_handle发送到socket_fd（CAN2NET）中。
 		 */
 		data_len = read_circ_buf(&send_buf, temp_sent_buf.data, PACKET_MAX_LEN);
@@ -283,6 +286,11 @@ void *control_box_thread(void *arg)
 	}
 }
 
+/*
+ * jiaxiang: 将数据_data_发送到全局环形缓冲区send_buf中
+ * （真正通过socket发送是在control_box_thread中利用control_box_sent_handler
+ * 进行）
+ */
 int control_box_send(int canid, unsigned char *data, int len)
 {
 	int frame_total, send_len, zero_len;

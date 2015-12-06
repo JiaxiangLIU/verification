@@ -98,6 +98,10 @@ typedef struct data_frame_descriptor
 static char *data_frame_encap(char command[2], char *data, uint16_t des, DATA_FD fd, int data_len, int *frame_len);
 
 
+/*
+ * jiaxiang: 进行数据打包和数据发送。控制盒数据发送到缓冲区send_buf中；内CAN数据
+ * 直接通过socket发送。
+ */
 PROTOCAL_RESULT frame_encap(uint8_t stype, uint16_t des, uint8_t ftype, char command[2], char *data, int length)
 {
     char    *buf;
@@ -129,6 +133,7 @@ PROTOCAL_RESULT frame_encap(uint8_t stype, uint16_t des, uint8_t ftype, char com
             if (buf == NULL)
                 return FRAME_ENCAP_FAILURE;
             ack_send_handle(stype,buf,buf_len);
+            // jiaxiang: 发送数据
             snd_ret = socket_snd(stype, buf, buf_len);
             free(buf);
             if(snd_ret == SOCKET_NOT_EXIST)

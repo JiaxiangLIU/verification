@@ -630,16 +630,23 @@ void socket_rcv(void *arg)
     }
 }
 
+/*
+ * jiaxiang: 数据发送。控制盒数据发送到缓冲区send_buf，再由另外的线程
+ * concrol_box_thread发送到socket中；内CAN数据，直接通过socket发送。
+ */
 SOCKET_RESULT socket_snd(uint8_t type, char *data, int length)
 {
 	int dest;
 	uint16_t control_addr = 0x02;
+	// jiaxiang: 貌似是无用的赋值，canid在control_box_send()会被重新赋值
 	int canid = 0x55ff;
     dest = (uint16_t)data[3] << 8 | (uint16_t)data[4];
     if(dest == control_addr) {	//往控制盒发送数据
+    // jiaxiang: 往控制盒发送数据，实际是往缓冲区send_buf发送
     	control_box_send(canid,data,length);
     	return SOCKET_SUCCESS;
     } else {	//内CAN通道发送数据
+    // jiaxiang: 往内CAN发送数据，则直接通过socket发送出去
 
 		int s_fd;
 

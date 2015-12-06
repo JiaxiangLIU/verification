@@ -79,7 +79,7 @@ int main(void)
 	/*
 	 * jiaxiang: 新建线程（不在线程池中）运行函数control_box_thread。
 	 * 该函数负责建立与控制盒的连接，并在线程池中新建线程监听处理控制盒发过来的事件。
-	 * 完成该任务后循环进行自身的新任务：发送缓冲区的数据到控制盒。
+	 * 完成该任务后循环进行自身的新任务：发送缓冲区send_buf的数据到控制盒。
 	 */
 	ret1 = pthread_create(&tid1, &attr1, control_box_thread, NULL);
 

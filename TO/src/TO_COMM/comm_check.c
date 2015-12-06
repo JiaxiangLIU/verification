@@ -1,7 +1,7 @@
 
 /**
  * @file comm_check.c
- * @brief ����ͨ��У��
+ * @brief ����ͨ��У��
  **/
 
 #include "app_socket.h"
@@ -32,6 +32,7 @@ int comm_register(void)
 
 	/*when system init and communication board has not registered, commu_brd \
 	start to register to vote_brd*/
+	// jiaxiang: 主动发包给VOTE板进行注册，只有满足条件才能注册，只有注册成功才
 	if(get_sys_status() == SYS_INIT && get_master_commu() != SOURCE_COM_0 && \
 		get_master_commu() != SOURCE_COM_1){
 		if ((frame_encap(SOCKET_TYPE, VOTE_0_DES, COMMAND_FRAME_CODE, cmd, flag, 1)) != PROTOCAL_SUCCESS) {
@@ -70,7 +71,7 @@ void heartbeat_check()
 			frame_encap(SOCKET_TYPE, VOTE_0_DES, COMMAND_FRAME_CODE, cmd, arg, 1);
 			sec = 0;
 		}
-		sleep(1);   //ͣ������
+		sleep(1);   //ͣ������
     }
 }
 

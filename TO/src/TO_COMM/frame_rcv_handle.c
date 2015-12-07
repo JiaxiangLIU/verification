@@ -64,6 +64,7 @@ void command_frame_rcv_handle(void *cmd)
 			printf("receive system status is %d\n", command[2]);
 			set_sys_status((SYSTEM_STATUS) command[2]);	
 			if(get_sys_status() == SYS_LAUNCHED){
+				// jiaxiang: å¯åŠ¨æ–°çº¿ç¨‹ç›‘å¬ä¸LKJçš„é€šä¿¡ï¼ˆé€šè¿‡can2netï¼‰
 				if (client_init() != 0) {
         			log_error("client check err");
        				 exit(0);
@@ -120,22 +121,22 @@ void command_frame_rcv_handle(void *cmd)
 					route_data_send();	
 				} 
 			break;
-		case EVENT_ROUTE_DATA_SEND_ACK: /* ½»Â·Êı¾İ°æ±¾²»Ò»ÖÂ´¦Àí£º½»Â·ÌáÈ¡Íê³É²¢·¢ËÍ£ºÆÂ¶ÈÓ¦´ğ */
+		case EVENT_ROUTE_DATA_SEND_ACK: /* ï¿½ï¿½Â·ï¿½ï¿½ï¿½İ°æ±¾ï¿½ï¿½Ò»ï¿½Â´ï¿½ï¿½ï¿½ï¿½ï¿½Â·ï¿½ï¿½È¡ï¿½ï¿½É²ï¿½ï¿½ï¿½ï¿½Í£ï¿½ï¿½Â¶ï¿½Ó¦ï¿½ï¿½ */
 			route_data_confirm[0] = command[2];
 			break;
-		case EVENT_ROUTE_DATA_CURVE_ACK: /* ½»Â·Êı¾İ°æ±¾²»Ò»ÖÂ´¦Àí£º·¢ËÍ£ºÇúÏßÓ¦´ğ  */
+		case EVENT_ROUTE_DATA_CURVE_ACK: /* ï¿½ï¿½Â·ï¿½ï¿½ï¿½İ°æ±¾ï¿½ï¿½Ò»ï¿½Â´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í£ï¿½ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½  */
 			route_data_confirm[1] = command[2];
 			break;
-		case EVENT_ROUTE_DATA_LIMIT_ACK: /* ½»Â·Êı¾İ°æ±¾²»Ò»ÖÂ´¦Àí£º·¢ËÍ£ºÏŞËÙÓ¦´ğ  */
+		case EVENT_ROUTE_DATA_LIMIT_ACK: /* ï¿½ï¿½Â·ï¿½ï¿½ï¿½İ°æ±¾ï¿½ï¿½Ò»ï¿½Â´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í£ï¿½ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½  */
 			route_data_confirm[2] = command[2];
 			break;
-		case EVENT_ROUTE_DATA_TELESEME_ACK: /* ½»Â·Êı¾İ°æ±¾²»Ò»ÖÂ´¦Àí£º·¢ËÍ£ºĞÅºÅ»úÓ¦´ğ  */
+		case EVENT_ROUTE_DATA_TELESEME_ACK: /* ï¿½ï¿½Â·ï¿½ï¿½ï¿½İ°æ±¾ï¿½ï¿½Ò»ï¿½Â´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í£ï¿½ï¿½ÅºÅ»ï¿½Ó¦ï¿½ï¿½  */
 			route_data_confirm[3] = command[2];
 			break;
-		case EVENT_ROUTE_DATA_TUNNEL_ACK: /* ½»Â·Êı¾İ°æ±¾²»Ò»ÖÂ´¦Àí£º·¢ËÍ£ºËíµÀÓ¦´ğ  */
+		case EVENT_ROUTE_DATA_TUNNEL_ACK: /* ï¿½ï¿½Â·ï¿½ï¿½ï¿½İ°æ±¾ï¿½ï¿½Ò»ï¿½Â´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í£ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½  */
 			route_data_confirm[4] = command[2];
 			break;
-		case EVENT_ROUTE_DATA_STATION_ACK: /* ½»Â·Êı¾İ°æ±¾²»Ò»ÖÂ´¦Àí£º·¢ËÍ£º³µÕ¾Ó¦´ğ  */
+		case EVENT_ROUTE_DATA_STATION_ACK: /* ï¿½ï¿½Â·ï¿½ï¿½ï¿½İ°æ±¾ï¿½ï¿½Ò»ï¿½Â´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í£ï¿½ï¿½ï¿½Õ¾Ó¦ï¿½ï¿½  */
 			route_data_confirm[5] = command[2];
 			break;		
 		}	

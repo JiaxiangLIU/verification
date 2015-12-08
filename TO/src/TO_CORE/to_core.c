@@ -49,6 +49,7 @@ int main(void)
 	 init_ack_and_resend_table();
    to_init();
 #if 1
+   // jiaxiang: 向表决板发送注册信息
    if (comm_register() == -1)
    {
         log_error("communication check err.");
@@ -56,7 +57,11 @@ int main(void)
    }
    printf("comm register success.\n"); 
 #endif
+
+    // jiaxiang: 启动心跳进程heartbeat_check，暂时不关心
 	comm_check_init();
+
+	// jiaxiang: HERE!!!
     int temp;
 	SYSTEM_STATUS temp_status;
     do {

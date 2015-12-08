@@ -26,15 +26,17 @@ int main(void) {
 
    to_init(); // jiaxiang: 初始化（其中有建立新线程的操作）
 #if 1
-    // jiaxiang: 循环向表决板发送注册信息，直到发送成功
+   // jiaxiang: 循环向表决板发送注册信息，直到发送成功
 	while(comm_register() != 0) {
          log_error("communication check err");
     }
     usleep(5000);
     log_debug("comm register success.\n");
 #endif
+
     // jiaxiang: 启动心跳进程heartbeat_check，暂时不关心
     comm_check_init();
+
 /***call client_init() after register success
     if (client_init() != 0) {
         log_error("client check err");

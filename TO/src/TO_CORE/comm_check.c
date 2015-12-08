@@ -37,6 +37,7 @@ int comm_register(void)
 	    }
 	}
 
+	// jiaxiang: bug? 这个注册函数总是返回1，意味着注册不可能失败
 	return 1;
 }
 

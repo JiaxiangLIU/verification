@@ -61,19 +61,22 @@ int main(void)
     // jiaxiang: 启动心跳进程heartbeat_check，暂时不关心
 	comm_check_init();
 
-	// jiaxiang: HERE!!!
+	// jiaxiang: 等待系统状态置为SYS_STANDBY
     int temp;
 	SYSTEM_STATUS temp_status;
     do {
         temp = get_sys_status();
     } while (temp < SYS_STANDBY);    
 
+    // jiaxiang: 等待行程状态置为TRIP_START（行程初始化完成，行程开始）
 	TRIP_STATUS temp_trip;
 	do {
 		temp_trip = get_trip_status();
 	} while (temp_trip < TRIP_START || temp_trip == TRIP_MAX);
 	
+	// jiaxiang: 在线程池中启动线程rt_main，负责循环计算列车优化控制结果
     auto_control();
+
     while (1) {
 		pthread_mutex_lock(&socket_send_mutex);
 		send_realtime_buf();

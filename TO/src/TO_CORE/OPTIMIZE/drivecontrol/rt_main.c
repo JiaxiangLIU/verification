@@ -209,6 +209,8 @@ int rt_main() {
 
 #if !TESTING
 		// wait until real time data received
+		// jiaxiang: 不太懂这里是干嘛？
+		// jiaxiang: 行程开始前的优化计算在哪里进行，存在哪里？
 		pthread_mutex_lock(&(rt_arr_flag.rt_mutex));
 		while (!rt_arr_flag.rt_flag) {
 			pthread_cond_wait(&(rt_arr_flag.rt_cond), &(rt_arr_flag.rt_mutex));
@@ -286,6 +288,7 @@ int rt_main() {
 		memcpy(frame_arg, &rt_core, frame_size);
 
 
+		// jiaxiang: 将计算结果发送出去
 		frame_encap(0x40, 0x008, DATA_FRAME_CODE, frame_cmd, frame_arg,
 				frame_size);
 
@@ -296,9 +299,11 @@ int rt_main() {
 		/*
 		 * keep the output records
 		 */
+		// jiaxiang: 这里应该是把计算结果存起来吧？
 		if (record_index > records_length - 1) //if reach the max length, double the length
 		{
 			records_length = 2 * records_length;
+			// jiaxiang: bug? 新申请的内存会导致之前的record都丢失吧？
 			if ((rt_output_records = (RT_CORE*) malloc(sizeof(RT_CORE) * records_length)) == NULL)
 			{
 #if ENABLE_LOG_ERROR
@@ -310,7 +315,8 @@ int rt_main() {
 		}
 		rt_output_records[record_index] = rt_core;
 		record_index = record_index + 1;
-#else
+#else // jiaxiang: 这里是测试代码
+
 		//1 for test
 		//0 for core_board using
 
@@ -341,6 +347,7 @@ int rt_main() {
 		if (record_index > records_length - 1) //if reach the max length, double the length
 		{
 			records_length = 2*records_length;
+			// jiaxiang: bug? 跟上面问题类似
 			if ((driving_records = (DRIVING_RECORD*)malloc(sizeof(DRIVING_RECORD)*records_length)) == NULL)
 			{
 #if ENABLE_LOG_ERROR
@@ -368,7 +375,7 @@ int rt_main() {
 #endif
 		}
 
-	}
+	} // jiaxiang: 大循环结束
 
 #if !TESTING
 	//saving the output records
@@ -377,6 +384,7 @@ int rt_main() {
 #if ENABLE_LOG_DEBUG
 	log_debug("memory of rt_output_records freed!\n");
 #endif
+
 #else
 	//1 for test
 	//0 for core_board using
@@ -387,6 +395,7 @@ int rt_main() {
 	log_debug("memory of driving_records freed!\n");
 #endif
 #endif
+
 #if ENABLE_LOG_INFO
 	log_info("real time process finished!\n");
 #endif

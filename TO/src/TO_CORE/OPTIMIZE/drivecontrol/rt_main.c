@@ -209,8 +209,12 @@ int rt_main() {
 
 #if !TESTING
 		// wait until real time data received
-		// jiaxiang: 不太懂这里是干嘛？
-		// jiaxiang: 行程开始前的优化计算在哪里进行，存在哪里？
+		/*
+		 * jiaxiang: 监视rt_arrive_flag，该信号在实时数据到达时触发。这样处理
+		 * 的好处是使得优化计算只在试试数据到达时候进行。
+		 * 注意：pthread_cond_wait开始等待时会释放rt_arr_flag的锁，信号触发使得
+		 * 等待结束时又会重新上锁。
+		 */
 		pthread_mutex_lock(&(rt_arr_flag.rt_mutex));
 		while (!rt_arr_flag.rt_flag) {
 			pthread_cond_wait(&(rt_arr_flag.rt_cond), &(rt_arr_flag.rt_mutex));

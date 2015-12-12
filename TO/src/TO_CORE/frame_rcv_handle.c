@@ -474,6 +474,7 @@ static void realtime_data_rcv_handle(char *data, int length)
 #endif
 	
 
+	// jiaxiang: 触发rt_main中的实时优化计算循环
 	rt_arr_flag.rt_flag = 1;
 	pthread_cond_signal(&(rt_arr_flag.rt_cond));
 	pthread_mutex_unlock(&(rt_arr_flag.rt_mutex));

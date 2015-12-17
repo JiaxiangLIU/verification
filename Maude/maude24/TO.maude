@@ -1,0 +1,11 @@
+(fmod FRAME is
+    sort Frame .
+endfm)
+    
+(omod CAN is
+    protecting FRAME .
+    
+    ops [_==>_|_] : Oid Oid Frame -> Msg .
+endom)
+    
+    

@@ -2,10 +2,94 @@
     sort Frame .
 endfm)
     
-(omod CAN is
+(omod SOCKET is
     protecting FRAME .
-    
-    ops [_==>_|_] : Oid Oid Frame -> Msg .
+    sort SocketType .
+
+    op [_==>_:_|_] : Oid Oid SocketType Frame -> Msg [ctor] .
 endom)
+
+(fmod QUEUE is
+    protecting FRAME .
+    sort Queue .
+
+    pr NAT .
+    subsort Nat < Frame .
+
+    op nil : -> Queue [ctor] .
+    op _::_ : Frame Queue -> Queue [ctor] .
+
+    var F : Frame .
+    var Q : Queue .
+
+    --- operation _peek_ requires the Queue to be not empty
+    op peek : Queue -> Frame .
+    eq peek(F :: Q) = F .
+
+    op enqueue : Frame Queue -> Queue .
+    eq enqueue(F, Q) = F :: Q .
+
+    op dequeue : Queue -> Queue .
+    eq dequeue(nil) = nil .
+    eq dequeue(F :: Q) = Q .
+endfm)
+
+(fmod BUFFER is
+    protecting QUEUE .
+    sort Buffer .
+    subsort Queue < Buffer .
+endfm)
+
+(fmod MEMORY is
+    protecting QID .
+    sort Memory .
+    sorts Variable Value Pair .
+    subsort Qid < Variable .
+
+    subsort Nat < Value .
+    op null : -> Value .
     
+    op `(_->_`) : Variable Value -> Pair [ctor] .
+
+    op empty : -> Memory [ctor] .
+    subsort Pair < Memory .
+    op _`,_ : Memory Memory -> Memory [ctor assoc comm id: empty] .
+
+    var X : Variable .
+    vars V V' : Value .
+    var M : Memory .
+
+    --- assignment
+    op _`[_:=_`] : Memory Variable Value -> Memory .
+    eq ((X -> V), M)[X := V'] = (X -> V'), M .
+    eq M[X := V'] = (X -> V'), M [owise] .
+
+    --- evaluation
+    op _`[_`] : Memory Variable -> Value .
+    eq ((X -> V), M)[X] = V .
+    eq M[X] = null [owise] .
+    
+endfm)
+
+(fmod THREAD is
+    sort Thread .
+
+endfm)
+
+(fmod THREADPOOL is
+    protecting THREAD .
+    sort ThreadPool .
+
+endfm)
+    
+(omod BOARD is
+    protecting BUFFER .
+    protecting MEMORY .
+    protecting THREADPOOL .
+    pr SOCKET .
+
+    class Board | mem : Memory, pool : ThreadPool .
+
+    
+endom)
     

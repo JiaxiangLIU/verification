@@ -6,7 +6,7 @@ endfm)
     protecting FRAME .
     sort SocketType .
 
-    op [_==>_:_|_] : Oid Oid SocketType Frame -> Msg [ctor] .
+    op `[_==>_:_|_`] : Oid Oid SocketType Frame -> Msg [ctor] .
 endom)
 
 (fmod QUEUE is
@@ -19,7 +19,7 @@ endom)
     op nil : -> Queue [ctor] .
     op _::_ : Frame Queue -> Queue [ctor] .
 
-    var F : Frame .
+    vars F F' : Frame .
     var Q : Queue .
 
     --- operation _peek_ requires the Queue to be not empty
@@ -27,7 +27,8 @@ endom)
     eq peek(F :: Q) = F .
 
     op enqueue : Frame Queue -> Queue .
-    eq enqueue(F, Q) = F :: Q .
+    eq enqueue(F, nil) = F :: nil .
+    eq enqueue(F, F' :: Q) = F' :: enqueue(F, Q) .
 
     op dequeue : Queue -> Queue .
     eq dequeue(nil) = nil .
@@ -68,28 +69,95 @@ endfm)
     op _`[_`] : Memory Variable -> Value .
     eq ((X -> V), M)[X] = V .
     eq M[X] = null [owise] .
-    
-endfm)
-
-(fmod THREAD is
-    sort Thread .
 
 endfm)
 
-(fmod THREADPOOL is
+(omod THREAD is
+    sort ThreadID .
+    subsort ThreadID < Oid .
+
+    class Thread .
+endom)
+
+(omod THREADPOOL is
     protecting THREAD .
     sort ThreadPool .
 
-endfm)
+    op empty : -> ThreadPool [ctor] .
+    op _;_ : Object ThreadPool -> ThreadPool [ctor] .
+
+    ops a b c : -> Object .
+
+    vars O O' : Object .
+    var P : ThreadPool .
+    
+    --- operation _peek_ requires the Pool to be not empty
+    op peek : ThreadPool -> Object .
+    eq peek(O ; P) = O .
+
+    op enqueue : Object ThreadPool -> ThreadPool .
+    eq enqueue(O, empty) = O ; empty .
+    eq enqueue(O, O' ; P) = O' ; enqueue(O, P) .
+
+    op dequeue : ThreadPool -> ThreadPool .
+    eq dequeue(empty) = empty .
+    eq dequeue(O ; P) = P .
+endom)
     
 (omod BOARD is
     protecting BUFFER .
     protecting MEMORY .
     protecting THREADPOOL .
-    pr SOCKET .
 
     class Board | mem : Memory, pool : ThreadPool .
+endom)
 
+(omod COMM is
+    protecting BOARD .
+
+    class Comm .
+    subclass Comm < Board .
+
+endom)
+
+(omod CORE is
+    protecting BOARD .
+
+    class Core .
+    subclass Core < Board .
+
+endom)
+
+(omod VOTE is
+    protecting BOARD .
+
+    class Vote .
+    subclass Vote < Board .
+
+endom)
+
+(fmod DATA is
+    sort Data .
+endfm)
+        
+(omod LKJ is
+    protecting DATA .
+    class LKJ | data : Data .
+endom)
+
+(omod CTRL-BOX is
+    protecting DATA .
+    class CtrlBox | data : Data .
+endom)
     
+(omod SYSTEM is
+    protecting SOCKET .
+    protecting COMM .
+    protecting CORE .
+    protecting VOTE .
+    protecting LKJ .
+    protecting CTRL-BOX .
+    pr QUEUE .
+    pr THREADPOOL .
 endom)
     

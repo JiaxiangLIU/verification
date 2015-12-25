@@ -1,12 +1,25 @@
 (fmod FRAME is
     sort Frame .
+    sorts DataFrame CommandFrame .
+    subsorts DataFrame CommandFrame < Frame .
+    sorts Command Data .
+
+    op command : Command -> CommandFrame [ctor] .
+    op data : Data -> DataFrame [ctor] .
+
+    sort MaybeFrame .
+    op none : -> MaybeFrame [ctor] .
+    op some_ : Frame -> MaybeFrame [ctor] .
+
 endfm)
     
 (omod SOCKET is
     protecting FRAME .
     sort SocketType .
+    subsort Nat < SocketType .
 
-    op `[_==>_:_|_`] : Oid Oid SocketType Frame -> Msg [ctor] .
+    --- define a msg to send frames to some socket port
+    msg `[==>_:_|_`] : Oid SocketType MaybeFrame -> Msg .
 endom)
 
 (fmod QUEUE is
@@ -76,7 +89,9 @@ endfm)
     sort ThreadID .
     subsort ThreadID < Oid .
 
-    class Thread .
+    sort Status .
+    
+    class Thread | st : Status .
 endom)
 
 (omod THREADPOOL is
@@ -109,7 +124,9 @@ endom)
     protecting MEMORY .
     protecting THREADPOOL .
 
-    class Board | mem : Memory, pool : ThreadPool .
+    class Board | cpu : Object, mem : Memory, pool : ThreadPool .
+
+    op ideal : -> Object .
 endom)
 
 (omod COMM is
@@ -122,9 +139,96 @@ endom)
 
 (omod CORE is
     protecting BOARD .
+    protecting SOCKET .
 
     class Core .
     subclass Core < Board .
+
+    --- threads
+    op socket-rcv : Nat -> ThreadID [ctor] .
+    ops rt-main main : -> ThreadID [ctor] .
+    op command-frame-rcv-handle : -> ThreadID .
+    
+    op read : -> Status .
+    op frame-parse : Frame -> Status .
+    op threadpool-add : ThreadID Command -> Status .
+    op data-frame-rcv-handle : Data -> Status .
+
+    op handle : Command -> Status .
+    
+    var O : Oid .
+    var N : Nat .
+    var M : Memory .
+    vars T T' : Object .
+    var P : ThreadPool .
+    var F : Frame .
+    subsort Nat < Oid .
+    var OB : Object .
+    var C : Command .
+    var NEW : Object .
+    var CON : Configuration .
+    var D : Data .
+    
+    op msg1 : Oid Nat -> Msg .
+    op cpu1 : -> Object .
+    op mem1 : -> Memory .
+    op pool1 : -> ThreadPool .
+    op ftest : -> Frame .
+    op com1 : -> Command .
+    op data1 : -> Data .
+    ops a b c : -> Object .
+
+    ops test1 test2 test3 : -> Configuration .
+    eq test1 = < 1 : Core | cpu : < socket-rcv(2) : Thread | st : read >,
+	mem : mem1, pool : a ; empty >
+	[==> 1 : 2 | none ]  .
+    eq test2 = < 2 : Core | cpu : < socket-rcv(2) : Thread | st : read >,
+	mem : mem1, pool : empty >
+	[==> 2 : 2 | some command(com1) ]  .    
+    eq test3 = < 3 : Core | cpu : < socket-rcv(2) : Thread | st : read >,
+	mem : mem1, pool : empty >
+	[==> 3 : 2 | some data(data1) ]  .
+    
+
+    --- rl [schedule] :
+    --- assume this transition is instantaneous
+    eq < O : Core | cpu : ideal, pool : (T ; P) > = < O : Core | cpu : T, pool : P > .
+
+    --- wait to read msgs, if existing, then read
+    crl [socket-rcv-n-read-some] :
+	< O : Core | cpu : T, pool : P >
+      	[==> O : N | some F ]
+      => < O : Core | cpu : ideal, pool : enqueue(T', P) >
+	[==> O : N | none ]
+      if < socket-rcv(N) : Thread | st : read > := T
+	  /\ T' := < socket-rcv(N) : Thread | st : frame-parse(F) > .
+
+    --- wait to read msgs, if not exisiting, then switch
+    crl [socket-rcv-n-read-none] :
+	< O : Core | cpu : T, pool : P > [==> O : N | none ]
+      => < O : Core | cpu : ideal, pool : enqueue(T, P) > [==> O : N | none ]
+      if < socket-rcv(N) : Thread | st : read > := T .
+
+    --- parse command frames
+    eq frame-parse(command(C)) = threadpool-add(command-frame-rcv-handle, C) .
+
+    --- create a new thread in pool to handle commands, then return to while loop reading
+    crl [threadpool-add-command] :
+	< O : Core | cpu : T, pool : P >
+      => < O : Core | cpu : ideal, pool : enqueue(T', enqueue(NEW, P)) >
+      if < socket-rcv(N) : Thread | st : threadpool-add(command-frame-rcv-handle, C) > := T
+	  /\ T' := < socket-rcv(N) : Thread | st : read >
+	  /\ NEW := < command-frame-rcv-handle : Thread | st : handle(C) > . *** TODO
+
+    --- parse data frames
+    eq frame-parse(data(D)) = data-frame-rcv-handle(D) .
+
+    --- handle the Data frame, do something, then return to while loop reading
+    crl [data-frame-rcv-handle] :
+	< O : Core | cpu : T, pool : P >
+      => < O : Core | cpu : ideal, pool : enqueue(T', P) >
+      if < socket-rcv(N) : Thread | st : data-frame-rcv-handle(D) > := T
+	  /\ T' := < socket-rcv(N) : Thread | st : read > .
 
 endom)
 
@@ -159,5 +263,20 @@ endom)
     protecting CTRL-BOX .
     pr QUEUE .
     pr THREADPOOL .
+
+    op mem : -> Memory .
+    op pool : -> ThreadPool .
+
+
+
+
+    --- j  
+***(    ceq < O:Oid : Board | cpu : C:Object, mem : M:Memory, pool : P:ThreadPool >
+      = < O:Oid : Board | cpu : ideal, mem : mem, pool : pool >
+      if C:Object =/= ideal /\ M:Memory =/= mem /\ P:ThreadPool =/= pool . )
+    
+    
+    
+        
 endom)
     

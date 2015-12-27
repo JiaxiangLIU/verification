@@ -1,15 +1,15 @@
-(fmod VALUE is
-    sort Value .
-
-    subsort Nat < Value .
-    op null : -> Value .
-endfm)
 
 (fmod TO-STATUS is
     --- system status
     sort SystemStatus .
     ops SYS-INIT SYS-FAULT SYS-MAINTENANCE SYS-LAUNCHED SYS-STANDBY
 	SYS-NORMAL SYS-AUTOCONTROL SYS-MAX : -> SystemStatus .
+
+    --- trip status
+    sort TripStatus .
+    ops TRIP-DATA-RECVING TRIP-DATA-COMPLETE TRIP-MARSHALLING-CONFIRM 
+	TRIP-INIT TRIP-START TRIP-PAUSE TRIP-COMPLETE TRIP-ANOMALY 
+	TRIP-MAX : -> TripStatus .
     
     --- the sources where the events come
     sort EventSource .
@@ -72,13 +72,28 @@ endfm)
 
 endfm)
 
+(omod VALUE is
+    protecting TO-STATUS .
+    sort Value .
+
+    subsort Nat < Value .
+    subsort EventSource < Value .
+    subsort Oid < Value .
+    subsort SystemStatus < Value .
+    subsort TripStatus < Value .
+    op null : -> Value .
+endom)
     
-(fmod COMMAND is
+(omod COMMAND is
+    protecting TO-STATUS .
     protecting VALUE .
     sort Command .
-endfm)
+
+    op _|_|_ : EventSource EventType Value -> Command [ctor] .
+
+endom)
         
-(fmod FRAME is
+(omod FRAME is
     protecting COMMAND .
     sort Frame .
     sorts DataFrame CommandFrame .
@@ -92,7 +107,7 @@ endfm)
     op none : -> MaybeFrame [ctor] .
     op some_ : Frame -> MaybeFrame [ctor] .
 
-endfm)
+endom)
     
 (omod SOCKET is
     protecting FRAME .
@@ -103,7 +118,7 @@ endfm)
     msg `[==>_:_|_`] : Oid SocketType MaybeFrame -> Msg .
 endom)
 
-(fmod QUEUE is
+(omod QUEUE is
     protecting FRAME .
     sort Queue .
 
@@ -127,15 +142,15 @@ endom)
     op dequeue : Queue -> Queue .
     eq dequeue(nil) = nil .
     eq dequeue(F :: Q) = Q .
-endfm)
+endom)
 
-(fmod BUFFER is
+(omod BUFFER is
     protecting QUEUE .
     sort Buffer .
     subsort Queue < Buffer .
-endfm)
+endom)
 
-(fmod MEMORY is
+(omod MEMORY is
     protecting QID .
     protecting VALUE .
     sort Memory .
@@ -162,7 +177,7 @@ endfm)
     eq ((X -> V), M)[X] = V .
     eq M[X] = null [owise] .
 
-endfm)
+endom)
 
 (omod THREAD is
     sort ThreadID .
@@ -206,6 +221,9 @@ endom)
     class Board | cpu : Object, mem : Memory, pool : ThreadPool .
 
     op ideal : -> Object .
+
+    ops CON-DES COM-DES CORE-DES VOTE-DES : -> Oid .
+
 endom)
 
 (omod COMM is
@@ -217,6 +235,7 @@ endom)
 endom)
 
 (omod CORE is
+    protecting TO-STATUS .
     protecting BOARD .
     protecting SOCKET .
 
@@ -234,8 +253,12 @@ endom)
     op data-frame-rcv-handle : Data -> Status .
 
     op handle : Command -> Status .
+    op set-commu-addr : Oid -> Status .
+    op done : -> Status .
+    op set-sys-status : SystemStatus -> Status .
+    op set-trip-status : TripStatus -> Status .
     
-    var O : Oid .
+    vars O O' : Oid .
     var N : Nat .
     var M : Memory .
     vars T T' : Object .
@@ -247,6 +270,9 @@ endom)
     var NEW : Object .
     var CON : Configuration .
     var D : Data .
+    var V : Value .
+    var SYSST : SystemStatus .
+    var TRIPST : TripStatus .
     
     op msg1 : Oid Nat -> Msg .
     op cpu1 : -> Object .
@@ -257,17 +283,29 @@ endom)
     op data1 : -> Data .
     ops a b c : -> Object .
 
-    ops test1 test2 test3 : -> Configuration .
+    ops test1 test2 test3 test4 test5 test6 : -> Configuration .
     eq test1 = < 1 : Core | cpu : < socket-rcv(2) : Thread | st : read >,
 	mem : mem1, pool : a ; empty >
 	[==> 1 : 2 | none ]  .
     eq test2 = < 2 : Core | cpu : < socket-rcv(2) : Thread | st : read >,
-	mem : mem1, pool : empty >
-	[==> 2 : 2 | some command(com1) ]  .    
+	mem : ('master-commu-addr -> SOURCE-COM), pool : empty >
+	[==> 2 : 2 | some command( SOURCE-VOTE | EVENT-BROADCAST-COM-ADDR | SOURCE-COM ) ]  .    
     eq test3 = < 3 : Core | cpu : < socket-rcv(2) : Thread | st : read >,
 	mem : mem1, pool : empty >
 	[==> 3 : 2 | some data(data1) ]  .
-    
+    eq test4 = < 4 : Core | cpu : < socket-rcv(2) : Thread | st : read >,
+	mem : (('master-commu-addr -> SOURCE-COM), ('sys-status -> SOURCE-COM)), 
+	pool : empty >
+	[==> 4 : 2 | some command( SOURCE-VOTE | EVENT-MASTER-VOTE-EXCHANGE | SYS-LAUNCHED ) ]  .
+    eq test5 = < 5 : Core | cpu : < socket-rcv(2) : Thread | st : read >,
+	mem : (('trip-status -> SOURCE-COM), ('sys-status -> SOURCE-COM)), 
+	pool : empty >
+	[==> 5 : 2 | some command( SOURCE-VOTE | EVENT-SYS-TRIP-STATUS-SEND | TRIP-START ) ]  .
+    eq test6 = < 6 : Core | cpu : < socket-rcv(2) : Thread | st : read >,
+	mem : (('trip-status -> SOURCE-COM), ('sys-status -> SOURCE-COM)), 
+	pool : empty >
+	[==> 6 : 2 | some command( SOURCE-COM | EVENT-SYS-TRIP-STATUS-SEND | TRIP-START ) ]  .
+   
 
     --- rl [schedule] :
     --- assume this transition is instantaneous
@@ -297,7 +335,7 @@ endom)
       => < O : Core | cpu : ideal, pool : enqueue(T', enqueue(NEW, P)) >
       if < socket-rcv(N) : Thread | st : threadpool-add(command-frame-rcv-handle, C) > := T
 	  /\ T' := < socket-rcv(N) : Thread | st : read >
-	  /\ NEW := < command-frame-rcv-handle : Thread | st : handle(C) > . *** TODO
+	  /\ NEW := < command-frame-rcv-handle : Thread | st : handle(C) > . 
 
     --- parse data frames
     eq frame-parse(data(D)) = data-frame-rcv-handle(D) .
@@ -308,6 +346,45 @@ endom)
       => < O : Core | cpu : ideal, pool : enqueue(T', P) >
       if < socket-rcv(N) : Thread | st : data-frame-rcv-handle(D) > := T
 	  /\ T' := < socket-rcv(N) : Thread | st : read > . *** TODO
+
+    --- command_frame_rcv_handle
+    eq handle( SOURCE-VOTE | EVENT-BROADCAST-COM-ADDR | V )
+      = if V == SOURCE-COM then set-commu-addr(COM-DES) 
+        else done fi .
+    eq handle( SOURCE-VOTE | EVENT-MASTER-VOTE-EXCHANGE | V )
+      = set-sys-status(V) .
+    eq handle( SOURCE-VOTE | EVENT-SYS-TRIP-STATUS-SEND | V ) 
+      = set-trip-status(V) .
+    eq handle( S:EventSource | E:EventType | V ) = done [owise] .
+    *** DONE for CORE 
+
+    --- behavior of set_commu_addr( ) in command_frame_rcv_handle
+    crl [set-commu-addr] :
+	< O : Core | cpu : T, mem : M, pool : P >
+      => if O' == COM-DES 
+	 then < O : Core | cpu : ideal, mem : M['master-commu-addr := O'], pool : enqueue(T', P) >
+	 else < O : Core | cpu : ideal, mem : M, pool : enqueue(T', P) > fi
+      if < command-frame-rcv-handle : Thread | st : set-commu-addr(O') > := T
+	  /\ T' := < command-frame-rcv-handle : Thread | st : done > . 
+
+    --- behavior of set_sys_status( ) in command_frame_rcv_handle
+    crl [set-sys-status] :
+	< O : Core | cpu : T, mem : M, pool : P >
+      => < O : Core | cpu : ideal, mem : M['sys-status := SYSST], pool : enqueue(T', P) >
+      if < command-frame-rcv-handle : Thread | st : set-sys-status(SYSST) > := T
+	  /\ T' := < command-frame-rcv-handle : Thread | st : done > . 
+
+    --- behavior of set_trip_status( ) in command_frame_rcv_handle
+    crl [set-trip-status] :
+	< O : Core | cpu : T, mem : M, pool : P >
+      => < O : Core | cpu : ideal, mem : M['trip-status := TRIPST], pool : enqueue(T', P) >
+      if < command-frame-rcv-handle : Thread | st : set-trip-status(TRIPST) > := T
+	  /\ T' := < command-frame-rcv-handle : Thread | st : done > . 
+
+    --- thread command_frame_rcv_handle done
+    crl [command-frame-rcv-handle-done] :
+	< O : Core | cpu : T > => < O : Core | cpu : ideal >
+      if < command-frame-rcv-handle : Thread | st : done > := T .
 
 endom)
 

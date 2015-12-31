@@ -92,14 +92,23 @@ endom)
     op _|_|_ : EventSource EventType Value -> Command [ctor] .
 
 endom)
-        
+
+(omod DATA is
+    protecting TO-STATUS .
+    protecting VALUE .
+    sort Data .
+
+    op _|_|_|_|_ : EventSource EventType Value Nat Nat -> Data [ctor] .
+
+endom)
+            
 (omod FRAME is
     protecting COMMAND .
+    protecting DATA .
     sort Frame .
     sorts DataFrame CommandFrame .
     subsorts DataFrame CommandFrame < Frame .
-    sort Data .
-
+    
     op command : Command -> CommandFrame [ctor] .
     op data : Data -> DataFrame [ctor] .
 
@@ -251,12 +260,8 @@ endom)
     op frame-parse : Frame -> Status .
     op threadpool-add : ThreadID Command -> Status .
     op data-frame-rcv-handle : Data -> Status .
-
-    op handle : Command -> Status .
-    op set-commu-addr : Oid -> Status .
     op done : -> Status .
-    op set-sys-status : SystemStatus -> Status .
-    op set-trip-status : TripStatus -> Status .
+
     
     vars O O' : Oid .
     var N : Nat .
@@ -273,6 +278,7 @@ endom)
     var V : Value .
     var SYSST : SystemStatus .
     var TRIPST : TripStatus .
+    vars AMOUNT CNT : Nat .
     
     op msg1 : Oid Nat -> Msg .
     op cpu1 : -> Object .
@@ -284,6 +290,7 @@ endom)
     ops a b c : -> Object .
 
     ops test1 test2 test3 test4 test5 test6 : -> Configuration .
+    ops test7 : -> Configuration .
     eq test1 = < 1 : Core | cpu : < socket-rcv(2) : Thread | st : read >,
 	mem : mem1, pool : a ; empty >
 	[==> 1 : 2 | none ]  .
@@ -305,6 +312,10 @@ endom)
 	mem : (('trip-status -> SOURCE-COM), ('sys-status -> SOURCE-COM)), 
 	pool : empty >
 	[==> 6 : 2 | some command( SOURCE-COM | EVENT-SYS-TRIP-STATUS-SEND | TRIP-START ) ]  .
+    eq test7 = < 7 : Core | cpu : < socket-rcv(2) : Thread | st : read >,
+	mem : (('trip-status -> SOURCE-COM), ('sys-status -> SOURCE-COM)), 
+	pool : empty >
+	[==> 7 : 2 | some data( SOURCE-COM | EVENT-FRONT-SPEED-LIMIT | TRIP-START | 0 | 1 ) ]  .
    
 
     --- rl [schedule] :
@@ -329,6 +340,8 @@ endom)
     --- parse command frames
     eq frame-parse(command(C)) = threadpool-add(command-frame-rcv-handle, C) .
 
+    op handle : Command -> Status .
+
     --- create a new thread in pool to handle commands, then return to while loop reading
     crl [threadpool-add-command] :
 	< O : Core | cpu : T, pool : P >
@@ -340,13 +353,31 @@ endom)
     --- parse data frames
     eq frame-parse(data(D)) = data-frame-rcv-handle(D) .
 
-    --- handle the Data frame, do something, then return to while loop reading
-    crl [data-frame-rcv-handle] :
+    op limit-data-rcv-handle : Value -> Status .
+
+    --- data_frame_rcv_handle
+    eq data-frame-rcv-handle( (SOURCE-COM | EVENT-FRONT-SPEED-LIMIT | V | AMOUNT | CNT) )
+      = limit-data-rcv-handle(V) .
+
+    --- behavior of limit_data_rcv_handle( ) in data_frame_rcv_handle
+    eq limit-data-rcv-handle(V) = done .
+
+    --- definition of "done" status of the thread socekt_rcv():
+    --- back to loop reading
+    eq < socket-rcv(N) : Thread | st : done >
+      = < socket-rcv(N) : Thread | st : read > .
+    
+    --- handle the Data frame, do something, then return to while loop reading *** TODO
+***(    crl [data-frame-rcv-handle] :
 	< O : Core | cpu : T, pool : P >
       => < O : Core | cpu : ideal, pool : enqueue(T', P) >
       if < socket-rcv(N) : Thread | st : data-frame-rcv-handle(D) > := T
-	  /\ T' := < socket-rcv(N) : Thread | st : read > . *** TODO
+	  /\ T' := < socket-rcv(N) : Thread | st : read > . )
 
+    op set-commu-addr : Oid -> Status .
+    op set-sys-status : SystemStatus -> Status .
+    op set-trip-status : TripStatus -> Status .
+      
     --- command_frame_rcv_handle
     eq handle( SOURCE-VOTE | EVENT-BROADCAST-COM-ADDR | V )
       = if V == SOURCE-COM then set-commu-addr(COM-DES) 
@@ -396,9 +427,6 @@ endom)
 
 endom)
 
-(fmod DATA is
-    sort Data .
-endfm)
         
 (omod LKJ is
     protecting DATA .

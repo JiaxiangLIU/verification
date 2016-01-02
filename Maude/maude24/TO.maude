@@ -127,6 +127,7 @@ endom)
     msg `[==>_:_|_`] : Oid SocketType MaybeFrame -> Msg .
 endom)
 
+    ***(
 (omod QUEUE is
     protecting FRAME .
     sort Queue .
@@ -152,6 +153,7 @@ endom)
     eq dequeue(nil) = nil .
     eq dequeue(F :: Q) = Q .
 endom)
+    )
 
 (omod BUFFER is
     protecting QUEUE .
@@ -290,7 +292,7 @@ endom)
     ops a b c : -> Object .
 
     ops test1 test2 test3 test4 test5 test6 : -> Configuration .
-    ops test7 : -> Configuration .
+    ops test7 test8 test9 : -> Configuration .
     eq test1 = < 1 : Core | cpu : < socket-rcv(2) : Thread | st : read >,
 	mem : mem1, pool : a ; empty >
 	[==> 1 : 2 | none ]  .
@@ -316,7 +318,14 @@ endom)
 	mem : (('trip-status -> SOURCE-COM), ('sys-status -> SOURCE-COM)), 
 	pool : empty >
 	[==> 7 : 2 | some data( SOURCE-COM | EVENT-FRONT-SPEED-LIMIT | TRIP-START | 0 | 1 ) ]  .
-   
+    eq test8 = < 8 : Core | cpu : < socket-rcv(2) : Thread | st : read >,
+	mem : (('rt-arr-flag -> 0), ('rt-comm -> null)), 
+	pool : empty >
+	[==> 8 : 2 | some data( SOURCE-COM | EVENT-REAL-TIME-INFO | 9 | 0 | 1 ) ]  .
+    eq test9 = < 9 : Core | cpu : < socket-rcv(2) : Thread | st : read >,
+	mem : (('rt-arr-flag -> 0), ('rt-comm -> null)), 
+	pool : pool1 >
+	[==> 9 : 2 | some data( SOURCE-COM | EVENT-CLOCK-SYNC | 9 | 0 | 1 ) ]  .   
 
     --- rl [schedule] :
     --- assume this transition is instantaneous
@@ -337,8 +346,9 @@ endom)
       => < O : Core | cpu : ideal, pool : enqueue(T, P) > [==> O : N | none ]
       if < socket-rcv(N) : Thread | st : read > := T .
 
-    --- parse command frames
+    --- parse frames, including commands and data
     eq frame-parse(command(C)) = threadpool-add(command-frame-rcv-handle, C) .
+    eq frame-parse(data(D)) = data-frame-rcv-handle(D) .
 
     op handle : Command -> Status .
 
@@ -350,30 +360,34 @@ endom)
 	  /\ T' := < socket-rcv(N) : Thread | st : read >
 	  /\ NEW := < command-frame-rcv-handle : Thread | st : handle(C) > . 
 
-    --- parse data frames
-    eq frame-parse(data(D)) = data-frame-rcv-handle(D) .
-
     op limit-data-rcv-handle : Value -> Status .
+    op realtime-data-rcv-handle : Value -> Status .
 
     --- data_frame_rcv_handle
-    eq data-frame-rcv-handle( (SOURCE-COM | EVENT-FRONT-SPEED-LIMIT | V | AMOUNT | CNT) )
+    eq data-frame-rcv-handle( SOURCE-COM | EVENT-FRONT-SPEED-LIMIT | V | AMOUNT | CNT )
       = limit-data-rcv-handle(V) .
-
+    eq data-frame-rcv-handle( SOURCE-COM | EVENT-REAL-TIME-INFO | V | AMOUNT | CNT )
+      = realtime-data-rcv-handle(V) .
+    eq data-frame-rcv-handle( S:EventSource | E:EventType | V | AMOUNT | CNT )
+      = done [owise] .
+    *** DONE for CORE
+        
     --- behavior of limit_data_rcv_handle( ) in data_frame_rcv_handle
     eq limit-data-rcv-handle(V) = done .
+
+    --- behavior of realtime_data_rcv_handle( ) in data_frame_rcv_handle
+    crl [realtime-data-rcv-handle] :
+	< O : Core | cpu : T, mem : M, pool : P >
+      => < O : Core | cpu : ideal, mem : M['rt-comm := V]['rt-arr-flag := 1],
+		      pool : enqueue(T', P) >
+      if < socket-rcv(N) : Thread | st : realtime-data-rcv-handle(V) > := T
+	  /\ T' := < socket-rcv(N) : Thread | st : done > . 
 
     --- definition of "done" status of the thread socekt_rcv():
     --- back to loop reading
     eq < socket-rcv(N) : Thread | st : done >
       = < socket-rcv(N) : Thread | st : read > .
     
-    --- handle the Data frame, do something, then return to while loop reading *** TODO
-***(    crl [data-frame-rcv-handle] :
-	< O : Core | cpu : T, pool : P >
-      => < O : Core | cpu : ideal, pool : enqueue(T', P) >
-      if < socket-rcv(N) : Thread | st : data-frame-rcv-handle(D) > := T
-	  /\ T' := < socket-rcv(N) : Thread | st : read > . )
-
     op set-commu-addr : Oid -> Status .
     op set-sys-status : SystemStatus -> Status .
     op set-trip-status : TripStatus -> Status .

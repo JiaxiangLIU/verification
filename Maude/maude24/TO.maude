@@ -119,12 +119,27 @@ endom)
 endom)
     
 (omod SOCKET is
+    protecting NAT .
     protecting FRAME .
     sort SocketType .
-    subsort Nat < SocketType .
 
     --- define a msg to send frames to some socket port
     msg `[==>_:_|_`] : Oid SocketType MaybeFrame -> Msg .
+
+    op SOCKET-TYPE-0 : -> SocketType [ctor] . --- 0x80
+    op SOCKET-TYPE-1 : -> SocketType [ctor] . --- 0x40
+    op SOCKET-TYPE-2 : -> SocketType [ctor] . --- 0x20
+    op SOCKET-TYPE-3 : -> SocketType [ctor] . --- 0x10
+    op SOCKET-TYPE-4 : -> SocketType [ctor] . --- 0x08
+    op SOCKET-TYPE-5 : -> SocketType [ctor] . --- 0x04
+    op SOCKET-TYPE-CAN2NET : -> SocketType [ctor] . --- 0x02
+    op COM-SOC : -> SocketType . --- 0x20
+    op DAT-SOC : -> SocketType . --- 0x04
+    op DAT-VOTE-SOC : -> SocketType . --- 0x08
+
+    eq COM-SOC = SOCKET-TYPE-2 .
+    eq DAT-SOC = SOCKET-TYPE-5 .
+    eq DAT-VOTE-SOC = SOCKET-TYPE-4 .
 endom)
 
     ***(
@@ -153,13 +168,13 @@ endom)
     eq dequeue(nil) = nil .
     eq dequeue(F :: Q) = Q .
 endom)
-    )
 
 (omod BUFFER is
     protecting QUEUE .
     sort Buffer .
     subsort Queue < Buffer .
 endom)
+    )
 
 (omod MEMORY is
     protecting QID .
@@ -225,7 +240,7 @@ endom)
 endom)
     
 (omod BOARD is
-    protecting BUFFER .
+---    protecting BUFFER .
     protecting MEMORY .
     protecting THREADPOOL .
 
@@ -254,7 +269,7 @@ endom)
     subclass Core < Board .
 
     --- threads
-    op socket-rcv : Nat -> ThreadID [ctor] .
+    op socket-rcv : SocketType -> ThreadID [ctor] .
     ops rt-main main : -> ThreadID [ctor] .
     op command-frame-rcv-handle : -> ThreadID .
     
@@ -266,6 +281,7 @@ endom)
 
     
     vars O O' : Oid .
+    var S : SocketType .
     var N : Nat .
     var M : Memory .
     vars T T' : Object .
@@ -293,39 +309,39 @@ endom)
 
     ops test1 test2 test3 test4 test5 test6 : -> Configuration .
     ops test7 test8 test9 : -> Configuration .
-    eq test1 = < 1 : Core | cpu : < socket-rcv(2) : Thread | st : read >,
+    eq test1 = < 1 : Core | cpu : < socket-rcv(SOCKET-TYPE-2) : Thread | st : read >,
 	mem : mem1, pool : a ; empty >
-	[==> 1 : 2 | none ]  .
-    eq test2 = < 2 : Core | cpu : < socket-rcv(2) : Thread | st : read >,
+	[==> 1 : SOCKET-TYPE-2 | none ]  .
+    eq test2 = < 2 : Core | cpu : < socket-rcv(SOCKET-TYPE-2) : Thread | st : read >,
 	mem : ('master-commu-addr -> SOURCE-COM), pool : empty >
-	[==> 2 : 2 | some command( SOURCE-VOTE | EVENT-BROADCAST-COM-ADDR | SOURCE-COM ) ]  .    
-    eq test3 = < 3 : Core | cpu : < socket-rcv(2) : Thread | st : read >,
+	[==> 2 : SOCKET-TYPE-2 | some command( SOURCE-VOTE | EVENT-BROADCAST-COM-ADDR | SOURCE-COM ) ]  .    
+    eq test3 = < 3 : Core | cpu : < socket-rcv(SOCKET-TYPE-2) : Thread | st : read >,
 	mem : mem1, pool : empty >
-	[==> 3 : 2 | some data(data1) ]  .
-    eq test4 = < 4 : Core | cpu : < socket-rcv(2) : Thread | st : read >,
+	[==> 3 : SOCKET-TYPE-2 | some data(data1) ]  .
+    eq test4 = < 4 : Core | cpu : < socket-rcv(SOCKET-TYPE-2) : Thread | st : read >,
 	mem : (('master-commu-addr -> SOURCE-COM), ('sys-status -> SOURCE-COM)), 
 	pool : empty >
-	[==> 4 : 2 | some command( SOURCE-VOTE | EVENT-MASTER-VOTE-EXCHANGE | SYS-LAUNCHED ) ]  .
-    eq test5 = < 5 : Core | cpu : < socket-rcv(2) : Thread | st : read >,
+	[==> 4 : SOCKET-TYPE-2 | some command( SOURCE-VOTE | EVENT-MASTER-VOTE-EXCHANGE | SYS-LAUNCHED ) ]  .
+    eq test5 = < 5 : Core | cpu : < socket-rcv(SOCKET-TYPE-2) : Thread | st : read >,
 	mem : (('trip-status -> SOURCE-COM), ('sys-status -> SOURCE-COM)), 
 	pool : empty >
-	[==> 5 : 2 | some command( SOURCE-VOTE | EVENT-SYS-TRIP-STATUS-SEND | TRIP-START ) ]  .
-    eq test6 = < 6 : Core | cpu : < socket-rcv(2) : Thread | st : read >,
+	[==> 5 : SOCKET-TYPE-2 | some command( SOURCE-VOTE | EVENT-SYS-TRIP-STATUS-SEND | TRIP-START ) ]  .
+    eq test6 = < 6 : Core | cpu : < socket-rcv(SOCKET-TYPE-2) : Thread | st : read >,
 	mem : (('trip-status -> SOURCE-COM), ('sys-status -> SOURCE-COM)), 
 	pool : empty >
-	[==> 6 : 2 | some command( SOURCE-COM | EVENT-SYS-TRIP-STATUS-SEND | TRIP-START ) ]  .
-    eq test7 = < 7 : Core | cpu : < socket-rcv(2) : Thread | st : read >,
+	[==> 6 : SOCKET-TYPE-2 | some command( SOURCE-COM | EVENT-SYS-TRIP-STATUS-SEND | TRIP-START ) ]  .
+    eq test7 = < 7 : Core | cpu : < socket-rcv(SOCKET-TYPE-2) : Thread | st : read >,
 	mem : (('trip-status -> SOURCE-COM), ('sys-status -> SOURCE-COM)), 
 	pool : empty >
-	[==> 7 : 2 | some data( SOURCE-COM | EVENT-FRONT-SPEED-LIMIT | TRIP-START | 0 | 1 ) ]  .
-    eq test8 = < 8 : Core | cpu : < socket-rcv(2) : Thread | st : read >,
+	[==> 7 : SOCKET-TYPE-2 | some data( SOURCE-COM | EVENT-FRONT-SPEED-LIMIT | TRIP-START | 0 | 1 ) ]  .
+    eq test8 = < 8 : Core | cpu : < socket-rcv(SOCKET-TYPE-2) : Thread | st : read >,
 	mem : (('rt-arr-flag -> 0), ('rt-comm -> null)), 
 	pool : empty >
-	[==> 8 : 2 | some data( SOURCE-COM | EVENT-REAL-TIME-INFO | 9 | 0 | 1 ) ]  .
-    eq test9 = < 9 : Core | cpu : < socket-rcv(2) : Thread | st : read >,
+	[==> 8 : SOCKET-TYPE-2 | some data( SOURCE-COM | EVENT-REAL-TIME-INFO | 9 | 0 | 1 ) ]  .
+    eq test9 = < 9 : Core | cpu : < socket-rcv(SOCKET-TYPE-2) : Thread | st : read >,
 	mem : (('rt-arr-flag -> 0), ('rt-comm -> null)), 
 	pool : pool1 >
-	[==> 9 : 2 | some data( SOURCE-COM | EVENT-CLOCK-SYNC | 9 | 0 | 1 ) ]  .   
+	[==> 9 : SOCKET-TYPE-2 | some data( SOURCE-COM | EVENT-CLOCK-SYNC | 9 | 0 | 1 ) ]  .   
 
     --- rl [schedule] :
     --- assume this transition is instantaneous
@@ -334,17 +350,17 @@ endom)
     --- wait to read msgs, if existing, then read
     crl [socket-rcv-n-read-some] :
 	< O : Core | cpu : T, pool : P >
-      	[==> O : N | some F ]
+      	[==> O : S | some F ]
       => < O : Core | cpu : ideal, pool : enqueue(T', P) >
-	[==> O : N | none ]
-      if < socket-rcv(N) : Thread | st : read > := T
-	  /\ T' := < socket-rcv(N) : Thread | st : frame-parse(F) > .
+	[==> O : S | none ]
+      if < socket-rcv(S) : Thread | st : read > := T
+	  /\ T' := < socket-rcv(S) : Thread | st : frame-parse(F) > .
 
     --- wait to read msgs, if not exisiting, then switch
     crl [socket-rcv-n-read-none] :
-	< O : Core | cpu : T, pool : P > [==> O : N | none ]
-      => < O : Core | cpu : ideal, pool : enqueue(T, P) > [==> O : N | none ]
-      if < socket-rcv(N) : Thread | st : read > := T .
+	< O : Core | cpu : T, pool : P > [==> O : S | none ]
+      => < O : Core | cpu : ideal, pool : enqueue(T, P) > [==> O : S | none ]
+      if < socket-rcv(S) : Thread | st : read > := T .
 
     --- parse frames, including commands and data
     eq frame-parse(command(C)) = threadpool-add(command-frame-rcv-handle, C) .
@@ -356,8 +372,8 @@ endom)
     crl [threadpool-add-command] :
 	< O : Core | cpu : T, pool : P >
       => < O : Core | cpu : ideal, pool : enqueue(T', enqueue(NEW, P)) >
-      if < socket-rcv(N) : Thread | st : threadpool-add(command-frame-rcv-handle, C) > := T
-	  /\ T' := < socket-rcv(N) : Thread | st : read >
+      if < socket-rcv(S) : Thread | st : threadpool-add(command-frame-rcv-handle, C) > := T
+	  /\ T' := < socket-rcv(S) : Thread | st : read >
 	  /\ NEW := < command-frame-rcv-handle : Thread | st : handle(C) > . 
 
     op limit-data-rcv-handle : Value -> Status .
@@ -380,13 +396,13 @@ endom)
 	< O : Core | cpu : T, mem : M, pool : P >
       => < O : Core | cpu : ideal, mem : M['rt-comm := V]['rt-arr-flag := 1],
 		      pool : enqueue(T', P) >
-      if < socket-rcv(N) : Thread | st : realtime-data-rcv-handle(V) > := T
-	  /\ T' := < socket-rcv(N) : Thread | st : done > . 
+      if < socket-rcv(S) : Thread | st : realtime-data-rcv-handle(V) > := T
+	  /\ T' := < socket-rcv(S) : Thread | st : done > . 
 
     --- definition of "done" status of the thread socekt_rcv():
     --- back to loop reading
-    eq < socket-rcv(N) : Thread | st : done >
-      = < socket-rcv(N) : Thread | st : read > .
+    eq < socket-rcv(S) : Thread | st : done >
+      = < socket-rcv(S) : Thread | st : read > .
     
     op set-commu-addr : Oid -> Status .
     op set-sys-status : SystemStatus -> Status .
@@ -431,6 +447,74 @@ endom)
 	< O : Core | cpu : T > => < O : Core | cpu : ideal >
       if < command-frame-rcv-handle : Thread | st : done > := T .
 
+    ***********************************
+    *** behavior of thread rt-main
+    ***********************************
+
+    op wait : -> Status .
+    op rt-processing : -> Status .
+    op rt-send : -> Status .
+    op rt-process : Value -> Value .
+      
+    --- rt-main always waits for the realtime data
+    crl [rt-main-wait-some] :
+	< O : Core | cpu : T, mem : M, pool : P >
+      => < O : Core | cpu : ideal, mem : M['rt-arr-flag := 0]['rt-in := M['rt-comm]],
+		      pool : enqueue(T', P) >
+      if < rt-main : Thread | st : wait > := T
+	  /\ M['rt-arr-flag] == 1
+	  /\ T' := < rt-main : Thread | st : rt-processing > .
+    crl [rt-main-wait-none] :
+	< O : Core | cpu : T, mem : M, pool : P >
+      => < O : Core | cpu : ideal, pool : enqueue(T, P) >
+      if < rt-main : Thread | st : wait > := T
+	  /\ M['rt-arr-flag] == 0 .
+
+    --- behavior of rt-process in rt-main
+    crl [rt-main-processing] :
+	< O : Core | cpu : T, mem : M, pool : P >
+      => < O : Core | cpu : ideal, mem : M['rt-core := rt-process(M['rt-in])],
+		      pool : enqueue(T', P) >
+      if < rt-main : Thread | st : rt-processing > := T
+	  /\ T' := < rt-main : Thread | st : rt-send > .
+
+    --- behavior of frame_encap (sending the processed result) in rt-main
+    crl [rt-main-send-succ] :
+	< O : Core | cpu : T, mem : M, pool : P > [==> VOTE-DES : SOCKET-TYPE-1 | none]
+      => < O : Core | cpu : ideal, pool : enqueue(T', P) >
+         [==> VOTE-DES : SOCKET-TYPE-1
+	      | some data( SOURCE-CORE | EVENT-REAL-TIME-CTRL | M['rt-core] | 0 | 0 )]
+      if < rt-main : Thread | st : rt-send > := T
+	  /\ T' := < rt-main : Thread | st : wait > .    
+    crl [rt-main-send-block] :
+	< O : Core | cpu : T, mem : M, pool : P > [==> VOTE-DES : SOCKET-TYPE-1 | some F]
+      => < O : Core | cpu : ideal, pool : enqueue(T, P) >
+         [==> VOTE-DES : SOCKET-TYPE-1 | some F]
+      if < rt-main : Thread | st : rt-send > := T .
+
+    ops test10 test11 : -> Configuration .
+    op test : Nat -> Configuration .
+    eq test10 = < 10 : Core | cpu : < rt-main : Thread | st : wait >,
+	mem : (('rt-in -> null), ('rt-comm -> 0), ('rt-arr-flag -> 1)), 
+	pool : pool1 >
+	[==> 10 : SOCKET-TYPE-2 | some data( SOURCE-COM | EVENT-CLOCK-SYNC | 9 | 0 | 1 ) ] .   
+    eq test11 = < 10 : Core | cpu : < rt-main : Thread | st : wait >,
+	mem : (('rt-in -> null), ('rt-comm -> 0), ('rt-arr-flag -> 0)), 
+	pool : pool1 >
+	[==> 10 : SOCKET-TYPE-2 | some data( SOURCE-COM | EVENT-CLOCK-SYNC | 9 | 0 | 1 ) ] .
+    eq test(12) = < 12 : Core | cpu : < rt-main : Thread | st : wait >,
+	mem : (('rt-in -> null), ('rt-comm -> 0), ('rt-arr-flag -> 1)), 
+	pool : empty >
+	[==> 10 : SOCKET-TYPE-2 | some data( SOURCE-COM | EVENT-CLOCK-SYNC | 9 | 0 | 1 ) ] .
+    eq test(13) = < 13 : Core | cpu : < rt-main : Thread | st : wait >,
+	mem : (('rt-in -> null), ('rt-comm -> 9), ('rt-arr-flag -> 1)), 
+	pool : empty >
+	[==> VOTE-DES : SOCKET-TYPE-1 | none] .
+    eq test(14) = < 14 : Core | cpu : < rt-main : Thread | st : wait >,
+	mem : (('rt-in -> null), ('rt-comm -> 9), ('rt-arr-flag -> 1)), 
+	pool : empty >
+	[==> VOTE-DES : SOCKET-TYPE-1 | some ftest ] . 
+
 endom)
 
 (omod VOTE is
@@ -459,7 +543,7 @@ endom)
     protecting VOTE .
     protecting LKJ .
     protecting CTRL-BOX .
-    pr QUEUE .
+---    pr QUEUE .
     pr THREADPOOL .
 
     op mem : -> Memory .
@@ -477,4 +561,4 @@ endom)
     
         
 endom)
-    
+  

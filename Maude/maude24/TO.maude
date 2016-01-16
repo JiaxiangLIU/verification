@@ -314,26 +314,31 @@ endom)
 	[==> 1 : SOCKET-TYPE-2 | none ]  .
     eq test2 = < 2 : Core | cpu : < socket-rcv(SOCKET-TYPE-2) : Thread | st : read >,
 	mem : ('master-commu-addr -> SOURCE-COM), pool : empty >
-	[==> 2 : SOCKET-TYPE-2 | some command( SOURCE-VOTE | EVENT-BROADCAST-COM-ADDR | SOURCE-COM ) ]  .    
+	[==> 2 : SOCKET-TYPE-2
+	  | some command( SOURCE-VOTE | EVENT-BROADCAST-COM-ADDR | SOURCE-COM ) ]  .    
     eq test3 = < 3 : Core | cpu : < socket-rcv(SOCKET-TYPE-2) : Thread | st : read >,
 	mem : mem1, pool : empty >
 	[==> 3 : SOCKET-TYPE-2 | some data(data1) ]  .
     eq test4 = < 4 : Core | cpu : < socket-rcv(SOCKET-TYPE-2) : Thread | st : read >,
 	mem : (('master-commu-addr -> SOURCE-COM), ('sys-status -> SOURCE-COM)), 
 	pool : empty >
-	[==> 4 : SOCKET-TYPE-2 | some command( SOURCE-VOTE | EVENT-MASTER-VOTE-EXCHANGE | SYS-LAUNCHED ) ]  .
+	[==> 4 : SOCKET-TYPE-2
+	  | some command( SOURCE-VOTE | EVENT-MASTER-VOTE-EXCHANGE | SYS-LAUNCHED ) ]  .
     eq test5 = < 5 : Core | cpu : < socket-rcv(SOCKET-TYPE-2) : Thread | st : read >,
 	mem : (('trip-status -> SOURCE-COM), ('sys-status -> SOURCE-COM)), 
 	pool : empty >
-	[==> 5 : SOCKET-TYPE-2 | some command( SOURCE-VOTE | EVENT-SYS-TRIP-STATUS-SEND | TRIP-START ) ]  .
+	[==> 5 : SOCKET-TYPE-2
+	  | some command( SOURCE-VOTE | EVENT-SYS-TRIP-STATUS-SEND | TRIP-START ) ]  .
     eq test6 = < 6 : Core | cpu : < socket-rcv(SOCKET-TYPE-2) : Thread | st : read >,
 	mem : (('trip-status -> SOURCE-COM), ('sys-status -> SOURCE-COM)), 
 	pool : empty >
-	[==> 6 : SOCKET-TYPE-2 | some command( SOURCE-COM | EVENT-SYS-TRIP-STATUS-SEND | TRIP-START ) ]  .
+	[==> 6 : SOCKET-TYPE-2
+	  | some command( SOURCE-COM | EVENT-SYS-TRIP-STATUS-SEND | TRIP-START ) ]  .
     eq test7 = < 7 : Core | cpu : < socket-rcv(SOCKET-TYPE-2) : Thread | st : read >,
 	mem : (('trip-status -> SOURCE-COM), ('sys-status -> SOURCE-COM)), 
 	pool : empty >
-	[==> 7 : SOCKET-TYPE-2 | some data( SOURCE-COM | EVENT-FRONT-SPEED-LIMIT | TRIP-START | 0 | 1 ) ]  .
+	[==> 7 : SOCKET-TYPE-2
+	  | some data( SOURCE-COM | EVENT-FRONT-SPEED-LIMIT | TRIP-START | 0 | 1 ) ]  .
     eq test8 = < 8 : Core | cpu : < socket-rcv(SOCKET-TYPE-2) : Thread | st : read >,
 	mem : (('rt-arr-flag -> 0), ('rt-comm -> null)), 
 	pool : empty >
@@ -348,7 +353,7 @@ endom)
     eq < O : Core | cpu : ideal, pool : (T ; P) > = < O : Core | cpu : T, pool : P > .
 
     --- wait to read msgs, if existing, then read
-    crl [socket-rcv-n-read-some] :
+    crl [core-socket-rcv-n-read-some] :
 	< O : Core | cpu : T, pool : P >
       	[==> O : S | some F ]
       => < O : Core | cpu : ideal, pool : enqueue(T', P) >
@@ -357,7 +362,7 @@ endom)
 	  /\ T' := < socket-rcv(S) : Thread | st : frame-parse(F) > .
 
     --- wait to read msgs, if not exisiting, then switch
-    crl [socket-rcv-n-read-none] :
+    crl [core-socket-rcv-n-read-none] :
 	< O : Core | cpu : T, pool : P > [==> O : S | none ]
       => < O : Core | cpu : ideal, pool : enqueue(T, P) > [==> O : S | none ]
       if < socket-rcv(S) : Thread | st : read > := T .
@@ -369,7 +374,7 @@ endom)
     op handle : Command -> Status .
 
     --- create a new thread in pool to handle commands, then return to while loop reading
-    crl [threadpool-add-command] :
+    crl [core-threadpool-add-command] :
 	< O : Core | cpu : T, pool : P >
       => < O : Core | cpu : ideal, pool : enqueue(T', enqueue(NEW, P)) >
       if < socket-rcv(S) : Thread | st : threadpool-add(command-frame-rcv-handle, C) > := T
@@ -392,7 +397,7 @@ endom)
     eq limit-data-rcv-handle(V) = done .
 
     --- behavior of realtime_data_rcv_handle( ) in data_frame_rcv_handle
-    crl [realtime-data-rcv-handle] :
+    crl [core-realtime-data-rcv-handle] :
 	< O : Core | cpu : T, mem : M, pool : P >
       => < O : Core | cpu : ideal, mem : M['rt-comm := V]['rt-arr-flag := 1],
 		      pool : enqueue(T', P) >
@@ -420,7 +425,7 @@ endom)
     *** DONE for CORE 
 
     --- behavior of set_commu_addr( ) in command_frame_rcv_handle
-    crl [set-commu-addr] :
+    crl [core-set-commu-addr] :
 	< O : Core | cpu : T, mem : M, pool : P >
       => if O' == COM-DES 
 	 then < O : Core | cpu : ideal, mem : M['master-commu-addr := O'], pool : enqueue(T', P) >
@@ -429,21 +434,21 @@ endom)
 	  /\ T' := < command-frame-rcv-handle : Thread | st : done > . 
 
     --- behavior of set_sys_status( ) in command_frame_rcv_handle
-    crl [set-sys-status] :
+    crl [core-set-sys-status] :
 	< O : Core | cpu : T, mem : M, pool : P >
       => < O : Core | cpu : ideal, mem : M['sys-status := SYSST], pool : enqueue(T', P) >
       if < command-frame-rcv-handle : Thread | st : set-sys-status(SYSST) > := T
 	  /\ T' := < command-frame-rcv-handle : Thread | st : done > . 
 
     --- behavior of set_trip_status( ) in command_frame_rcv_handle
-    crl [set-trip-status] :
+    crl [core-set-trip-status] :
 	< O : Core | cpu : T, mem : M, pool : P >
       => < O : Core | cpu : ideal, mem : M['trip-status := TRIPST], pool : enqueue(T', P) >
       if < command-frame-rcv-handle : Thread | st : set-trip-status(TRIPST) > := T
 	  /\ T' := < command-frame-rcv-handle : Thread | st : done > . 
 
     --- thread command_frame_rcv_handle done
-    crl [command-frame-rcv-handle-done] :
+    crl [core-command-frame-rcv-handle-done] :
 	< O : Core | cpu : T > => < O : Core | cpu : ideal >
       if < command-frame-rcv-handle : Thread | st : done > := T .
 
@@ -457,21 +462,21 @@ endom)
     op rt-process : Value -> Value .
       
     --- rt-main always waits for the realtime data
-    crl [rt-main-wait-some] :
+    crl [core-rt-main-wait-some] :
 	< O : Core | cpu : T, mem : M, pool : P >
       => < O : Core | cpu : ideal, mem : M['rt-arr-flag := 0]['rt-in := M['rt-comm]],
 		      pool : enqueue(T', P) >
       if < rt-main : Thread | st : wait > := T
 	  /\ M['rt-arr-flag] == 1
 	  /\ T' := < rt-main : Thread | st : rt-processing > .
-    crl [rt-main-wait-none] :
+    crl [core-rt-main-wait-none] :
 	< O : Core | cpu : T, mem : M, pool : P >
       => < O : Core | cpu : ideal, pool : enqueue(T, P) >
       if < rt-main : Thread | st : wait > := T
 	  /\ M['rt-arr-flag] == 0 .
 
     --- behavior of rt-process in rt-main
-    crl [rt-main-processing] :
+    crl [core-rt-main-processing] :
 	< O : Core | cpu : T, mem : M, pool : P >
       => < O : Core | cpu : ideal, mem : M['rt-core := rt-process(M['rt-in])],
 		      pool : enqueue(T', P) >
@@ -479,14 +484,14 @@ endom)
 	  /\ T' := < rt-main : Thread | st : rt-send > .
 
     --- behavior of frame_encap (sending the processed result) in rt-main
-    crl [rt-main-send-succ] :
+    crl [core-rt-main-send-succ] :
 	< O : Core | cpu : T, mem : M, pool : P > [==> VOTE-DES : SOCKET-TYPE-1 | none]
       => < O : Core | cpu : ideal, pool : enqueue(T', P) >
          [==> VOTE-DES : SOCKET-TYPE-1
 	      | some data( SOURCE-CORE | EVENT-REAL-TIME-CTRL | M['rt-core] | 0 | 0 )]
       if < rt-main : Thread | st : rt-send > := T
 	  /\ T' := < rt-main : Thread | st : wait > .    
-    crl [rt-main-send-block] :
+    crl [core-rt-main-send-block] :
 	< O : Core | cpu : T, mem : M, pool : P > [==> VOTE-DES : SOCKET-TYPE-1 | some F]
       => < O : Core | cpu : ideal, pool : enqueue(T, P) >
          [==> VOTE-DES : SOCKET-TYPE-1 | some F]
@@ -518,11 +523,153 @@ endom)
 endom)
 
 (omod VOTE is
+    protecting TO-STATUS .
     protecting BOARD .
+    protecting SOCKET .
 
     class Vote .
     subclass Vote < Board .
 
+    --- threads
+    op socket-rcv : SocketType -> ThreadID [ctor] .
+    op command-frame-rcv-handle : -> ThreadID .
+    
+    op read : -> Status .
+    op frame-parse : Frame -> Status .
+    op threadpool-add : ThreadID Command -> Status .
+    op data-frame-rcv-handle : Data -> Status .
+    op done : -> Status .
+    op _;_ : Status Status -> Status [ctor assoc id: done] .
+
+    
+    vars O O' : Oid .
+    var S : SocketType .
+    var N : Nat .
+    var M : Memory .
+    vars T T' : Object .
+    var P : ThreadPool .
+    var F : Frame .
+    subsort Nat < Oid .
+    var OB : Object .
+    var C : Command .
+    var NEW : Object .
+    var CON : Configuration .
+    var D : Data .
+    var V : Value .
+    var SYSST : SystemStatus .
+    var TRIPST : TripStatus .
+    vars AMOUNT CNT : Nat .
+    vars ST ST' ST'' : Status .
+    
+    op msg1 : Oid Nat -> Msg .
+    op cpu1 : -> Object .
+    op mem1 : -> Memory .
+    op pool1 : -> ThreadPool .
+    op ftest : -> Frame .
+    op com1 : -> Command .
+    op data1 : -> Data .
+    ops a b c : -> Object .
+
+    --- scheduling strategy
+    --- assume this transition is instantaneous
+    eq < O : Vote | cpu : ideal, pool : (T ; P) > = < O : Vote | cpu : T, pool : P > .
+    
+    **********************************
+    *** behavior of socket-rcv
+    *********************************
+    
+    --- wait to read msgs, if existing, then read
+    crl [vote-socket-rcv-n-read-some] :
+	< O : Vote | cpu : T, pool : P >
+      	[==> O : S | some F ]
+      => < O : Vote | cpu : ideal, pool : enqueue(T', P) >
+	[==> O : S | none ]
+      if < socket-rcv(S) : Thread | st : read > := T
+	  /\ T' := < socket-rcv(S) : Thread | st : frame-parse(F) > .
+
+    --- wait to read msgs, if not exisiting, then switch
+    crl [vote-socket-rcv-n-read-none] :
+	< O : Vote | cpu : T, pool : P > [==> O : S | none ]
+      => < O : Vote | cpu : ideal, pool : enqueue(T, P) > [==> O : S | none ]
+      if < socket-rcv(S) : Thread | st : read > := T .
+
+    --- parse frames, including commands and data
+    eq frame-parse(command(C)) = threadpool-add(command-frame-rcv-handle, C) .
+    eq frame-parse(data(D)) = data-frame-rcv-handle(D) .
+
+    op handle : Command -> Status .
+
+    --- create a new thread in pool to handle commands, then return to while loop reading
+    crl [vote-threadpool-add-command] :
+	< O : Vote | cpu : T, pool : P >
+      => < O : Vote | cpu : ideal, pool : enqueue(T', enqueue(NEW, P)) >
+      if < socket-rcv(S) : Thread | st : threadpool-add(command-frame-rcv-handle, C) > := T
+	  /\ T' := < socket-rcv(S) : Thread | st : read >
+	  /\ NEW := < command-frame-rcv-handle : Thread | st : handle(C) > .
+
+    **********************************
+    *** behavior of data-frame-rcv-handle
+    **********************************
+
+    --- the end of function data-frame-rcv-handle: "done"
+    --- definition of "done" status of the thread socekt_rcv():
+    --- back to loop reading
+    eq < socket-rcv(S) : Thread | st : done >
+      = < socket-rcv(S) : Thread | st : read > .
+
+    op set-branch-status : Nat -> Status .
+    op set-branch-info : Value -> Status .
+    op set-side-status : Nat -> Status .
+    op set-side-info : Value -> Status .
+    op ctrbox-data : EventType -> Status .
+
+    --- data_frame_rcv_handle
+    eq data-frame-rcv-handle( SOURCE-COM | EVENT-FRONT-BRANCH-TRANSFER | V | AMOUNT | CNT )
+      = set-branch-status(1) ; set-branch-info(V) ; done .
+
+    ceq < O : Vote | cpu : < socket-rcv(S) : Thread | st : ST >, mem : M >
+      = if M['side-status] =/= 0
+	then < O : Vote | cpu : < socket-rcv(S) : Thread | st : done > >
+	else < O : Vote | cpu : < socket-rcv(S) : Thread | st : ST' > >
+        fi
+      if data-frame-rcv-handle( SOURCE-COM | EVENT-FRONT-SIDE-LINE-PASS | V | AMOUNT | CNT )
+	  := ST
+	  /\ ST' := set-side-status(1) ; set-side-info(V) ;
+      	            ctrbox-data(EVENT-FRONT-SIDE-LINE-PASS) ; done .
+
+    
+    eq data-frame-rcv-handle( S:EventSource | E:EventType | V | AMOUNT | CNT )
+      = done [owise] .
+    *** DONE for CORE
+
+
+    --- behavior of set_branch_status( ) in data_frame_rcv_handle
+    crl [vote-set-branch-status] :
+	< O : Vote | cpu : T, mem : M, pool : P >
+      => < O : Vote | cpu : ideal, mem : M['branch-status := 1],
+		      pool : enqueue(T', P) >
+      if < socket-rcv(S) : Thread | st : set-branch-status(1) ; ST > := T
+	  /\ T' := < socket-rcv(S) : Thread | st : ST > .
+
+    --- behavior of set_branch_info( ) in data_frame_rcv_handle
+    crl [vote-set-branch-info] :
+	< O : Vote | cpu : T, mem : M, pool : P >
+      => < O : Vote | cpu : ideal, mem : M['branch-info := V],
+		      pool : enqueue(T', P) >
+      if < socket-rcv(S) : Thread | st : set-branch-info(V) ; ST > := T
+	  /\ T' := < socket-rcv(S) : Thread | st : ST > .    
+
+      
+    *********************************
+    *** Testing
+    *********************************
+    
+    op test : Nat -> Configuration .
+    eq test(15) = < VOTE-DES : Vote | cpu : < socket-rcv(SOCKET-TYPE-1) : Thread | st : read >,
+	mem : empty, pool : empty >
+	[==> VOTE-DES : SOCKET-TYPE-1
+	  | some data( SOURCE-COM | EVENT-FRONT-BRANCH-TRANSFER | 33 | 0 | 0 ) ] .     
+    
 endom)
 
         

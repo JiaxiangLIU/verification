@@ -12,3 +12,8 @@ Something omitted when modeling:
     - data_frame_rcv_handle:
       - COM_SOURCE, case EVENT_MARSHALLING_RE_CHANGE, EVENT_TRIP_CHANGE,
         EVENT_MARSHALLING_CHANGE, EVENT_CLOCK_SYNC
+    - command_frame_rcv_handle:
+      - comm_check_feedback
+      - SOURCE_COM, case EVENT_COM_REGISTER, EVENT_COM_HEARTBEAT,
+        EVENT_LKJ_VERSION_DIFFERENCE, EVENT_TRIP_STATUS_NOTICE,
+	EVENT_DUTY_ASSISTING_CHANGE

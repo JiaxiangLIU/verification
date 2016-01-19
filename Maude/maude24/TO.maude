@@ -735,6 +735,8 @@ endfm)
       if < command-frame-rcv-handle : Thread | st : done > := T .
       
     --- command_frame_rcv_handle
+    *** events from SOURCE-COM are all omitted
+    eq handle( SOURCE-CORE |
     eq handle( SOURCE-VOTE | EVENT-BROADCAST-COM-ADDR | V )
       = if V == SOURCE-COM then set-commu-addr(COM-DES) 
         else done fi .

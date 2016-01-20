@@ -1,4 +1,3 @@
-
 (fmod TO-STATUS is
     --- system status
     sort SystemStatus .
@@ -532,7 +531,25 @@ endom)
     sort RtVote .
     subsort RtVote < Value .
     
-    op `(rt-core:_`,rt-control-status:_`) : Value ControlStatus -> RtVote .
+    op `(rt-core:_`,rt-control-status:_`) : Value ControlStatus -> RtVote [ctor] .
+endfm)
+
+(fmod THROTTLE-GEAR is
+    protecting TO-STATUS .
+    protecting VALUE .
+    protecting NAT .
+    sort ThrottleGear .
+    subsort ThrottleGear < Value .
+
+    op `(gear:_`,auto-or-manual:_`) : Nat Nat -> ThrottleGear [ctor] .
+
+    vars N M : Nat .
+    
+    op _.gear : ThrottleGear -> Nat .
+    eq (gear: N ,auto-or-manual: M ).gear = N .
+
+    op _.auto-or-manual : ThrottleGear -> Nat .
+    eq (gear: N ,auto-or-manual: M ).auto-or-manual = M .
 endfm)
     
 (omod VOTE is
@@ -540,6 +557,7 @@ endfm)
     protecting BOARD .
     protecting SOCKET .
     protecting RT-VOTE .
+    protecting THROTTLE-GEAR .
 
     class Vote .
     subclass Vote < Board .
@@ -733,10 +751,23 @@ endfm)
     crl [vote-command-frame-rcv-handle-done] :
 	< O : Vote | cpu : T > => < O : Vote | cpu : ideal >
       if < command-frame-rcv-handle : Thread | st : done > := T .
+
+    op set-auto-ack-status : Nat -> Status .
+    op set-manual-ack-status : Nat -> Status .
+    op handle-event-mannal-to-auto : -> Status .
       
     --- command_frame_rcv_handle
     *** events from SOURCE-COM are all omitted
-    eq handle( SOURCE-CORE |
+    *** events from SOURCE-CORE are all omitted
+    eq handle( SOURCE-CONTROL | EVENT-GEAR8-AUTO-CONFIRM-ACK | V )
+      = set-auto-ack-status(1) .
+    eq handle( SOURCE-CONTROL | EVENT-TWO-GEAR-TO-MANNUL | V )
+      = set-manual-ack-status(1) .
+    eq handle( SOURCE-CONTROL | EVENT-MANNAL-TO-AUTO | V )
+      = handle-event-mannal-to-auto .
+    
+
+    ***(
     eq handle( SOURCE-VOTE | EVENT-BROADCAST-COM-ADDR | V )
       = if V == SOURCE-COM then set-commu-addr(COM-DES) 
         else done fi .
@@ -745,7 +776,38 @@ endfm)
     eq handle( SOURCE-VOTE | EVENT-SYS-TRIP-STATUS-SEND | V ) 
       = set-trip-status(V) .
     eq handle( S:EventSource | E:EventType | V ) = done [owise] .
+      )
+
+    --- behavior of set_auto_ack_status( ) in command_frame_rcv_handle
+    crl [vote-set-auto-ack-status] :
+	< O : Vote | cpu : T, mem : M, pool : P >
+      => < O : Vote | cpu : ideal, mem : M['auto-ack-status := 1],
+		      pool : enqueue(T', P) >
+      if < command-frame-rcv-handle : Thread | st : set-auto-ack-status(1) ; ST > := T
+	  /\ T' := < command-frame-rcv-handle : Thread | st : ST > .
+
+    --- behavior of set_manual_ack_status( ) in command_frame_rcv_handle
+    crl [vote-set-manual-ack-status] :
+	< O : Vote | cpu : T, mem : M, pool : P >
+      => < O : Vote | cpu : ideal, mem : M['manual-ack-status := 1],
+		      pool : enqueue(T', P) >
+      if < command-frame-rcv-handle : Thread | st : set-manual-ack-status(1) ; ST > := T
+	  /\ T' := < command-frame-rcv-handle : Thread | st : ST > .      
+
+    op set-to-auto-gear : Nat -> Status .
+    op get-throttle : Memory -> Nat .
+    op set-to-auto-status : Nat -> Status .
       
+    --- behavior/definition of handle-event-mannal-to-auto in command_frame_rcv_handle
+    --- crl [vote-handle-event-mannal-to-auto] :
+    ceq < O : Vote | cpu : < command-frame-rcv-handle : Thread | st : ST >,
+		     mem : M >
+      = < O : Vote | cpu : < command-frame-rcv-handle : Thread | st : ST' > >
+      if handle-event-mannal-to-auto := ST
+	  /\ ST' := set-to-auto-gear(get-throttle(M)) ; set-to-auto-status(1) .
+
+---    eq 
+
       
       
       
@@ -778,7 +840,15 @@ endfm)
 	mem : ('side-status -> 0), pool : empty >
 	[==> VOTE-DES : SOCKET-TYPE-1
 	  | some data( SOURCE-CORE | EVENT-REAL-TIME-CTRL | 99 | 0 | 0 ) ]
-	[==> CON-DES : DAT-SOC | none ] .    
+	[==> CON-DES : DAT-SOC | none ] .
+    eq test(20) = < VOTE-DES : Vote | cpu : < socket-rcv(SOCKET-TYPE-1) : Thread | st : read >,
+	mem : ('side-status -> 0), pool : empty >
+	[==> VOTE-DES : SOCKET-TYPE-1
+	  | some command( SOURCE-CONTROL | EVENT-GEAR8-AUTO-CONFIRM-ACK | 1 ) ] .
+    eq test(21) = < VOTE-DES : Vote | cpu : < socket-rcv(SOCKET-TYPE-1) : Thread | st : read >,
+	mem : ('side-status -> 0), pool : empty >
+	[==> VOTE-DES : SOCKET-TYPE-1
+	  | some command( SOURCE-CONTROL | EVENT-TWO-GEAR-TO-MANNUL | 1 ) ] .    
 
     
 

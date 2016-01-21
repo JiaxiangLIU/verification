@@ -9,6 +9,11 @@
     ops TRIP-DATA-RECVING TRIP-DATA-COMPLETE TRIP-MARSHALLING-CONFIRM 
 	TRIP-INIT TRIP-START TRIP-PAUSE TRIP-COMPLETE TRIP-ANOMALY 
 	TRIP-MAX : -> TripStatus .
+
+    --- fsm states
+    sort FsmState .
+    ops FSM-MANUAL FSM-START-AUTO FSM-ACK-AUTO FSM-OVER-TIME FSM-AUTO
+	FSM-START-MANUAL FSM-ACK-MANUAL FSM-ERGE-AUTO : -> FsmState .
     
     --- the sources where the events come
     sort EventSource .
@@ -84,6 +89,7 @@ endfm)
     subsort Oid < Value .
     subsort SystemStatus < Value .
     subsort TripStatus < Value .
+    subsort FsmState < Value .
     op null : -> Value .
 endom)
     
@@ -525,13 +531,39 @@ endom)
 
 endom)
 
+(fmod RT-CORE is
+    protecting TO-STATUS .
+    protecting VALUE .
+    protecting NAT .
+    sort RtCore .
+    subsort RtCore < Value .
+
+    op `(rt-gear:_`) : Nat -> RtCore [ctor] .
+
+    var N : Nat .
+    
+    op _.rt-gear : RtCore -> Nat .
+    eq ((rt-gear: N )).rt-gear = N .
+endfm)
+
 (fmod RT-VOTE is
     protecting TO-STATUS .
     protecting VALUE .
+    protecting RT-CORE .
+    protecting NAT .
     sort RtVote .
     subsort RtVote < Value .
     
-    op `(rt-core:_`,rt-control-status:_`) : Value ControlStatus -> RtVote [ctor] .
+    op `(rt-core:_`,rt-control-status:_`) : RtCore ControlStatus -> RtVote [ctor] .
+
+    var RT : RtCore .
+    var CS : ControlStatus .
+    
+    op _.rt-core : RtVote -> RtCore .
+    eq ((rt-core: RT ,rt-control-status: CS )).rt-core = RT .
+
+    op _.rt-control-status : RtVote -> ControlStatus .
+    eq ((rt-core: RT ,rt-control-status: CS )).rt-control-status = CS .
 endfm)
 
 (fmod THROTTLE-GEAR is
@@ -557,7 +589,9 @@ endfm)
     protecting BOARD .
     protecting SOCKET .
     protecting RT-VOTE .
+    protecting RT-CORE .
     protecting THROTTLE-GEAR .
+    protecting VALUE .
 
     class Vote .
     subclass Vote < Board .
@@ -827,8 +861,6 @@ endfm)
 	  /\ T' := < command-frame-rcv-handle : Thread | st : ST > .                  
 
       
-      
-      
     *********************************
     *** Testing
     *********************************
@@ -876,8 +908,238 @@ endfm)
 	mem : (('side-status -> 0), ('throttle-gear1 -> (gear: 8 ,auto-or-manual: 0 ))),
 	pool : empty >
 	[==> VOTE-DES : SOCKET-TYPE-1
-	  | some command( SOURCE-CONTROL | EVENT-AUTO-TO-MANNAL | 1 ) ] .            
+	  | some command( SOURCE-CONTROL | EVENT-AUTO-TO-MANNAL | 1 ) ] .
+      
+
+    *********************************
+    *** Behavior of thread fsm_run
+    *********************************
     
+    op fsm-run : -> ThreadID [ctor] .
+    op while-fsm-start : -> Status .
+
+    op set-fsm-rt : -> Status .
+    op compute-auto-status : -> Status .
+    op compute-branch-status : -> Status .
+    op compute-side-status : -> Status .
+    op compute-to-manual-status : -> Status .
+    op fsm-control : -> Status .
+
+    --- the end of thread fsm_run: "done"
+    --- definition of "done" status of the thread fsm_run:
+    --- back to while loop 
+    eq < fsm-run : Thread | st : done >
+      = < fsm-run : Thread | st : while-fsm-start > .
+
+    --- behavior/definition of while-fsm-start in fsm_run
+    ceq < O : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
+		     mem : M >
+      = < O : Vote | cpu : < fsm-run : Thread | st : ST' > >
+      if ST' := set-fsm-rt ; compute-auto-status ; compute-branch-status ;
+	  compute-side-status ; compute-to-manual-status ; fsm-control ; done .
+
+    --- behavior of set-fsm-rt in fsm_run
+    crl [vote-set-fsm-rt] :
+	< O : Vote | cpu : T, mem : M, pool : P >
+      => < O : Vote | cpu : ideal, mem : M['fsm-rt := M['rt-vote]],
+		      pool : enqueue(T', P) >
+      if < fsm-run : Thread | st : set-fsm-rt ; ST > := T
+	  /\ T' := < fsm-run : Thread | st : ST > .                        
+
+
+    --- definition of function can_manual_to_auto
+    --- simply assume it is primitive
+    op can-manual-to-auto : Memory -> Bool .
+    op pred-rt-core : -> Bool . --- a predicate on rt_core, assumed to be true.
+    ceq can-manual-to-auto(M) = false
+      if M['branch-status] == 1 /\ (M['branch-pos]) >= 2 .
+    ceq can-manual-to-auto(M) = false
+      if M['side-status] == 1 /\ ((M['side-pos]) == 2 or (M['side-pos]) == 3) .
+    eq can-manual-to-auto(M)
+      = if pred-rt-core then true else false fi [owise] .
+
+    eq pred-rt-core = true .
+
+    --- behavior of compute-auto-status in fsm_run
+    crl [vote-compute-auto-status] :
+	< O : Vote | cpu : T, mem : M, pool : P >
+      => if can-manual-to-auto(M)
+	then < O : Vote | cpu : ideal, mem : M['auto-status := 1],
+			  pool : enqueue(T', P) > 
+	else < O : Vote | cpu : ideal, mem : M['auto-status := 0],
+			  pool : enqueue(T', P) >
+	fi
+      if < fsm-run : Thread | st : compute-auto-status ; ST > := T
+	  /\ T' := < fsm-run : Thread | st : ST > .                        
+
+    --- behavior of compute-branch-status in fsm_run
+    crl [vote-compute-branch-status] :
+	< O : Vote | cpu : T, mem : M, pool : P >
+      => if M['branch-status] == 1 and M['branch-pos] == 3
+	then < O : Vote | cpu : ideal, mem : M['branch-status := 0],
+			  pool : enqueue(T', P) > 
+	else < O : Vote | cpu : ideal, mem : M,
+			  pool : enqueue(T', P) >
+	fi
+      if < fsm-run : Thread | st : compute-branch-status ; ST > := T
+	  /\ T' := < fsm-run : Thread | st : ST > .                        
+
+    --- behavior of compute-side-status in fsm_run
+    crl [vote-compute-side-status] :
+	< O : Vote | cpu : T, mem : M, pool : P >
+      => if M['side-status] == 1 and M['side-pos] == 4
+	then < O : Vote | cpu : ideal, mem : M['side-status := 0],
+			  pool : enqueue(T', P) > 
+	else < O : Vote | cpu : ideal, mem : M,
+			  pool : enqueue(T', P) >
+	fi
+      if < fsm-run : Thread | st : compute-side-status ; ST > := T
+	  /\ T' := < fsm-run : Thread | st : ST > .
+
+    --- behavior of compute-to-manual-status in fsm_run
+    crl [vote-compute-to-manual-status] :
+	< O : Vote | cpu : T, mem : M, pool : P >
+      => if M['auto-status] == 1
+	then < O : Vote | cpu : ideal, mem : M,
+			  pool : enqueue(T', P) > 
+	else < O : Vote | cpu : ideal, mem : M['to-manual-status := 1],
+			  pool : enqueue(T', P) >
+	fi
+      if < fsm-run : Thread | st : compute-to-manual-status ; ST > := T
+	  /\ T' := < fsm-run : Thread | st : ST > .
+
+    op case-fsm-manual : -> Status .
+    op case-fsm-start-auto : -> Status .
+      
+    --- behavior/definition of fsm-control in fsm_run
+    ceq < O : Vote | cpu : < fsm-run : Thread | st : fsm-control ; ST >,
+		     mem : M >
+      = < O : Vote | cpu : < fsm-run : Thread | st : ST' ; ST > >
+      if M['fsm-state] == FSM-MANUAL /\ ST' := case-fsm-manual .
+    ceq < O : Vote | cpu : < fsm-run : Thread | st : fsm-control ; ST >,
+		     mem : M >
+      = < O : Vote | cpu : < fsm-run : Thread | st : ST' ; ST > >
+      if M['fsm-state] == FSM-START-AUTO /\ ST' := case-fsm-start-auto .    
+
+    
+
+    op _.fsm-set-gear`(_`) : Memory Nat -> Memory .
+    eq (M).fsm-set-gear(N) = M['fsm-rt := 
+	  (rt-core: (rt-gear: N ) ,rt-control-status: (M['fsm-rt]).rt-control-status ) ] .
+
+    var CS : ControlStatus .
+    
+    op _.fsm-set-control`(_`) : Memory ControlStatus -> Memory .
+    eq (M).fsm-set-control(CS) = M['fsm-rt := 
+	  (rt-core: (M['fsm-rt]).rt-core ,rt-control-status: CS ) ] .
+    
+    --- behavior of case-fsm-manual in fsm_run
+    crl [vote-case-fsm-manual] :
+	< O : Vote | cpu : T, mem : M, pool : P >
+      => if M['to-auto-status] == 1
+	then < O : Vote | cpu : ideal,
+                          mem : ((M['fsm-state := FSM-START-AUTO]).fsm-set-gear((M['throttle-gear1]).gear)).fsm-set-control(CONTROL-MANNUL),
+			  pool : enqueue(T', P) > 
+	else < O : Vote | cpu : ideal,
+			  mem : ((M).fsm-set-gear((M['throttle-gear1]).gear)).fsm-set-control(CONTROL-MANNUL),
+			  pool : enqueue(T', P) >
+	fi
+      if < fsm-run : Thread | st : case-fsm-manual ; ST > := T
+	  /\ T' := < fsm-run : Thread | st : ST > .
+
+    op _.status-init : Memory -> Memory .
+    eq (M).status-init
+      = M['to-auto-status := 0]['to-manual-status := 0]['auto-ack-status := 0]['manual-ack-status := 0] .
+      
+    --- behavior of case-fsm-start-auto in fsm_run
+    crl [vote-case-fsm-start-auto-timeout] :
+	< O : Vote | cpu : T, mem : M, pool : P >
+      => < O : Vote | cpu : ideal, mem : M['fsm-state := FSM-OVER-TIME], 
+		      pool : enqueue(T', P) >
+      if < fsm-run : Thread | st : case-fsm-start-auto ; ST > := T
+	  /\ T' := < fsm-run : Thread | st : ST > .
+    crl [vote-case-fsm-start-auto] :
+	< O : Vote | cpu : T, mem : M, pool : P >
+      => if M['to-auto-gear] == 8
+	then < O : Vote | cpu : ideal,
+                          mem : M['fsm-state := FSM-ACK-AUTO],
+			  pool : enqueue(T', P) > 
+	else (if (M['throttle-gear1]).gear == 8
+      	      then < O : Vote | cpu : ideal,
+		   	        mem : (M['fsm-state := FSM-AUTO]).status-init,
+			        pool : enqueue(T', P) >
+	      else < O : Vote | cpu : ideal, mem : M, pool : enqueue(T', P) >
+	      fi)
+	fi
+      if < fsm-run : Thread | st : case-fsm-start-auto ; ST > := T
+	  /\ T' := < fsm-run : Thread | st : ST > .
+      
+      *** HERE
+    
+    *********************************
+    *** Testing
+    *********************************
+    
+    eq test(24) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
+	mem : (('side-status -> 0), ('throttle-gear1 -> (gear: 8 ,auto-or-manual: 0 )),
+	       ('rt-vote -> (rt-core: 123 ,rt-control-status: CONTROL-AUTO ))),
+	pool : empty >
+	[==> VOTE-DES : SOCKET-TYPE-1
+	  | some command( SOURCE-CONTROL | EVENT-AUTO-TO-MANNAL | 1 ) ] .
+    eq test(25) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
+	mem : (('side-status -> 0), ('throttle-gear1 -> (gear: 8 ,auto-or-manual: 0 )),
+	  ('rt-vote -> (rt-core: 123 ,rt-control-status: CONTROL-AUTO )),
+	('side-pos -> 3)),
+	pool : empty >
+	[==> VOTE-DES : SOCKET-TYPE-1
+	  | some command( SOURCE-CONTROL | EVENT-AUTO-TO-MANNAL | 1 ) ] .
+    eq test(26) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
+	mem : (('side-status -> 1), ('throttle-gear1 -> (gear: 8 ,auto-or-manual: 0 )),
+	  ('rt-vote -> (rt-core: 123 ,rt-control-status: CONTROL-AUTO )),
+	('side-pos -> 2)),
+	pool : empty >
+	[==> VOTE-DES : SOCKET-TYPE-1
+	  | some command( SOURCE-CONTROL | EVENT-AUTO-TO-MANNAL | 1 ) ] .
+    eq test(27) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
+	mem : (('side-status -> 1),
+	  ('rt-vote -> (rt-core: 123 ,rt-control-status: CONTROL-AUTO )),
+	    ('side-pos -> 2), ('branch-status -> 1), ('branch-pos -> 2)),
+	pool : empty >
+	[==> VOTE-DES : SOCKET-TYPE-1
+	  | some command( SOURCE-CONTROL | EVENT-AUTO-TO-MANNAL | 1 ) ] .
+    eq test(28) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
+	mem : (('side-status -> 1),
+	  ('rt-vote -> (rt-core: 123 ,rt-control-status: CONTROL-AUTO )),
+	    ('side-pos -> 2), ('branch-status -> 1), ('branch-pos -> 3)),
+	pool : empty >
+	[==> VOTE-DES : SOCKET-TYPE-1
+	  | some command( SOURCE-CONTROL | EVENT-AUTO-TO-MANNAL | 1 ) ] .
+    eq test(29) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
+	mem : (('side-status -> 1),
+	  ('rt-vote -> (rt-core: 123 ,rt-control-status: CONTROL-AUTO )),
+	    ('side-pos -> 4), ('branch-status -> 1), ('branch-pos -> 3)),
+	pool : empty >
+	[==> VOTE-DES : SOCKET-TYPE-1
+	  | some command( SOURCE-CONTROL | EVENT-AUTO-TO-MANNAL | 1 ) ] .     
+    eq test(30) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
+	mem : (('side-status -> 1),
+	  ('rt-vote -> (rt-core: (rt-gear: 8) ,rt-control-status: CONTROL-AUTO )),
+	  ('side-pos -> 4), ('branch-status -> 1), ('branch-pos -> 3),
+	  ('fsm-state -> FSM-MANUAL),
+	  ('throttle-gear1 -> (gear: 6 ,auto-or-manual: 0 ))),
+	pool : empty >
+	[==> VOTE-DES : SOCKET-TYPE-1
+	  | some command( SOURCE-CONTROL | EVENT-AUTO-TO-MANNAL | 1 ) ] .
+    eq test(31) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
+	mem : (('side-status -> 1),
+	  ('rt-vote -> (rt-core: (rt-gear: 8) ,rt-control-status: CONTROL-AUTO )),
+	  ('side-pos -> 4), ('branch-status -> 1), ('branch-pos -> 3),
+	  ('fsm-state -> FSM-MANUAL), ('to-auto-status -> 1),
+	  ('throttle-gear1 -> (gear: 6 ,auto-or-manual: 0 ))),
+	pool : empty >
+	[==> VOTE-DES : SOCKET-TYPE-1
+	  | some command( SOURCE-CONTROL | EVENT-AUTO-TO-MANNAL | 1 ) ] .         
+
 
     
 endom)

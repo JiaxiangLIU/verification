@@ -755,6 +755,7 @@ endfm)
     op set-auto-ack-status : Nat -> Status .
     op set-manual-ack-status : Nat -> Status .
     op handle-event-mannal-to-auto : -> Status .
+    op set-to-manual-status : Nat -> Status .
       
     --- command_frame_rcv_handle
     *** events from SOURCE-COM are all omitted
@@ -765,18 +766,11 @@ endfm)
       = set-manual-ack-status(1) .
     eq handle( SOURCE-CONTROL | EVENT-MANNAL-TO-AUTO | V )
       = handle-event-mannal-to-auto .
-    
-
-    ***(
-    eq handle( SOURCE-VOTE | EVENT-BROADCAST-COM-ADDR | V )
-      = if V == SOURCE-COM then set-commu-addr(COM-DES) 
-        else done fi .
-    eq handle( SOURCE-VOTE | EVENT-MASTER-VOTE-EXCHANGE | V )
-      = set-sys-status(V) .
-    eq handle( SOURCE-VOTE | EVENT-SYS-TRIP-STATUS-SEND | V ) 
-      = set-trip-status(V) .
+    eq handle( SOURCE-CONTROL | EVENT-AUTO-TO-MANNAL | V )
+      = set-to-manual-status(1) .
     eq handle( S:EventSource | E:EventType | V ) = done [owise] .
-      )
+    *** DONE for VOTE
+    
 
     --- behavior of set_auto_ack_status( ) in command_frame_rcv_handle
     crl [vote-set-auto-ack-status] :
@@ -806,7 +800,31 @@ endfm)
       if handle-event-mannal-to-auto := ST
 	  /\ ST' := set-to-auto-gear(get-throttle(M)) ; set-to-auto-status(1) .
 
----    eq 
+    eq get-throttle(M) = (M['throttle-gear1]).gear .
+
+    --- behavior of set_to_auto_gear( ) in command_frame_rcv_handle
+    crl [vote-set-to-auto-gear] :
+	< O : Vote | cpu : T, mem : M, pool : P >
+      => < O : Vote | cpu : ideal, mem : M['to-auto-gear := N],
+		      pool : enqueue(T', P) >
+      if < command-frame-rcv-handle : Thread | st : set-to-auto-gear(N) ; ST > := T
+	  /\ T' := < command-frame-rcv-handle : Thread | st : ST > .
+
+    --- behavior of set_to_auto_status( ) in command_frame_rcv_handle
+    crl [vote-set-to-auto-status] :
+	< O : Vote | cpu : T, mem : M, pool : P >
+      => < O : Vote | cpu : ideal, mem : M['to-auto-status := 1],
+		      pool : enqueue(T', P) >
+      if < command-frame-rcv-handle : Thread | st : set-to-auto-status(1) ; ST > := T
+	  /\ T' := < command-frame-rcv-handle : Thread | st : ST > .
+
+    --- behavior of set_to_manual_status( ) in command_frame_rcv_handle
+    crl [vote-set-to-manual-status] :
+	< O : Vote | cpu : T, mem : M, pool : P >
+      => < O : Vote | cpu : ideal, mem : M['to-manual-status := 1],
+		      pool : enqueue(T', P) >
+      if < command-frame-rcv-handle : Thread | st : set-to-manual-status(1) ; ST > := T
+	  /\ T' := < command-frame-rcv-handle : Thread | st : ST > .                  
 
       
       
@@ -848,8 +866,17 @@ endfm)
     eq test(21) = < VOTE-DES : Vote | cpu : < socket-rcv(SOCKET-TYPE-1) : Thread | st : read >,
 	mem : ('side-status -> 0), pool : empty >
 	[==> VOTE-DES : SOCKET-TYPE-1
-	  | some command( SOURCE-CONTROL | EVENT-TWO-GEAR-TO-MANNUL | 1 ) ] .    
-
+	  | some command( SOURCE-CONTROL | EVENT-TWO-GEAR-TO-MANNUL | 1 ) ] .
+    eq test(22) = < VOTE-DES : Vote | cpu : < socket-rcv(SOCKET-TYPE-1) : Thread | st : read >,
+	mem : (('side-status -> 0), ('throttle-gear1 -> (gear: 8 ,auto-or-manual: 0 ))),
+	pool : empty >
+	[==> VOTE-DES : SOCKET-TYPE-1
+	  | some command( SOURCE-CONTROL | EVENT-MANNAL-TO-AUTO | 1 ) ] .
+    eq test(23) = < VOTE-DES : Vote | cpu : < socket-rcv(SOCKET-TYPE-1) : Thread | st : read >,
+	mem : (('side-status -> 0), ('throttle-gear1 -> (gear: 8 ,auto-or-manual: 0 ))),
+	pool : empty >
+	[==> VOTE-DES : SOCKET-TYPE-1
+	  | some command( SOURCE-CONTROL | EVENT-AUTO-TO-MANNAL | 1 ) ] .            
     
 
     

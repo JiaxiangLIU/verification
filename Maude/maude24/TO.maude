@@ -146,6 +146,8 @@ endom)
     op DAT-SOC : -> SocketType . --- 0x04
     op DAT-VOTE-SOC : -> SocketType . --- 0x08
 
+    op SOCKET-TYPE-CANINOUT : -> SocketType [ctor] . --- for cssl in CAN-INOUT
+
     eq COM-SOC = SOCKET-TYPE-2 .
     eq DAT-SOC = SOCKET-TYPE-5 .
     eq DAT-VOTE-SOC = SOCKET-TYPE-4 .
@@ -247,6 +249,61 @@ endom)
     eq dequeue(empty) = empty .
     eq dequeue(O ; P) = P .
 endom)
+
+(fmod RT-CORE is
+    protecting TO-STATUS .
+    protecting VALUE .
+    protecting NAT .
+    sort RtCore .
+    subsort RtCore < Value .
+
+    op `(rt-gear:_`) : Nat -> RtCore [ctor] .
+
+    var N : Nat .
+    
+    op _.rt-gear : RtCore -> Nat .
+    eq ((rt-gear: N )).rt-gear = N .
+endfm)
+
+(fmod RT-VOTE is
+    protecting TO-STATUS .
+    protecting VALUE .
+    protecting RT-CORE .
+    protecting NAT .
+    sort RtVote .
+    subsort RtVote < Value .
+    
+    op `(rt-core:_`,rt-control-status:_`) : RtCore ControlStatus -> RtVote [ctor] .
+
+    var RT : RtCore .
+    var CS : ControlStatus .
+    
+    op _.rt-core : RtVote -> RtCore .
+    eq ((rt-core: RT ,rt-control-status: CS )).rt-core = RT .
+
+    op _.rt-control-status : RtVote -> ControlStatus .
+    eq ((rt-core: RT ,rt-control-status: CS )).rt-control-status = CS .
+endfm)
+
+(fmod THROTTLE-GEAR is
+    protecting TO-STATUS .
+    protecting VALUE .
+    protecting NAT .
+    protecting FRAME .
+    sort ThrottleGear .
+    subsort ThrottleGear < Value .
+    subsort ThrottleGear < Frame .
+
+    op `(gear:_`,auto-or-manual:_`) : Nat Nat -> ThrottleGear [ctor] .
+
+    vars N M : Nat .
+    
+    op _.gear : ThrottleGear -> Nat .
+    eq (gear: N ,auto-or-manual: M ).gear = N .
+
+    op _.auto-or-manual : ThrottleGear -> Nat .
+    eq (gear: N ,auto-or-manual: M ).auto-or-manual = M .
+endfm)
     
 (omod BOARD is
 ---    protecting BUFFER .
@@ -262,11 +319,99 @@ endom)
 endom)
 
 (omod COMM is
+    protecting TO-STATUS .
     protecting BOARD .
+    protecting SOCKET .    
 
     class Comm .
     subclass Comm < Board .
 
+***(    
+    vars O O' : Oid .
+    var S : SocketType .
+    var N : Nat .
+    var M : Memory .
+    vars T T' : Object .
+    var P : ThreadPool .
+    var F : Frame .
+    subsort Nat < Oid .
+    var OB : Object .
+    var C : Command .
+    var NEW : Object .
+    var CON : Configuration .
+    var D : Data .
+    var V : Value .
+    var SYSST : SystemStatus .
+    var TRIPST : TripStatus .
+    vars AMOUNT CNT : Nat .
+    
+    op msg1 : Oid Nat -> Msg .
+    op cpu1 : -> Object .
+    op mem1 : -> Memory .
+    op pool1 : -> ThreadPool .
+    op ftest : -> Frame .
+    op com1 : -> Command .
+    op data1 : -> Data .
+    ops a b c : -> Object .
+
+    --- threads
+    op socket-rcv : SocketType -> ThreadID [ctor] .
+
+    ops rt-main main : -> ThreadID [ctor] .
+    op command-frame-rcv-handle : -> ThreadID .
+    
+    op read : -> Status .
+    op frame-parse : Frame -> Status .
+    op threadpool-add : ThreadID Command -> Status .
+    op data-frame-rcv-handle : Data -> Status .
+    op done : -> Status .
+
+    --- rl [schedule] :
+    --- assume this transition is instantaneous
+    eq < O : Comm | cpu : ideal, pool : (T ; P) > = < O : Comm | cpu : T, pool : P > .
+
+    --- wait to read msgs, if existing, then read
+    crl [comm-socket-rcv-n-read-some] :
+	< O : Comm | cpu : T, pool : P >
+      	[==> O : S | some F ]
+      => < O : Comm | cpu : ideal, pool : enqueue(T', P) >
+	[==> O : S | none ]
+      if < socket-rcv(S) : Thread | st : read > := T
+	  /\ T' := < socket-rcv(S) : Thread | st : frame-parse(F) > .
+
+    --- wait to read msgs, if not exisiting, then switch
+    crl [comm-socket-rcv-n-read-none] :
+	< O : Comm | cpu : T, pool : P > [==> O : S | none ]
+      => < O : Comm | cpu : ideal, pool : enqueue(T, P) > [==> O : S | none ]
+      if < socket-rcv(S) : Thread | st : read > := T .
+
+    --- parse frames, including commands and data
+    eq frame-parse(command(C)) = threadpool-add(command-frame-rcv-handle, C) .
+    eq frame-parse(data(D)) = data-frame-rcv-handle(D) .
+
+    op handle : Command -> Status .
+
+    --- create a new thread in pool to handle commands, then return to while loop reading
+    crl [comm-threadpool-add-command] :
+	< O : Core | cpu : T, pool : P >
+      => < O : Core | cpu : ideal, pool : enqueue(T', enqueue(NEW, P)) >
+      if < socket-rcv(S) : Thread | st : threadpool-add(command-frame-rcv-handle, C) > := T
+	  /\ T' := < socket-rcv(S) : Thread | st : read >
+	  /\ NEW := < command-frame-rcv-handle : Thread | st : handle(C) > . 
+
+    op limit-data-rcv-handle : Value -> Status .
+    op realtime-data-rcv-handle : Value -> Status .
+
+    --- data_frame_rcv_handle
+    eq data-frame-rcv-handle( SOURCE-COM | EVENT-FRONT-SPEED-LIMIT | V | AMOUNT | CNT )
+      = limit-data-rcv-handle(V) .
+    eq data-frame-rcv-handle( SOURCE-COM | EVENT-REAL-TIME-INFO | V | AMOUNT | CNT )
+      = realtime-data-rcv-handle(V) .
+    eq data-frame-rcv-handle( S:EventSource | E:EventType | V | AMOUNT | CNT )
+      = done [owise] .
+    *** DONE for CORE
+    
+    )
 endom)
 
 (omod CORE is
@@ -531,60 +676,6 @@ endom)
 
 endom)
 
-(fmod RT-CORE is
-    protecting TO-STATUS .
-    protecting VALUE .
-    protecting NAT .
-    sort RtCore .
-    subsort RtCore < Value .
-
-    op `(rt-gear:_`) : Nat -> RtCore [ctor] .
-
-    var N : Nat .
-    
-    op _.rt-gear : RtCore -> Nat .
-    eq ((rt-gear: N )).rt-gear = N .
-endfm)
-
-(fmod RT-VOTE is
-    protecting TO-STATUS .
-    protecting VALUE .
-    protecting RT-CORE .
-    protecting NAT .
-    sort RtVote .
-    subsort RtVote < Value .
-    
-    op `(rt-core:_`,rt-control-status:_`) : RtCore ControlStatus -> RtVote [ctor] .
-
-    var RT : RtCore .
-    var CS : ControlStatus .
-    
-    op _.rt-core : RtVote -> RtCore .
-    eq ((rt-core: RT ,rt-control-status: CS )).rt-core = RT .
-
-    op _.rt-control-status : RtVote -> ControlStatus .
-    eq ((rt-core: RT ,rt-control-status: CS )).rt-control-status = CS .
-endfm)
-
-(fmod THROTTLE-GEAR is
-    protecting TO-STATUS .
-    protecting VALUE .
-    protecting NAT .
-    protecting FRAME .
-    sort ThrottleGear .
-    subsort ThrottleGear < Value .
-    subsort ThrottleGear < Frame .
-
-    op `(gear:_`,auto-or-manual:_`) : Nat Nat -> ThrottleGear [ctor] .
-
-    vars N M : Nat .
-    
-    op _.gear : ThrottleGear -> Nat .
-    eq (gear: N ,auto-or-manual: M ).gear = N .
-
-    op _.auto-or-manual : ThrottleGear -> Nat .
-    eq (gear: N ,auto-or-manual: M ).auto-or-manual = M .
-endfm)
     
 (omod VOTE is
     protecting TO-STATUS .
@@ -612,7 +703,7 @@ endfm)
     
     vars O O' : Oid .
     var S : SocketType .
-    var N : Nat .
+    vars N N' : Nat .
     var M : Memory .
     vars T T' : Object .
     var P : ThreadPool .
@@ -1237,21 +1328,21 @@ endfm)
 
     --- behavior of send-throttle in fsm_run
     crl [vote-send-throttle-0-succ] :
-	< O : Vote | cpu : T, mem : M, pool : P > [==> OUT-DES : SOCKET-TYPE-1 | none]
+	< O : Vote | cpu : T, mem : M, pool : P > [==> OUT-DES : SOCKET-TYPE-CANINOUT | none]
       => < O : Vote | cpu : ideal, pool : enqueue(T', P) >
-	[==> OUT-DES : SOCKET-TYPE-1 | some (gear: N ,auto-or-manual: 0) ]
+	[==> OUT-DES : SOCKET-TYPE-CANINOUT | some (gear: N ,auto-or-manual: 0) ]
       if < fsm-run : Thread | st : send-throttle(N , CONTROL-MANNUL) ; ST > := T
 	  /\ T' := < fsm-run : Thread | st : ST > .
     crl [vote-send-throttle-1-succ] :
-	< O : Vote | cpu : T, mem : M, pool : P > [==> OUT-DES : SOCKET-TYPE-1 | none]
+	< O : Vote | cpu : T, mem : M, pool : P > [==> OUT-DES : SOCKET-TYPE-CANINOUT | none]
       => < O : Vote | cpu : ideal, pool : enqueue(T', P) >
-	[==> OUT-DES : SOCKET-TYPE-1 | some (gear: N ,auto-or-manual: 1) ]
+	[==> OUT-DES : SOCKET-TYPE-CANINOUT | some (gear: N ,auto-or-manual: 1) ]
       if < fsm-run : Thread | st : send-throttle(N , CONTROL-AUTO) ; ST > := T
 	  /\ T' := < fsm-run : Thread | st : ST > .
     crl [vote-send-throttle-block] :
-	< O : Vote | cpu : T, mem : M, pool : P > [==> OUT-DES : SOCKET-TYPE-1 | some F]
+	< O : Vote | cpu : T, mem : M, pool : P > [==> OUT-DES : SOCKET-TYPE-CANINOUT | some F]
       => < O : Vote | cpu : ideal, pool : enqueue(T, P) >
-	[==> OUT-DES : SOCKET-TYPE-1 | some F]
+	[==> OUT-DES : SOCKET-TYPE-CANINOUT | some F]
       if < fsm-run : Thread | st : send-throttle(N , CS) ; ST > := T . 
 
     --- behavior of set-fsm-temp in fsm_run
@@ -1483,7 +1574,7 @@ endfm)
 	  ('throttle-gear1 -> (gear: 8 ,auto-or-manual: 0 )),
 	  ('to-auto-gear -> 8), ('manual-ack-status -> 1)),
 	pool : empty >
-	[==> OUT-DES : SOCKET-TYPE-1 | none ] .         
+	[==> OUT-DES : SOCKET-TYPE-CANINOUT | none ] .         
     eq test(49) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
 	mem : (('side-status -> 1),
 	  ('rt-vote -> (rt-core: (rt-gear: 5) ,rt-control-status: CONTROL-AUTO )),
@@ -1493,7 +1584,7 @@ endfm)
 	  ('throttle-gear1 -> (gear: 8 ,auto-or-manual: 0 )),
 	  ('to-auto-gear -> 8), ('manual-ack-status -> 1)),
 	pool : empty >
-	[==> OUT-DES : SOCKET-TYPE-1 | none ] .         
+	[==> OUT-DES : SOCKET-TYPE-CANINOUT | none ] .         
     eq test(50) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
 	mem : (('side-status -> 1),
 	  ('rt-vote -> (rt-core: (rt-gear: 5) ,rt-control-status: CONTROL-AUTO )),
@@ -1503,8 +1594,49 @@ endfm)
 	  ('throttle-gear1 -> (gear: 8 ,auto-or-manual: 0 )),
 	  ('to-auto-gear -> 8), ('manual-ack-status -> 1)),
 	pool : empty >
-	[==> OUT-DES : SOCKET-TYPE-1 | some (gear: 0 ,auto-or-manual: 0) ] .         
+	[==> OUT-DES : SOCKET-TYPE-CANINOUT | some (gear: 0 ,auto-or-manual: 0) ] .         
 
+
+    ************************************
+    *** behavior of thread receive_throttle
+    *** --- in fact the behavior here includes also the thread main
+    ************************************
+
+    op receive-throttle : -> ThreadID [ctor] .
+    op receive : -> Status .
+
+    var G : ThrottleGear .
+    
+    --- behavior of set-fsm-rt in fsm_run
+    crl [vote-receive-throttle-some] :
+	< O : Vote | cpu : T, mem : M, pool : P >
+	[==> O : SOCKET-TYPE-CANINOUT | some G ]
+      => < O : Vote | cpu : ideal, mem : M['throttle-gear1 := G],
+		      pool : enqueue(T', P) >
+	 [==> O : SOCKET-TYPE-CANINOUT | none ]
+      if < receive-throttle : Thread | st : receive > := T
+	  /\ T' := < receive-throttle : Thread | st : receive > .
+    crl [vote-receive-throttle-none] :
+	< O : Vote | cpu : T, pool : P >
+	[==> O : SOCKET-TYPE-CANINOUT | none ]
+      => < O : Vote | cpu : ideal, pool : enqueue(T', P) >
+	 [==> O : SOCKET-TYPE-CANINOUT | none ]
+      if < receive-throttle : Thread | st : receive > := T
+	  /\ T' := < receive-throttle : Thread | st : receive > .      
+
+    --- testing
+    eq test(51) = < VOTE-DES : Vote | cpu : < receive-throttle : Thread | st : receive >,
+	mem : (('side-status -> 1),
+	  ('throttle-gear1 -> (gear: 8 ,auto-or-manual: 0 )),
+	  ('to-auto-gear -> 8), ('manual-ack-status -> 1)),
+	pool : empty >
+	[==> VOTE-DES : SOCKET-TYPE-CANINOUT | some (gear: 0 ,auto-or-manual: 1) ] .
+    eq test(52) = < VOTE-DES : Vote | cpu : < receive-throttle : Thread | st : receive >,
+	mem : (('side-status -> 1),
+	  ('throttle-gear1 -> (gear: 8 ,auto-or-manual: 0 )),
+	  ('to-auto-gear -> 8), ('manual-ack-status -> 1)),
+	pool : pool1 >
+	[==> VOTE-DES : SOCKET-TYPE-CANINOUT | none ] .         
     
 endom)
 

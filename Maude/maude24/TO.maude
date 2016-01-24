@@ -325,8 +325,7 @@ endom)
 
     class Comm .
     subclass Comm < Board .
-
-***(    
+    
     vars O O' : Oid .
     var S : SocketType .
     var N : Nat .
@@ -370,6 +369,10 @@ endom)
     --- assume this transition is instantaneous
     eq < O : Comm | cpu : ideal, pool : (T ; P) > = < O : Comm | cpu : T, pool : P > .
 
+    ***********************************************
+    *** behavior of thread socket_rcv
+    ***********************************************
+    
     --- wait to read msgs, if existing, then read
     crl [comm-socket-rcv-n-read-some] :
 	< O : Comm | cpu : T, pool : P >
@@ -393,25 +396,45 @@ endom)
 
     --- create a new thread in pool to handle commands, then return to while loop reading
     crl [comm-threadpool-add-command] :
-	< O : Core | cpu : T, pool : P >
-      => < O : Core | cpu : ideal, pool : enqueue(T', enqueue(NEW, P)) >
+	< O : Comm | cpu : T, pool : P >
+      => < O : Comm | cpu : ideal, pool : enqueue(T', enqueue(NEW, P)) >
       if < socket-rcv(S) : Thread | st : threadpool-add(command-frame-rcv-handle, C) > := T
 	  /\ T' := < socket-rcv(S) : Thread | st : read >
-	  /\ NEW := < command-frame-rcv-handle : Thread | st : handle(C) > . 
+	  /\ NEW := < command-frame-rcv-handle : Thread | st : handle(C) > .
 
-    op limit-data-rcv-handle : Value -> Status .
-    op realtime-data-rcv-handle : Value -> Status .
+    --- definition of "done" status of the thread socekt_rcv():
+    --- back to loop reading
+    eq < socket-rcv(S) : Thread | st : done >
+      = < socket-rcv(S) : Thread | st : read > .
 
-    --- data_frame_rcv_handle
-    eq data-frame-rcv-handle( SOURCE-COM | EVENT-FRONT-SPEED-LIMIT | V | AMOUNT | CNT )
-      = limit-data-rcv-handle(V) .
-    eq data-frame-rcv-handle( SOURCE-COM | EVENT-REAL-TIME-INFO | V | AMOUNT | CNT )
-      = realtime-data-rcv-handle(V) .
-    eq data-frame-rcv-handle( S:EventSource | E:EventType | V | AMOUNT | CNT )
-      = done [owise] .
-    *** DONE for CORE
+    --- testing
+    op test : Nat -> Configuration .
+    eq test(55) = < COM-DES : Comm | cpu : < socket-rcv(SOCKET-TYPE-2) : Thread | st : read >,
+	mem : mem1, pool : a ; empty >
+	[==> COM-DES : SOCKET-TYPE-2 | none ]  .
+    eq test(56) = < COM-DES : Comm | cpu : < socket-rcv(SOCKET-TYPE-2) : Thread | st : read >,
+	mem : mem1, pool : empty >
+	[==> COM-DES : SOCKET-TYPE-2 | some command(com1) ]  .
+    eq test(57) = < COM-DES : Comm | cpu : < socket-rcv(SOCKET-TYPE-2) : Thread | st : read >,
+	mem : mem1, pool : empty >
+	[==> COM-DES : SOCKET-TYPE-2 | some data(data1) ]  .        
+
+
+    **********************************************
+    *** behavior of data_frame_rcv_handle
+    **********************************************
     
-    )
+    eq data-frame-rcv-handle( S:EventSource | E:EventType | V | AMOUNT | CNT )
+      = done .
+    *** DONE for COMM
+
+    --- testing
+    eq test(58) = < COM-DES : Comm | cpu : < socket-rcv(SOCKET-TYPE-2) : Thread | st : read >,
+	mem : mem1, pool : empty >
+	[==> COM-DES : SOCKET-TYPE-2
+	  | some data( SOURCE-CORE | EVENT-REAL-TIME-INFO | 9 | 0 | 1 ) ]  .        
+    
+    
 endom)
 
 (omod CORE is

@@ -432,8 +432,33 @@ endom)
     eq test(58) = < COM-DES : Comm | cpu : < socket-rcv(SOCKET-TYPE-2) : Thread | st : read >,
 	mem : mem1, pool : empty >
 	[==> COM-DES : SOCKET-TYPE-2
-	  | some data( SOURCE-CORE | EVENT-REAL-TIME-INFO | 9 | 0 | 1 ) ]  .        
+	  | some data( SOURCE-CORE | EVENT-REAL-TIME-INFO | 9 | 0 | 1 ) ]  .
     
+
+    **********************************************
+    *** behavior of command_frame_rcv_handle
+    **********************************************
+
+    op set-commu-addr : Oid -> Status .
+    op set-sys-status : SystemStatus -> Status .
+    op set-trip-status : TripStatus -> Status .
+      
+    --- definition of handle
+    *** all events from SOURCE-VOTE are omitted
+    *** all events from SOURCE-CORE are omitted
+    eq handle( S:EventSource | E:EventType | V ) = done .
+    *** DONE for COMM 
+
+    --- thread command_frame_rcv_handle done
+    crl [comm-command-frame-rcv-handle-done] :
+	< O : Comm | cpu : T > => < O : Comm | cpu : ideal >
+      if < command-frame-rcv-handle : Thread | st : done > := T .
+    
+    --- testing
+    eq test(59) = < COM-DES : Comm | cpu : < socket-rcv(SOCKET-TYPE-2) : Thread | st : read >,
+	mem : mem1, pool : empty >
+	[==> COM-DES : SOCKET-TYPE-2
+	  | some command( SOURCE-CORE | EVENT-REAL-TIME-INFO | 1 ) ]  .    
     
 endom)
 

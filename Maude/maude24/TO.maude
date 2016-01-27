@@ -151,6 +151,7 @@ endom)
     op DAT-VOTE-SOC : -> SocketType . --- 0x08
 
     op PORT-CANINOUT : -> PortType [ctor] . --- for cssl in CAN-INOUT
+    op PORT-LKJ : -> PortType [ctor] . --- for communication between LKJ and COMM
 
     eq COM-SOC = SOCKET-TYPE-2 .
     eq DAT-SOC = SOCKET-TYPE-5 .
@@ -473,6 +474,52 @@ endom)
     ************************************************
 
     op net-thread : -> ThreadID .
+    op wait-to-send : -> Status .
+
+    --- wait to read msgs, if existing, then read
+    crl [comm-net-thread-read-some] :
+	< O : Comm | cpu : T, mem : M, pool : P >
+      	[==> O : PORT-LKJ | some V ]
+      => < O : Comm | cpu : ideal, mem : M['to-send := V], pool : enqueue(T', P) >
+	[==> O : PORT-LKJ | none ]
+      if < net-thread : Thread | st : read > := T
+	  /\ T' := < net-thread : Thread | st : wait-to-send > .
+
+    --- wait to read msgs, if not exisiting, then switch
+    crl [comm-net-thread-read-none] :
+	< O : Comm | cpu : T, pool : P > [==> O : PORT-LKJ | none ]
+      => < O : Comm | cpu : ideal, pool : enqueue(T, P) > [==> O : PORT-LKJ | none ]
+      if < net-thread : Thread | st : read > := T .
+
+    --- behavior of wait-to-send
+    crl [comm-wait-to-send-succ] :
+	< O : Comm | cpu : T, mem : M, pool : P >
+      	[==> CORE-DES : SOCKET-TYPE-1 | none ]
+      => < O : Comm | cpu : ideal, pool : enqueue(T', P) >
+	[==> CORE-DES : SOCKET-TYPE-1
+	  | some data( SOURCE-COM | EVENT-REAL-TIME-INFO | M['to-send] | 0 | 0 ) ]
+      if < net-thread : Thread | st : wait-to-send > := T
+	  /\ T' := < net-thread : Thread | st : read > .
+    crl [comm-wait-to-send-block] :
+	< O : Comm | cpu : T, mem : M, pool : P >
+      	[==> CORE-DES : SOCKET-TYPE-1 | some F ]
+      => < O : Comm | cpu : ideal, pool : enqueue(T, P) >
+	[==> CORE-DES : SOCKET-TYPE-1 | some F ]
+      if < net-thread : Thread | st : wait-to-send > := T .
+     
+
+    --- testing
+    eq test(61) = < COM-DES : Comm | cpu : < net-thread : Thread | st : read >,
+	mem : mem1, pool : empty >
+	[==> COM-DES : PORT-LKJ | some 124 ]
+        [==> CORE-DES : SOCKET-TYPE-1 | none ] .
+    eq test(62) = < COM-DES : Comm | cpu : < net-thread : Thread | st : read >,
+	mem : mem1, pool : pool1 >
+	[==> COM-DES : PORT-LKJ | none ]  .
+    eq test(63) = < COM-DES : Comm | cpu : < net-thread : Thread | st : read >,
+	mem : mem1, pool : empty >
+	[==> COM-DES : PORT-LKJ | some 124 ]
+        [==> CORE-DES : SOCKET-TYPE-1 | some 0 ] .    
     
 endom)
 
@@ -675,7 +722,11 @@ endom)
     op wait : -> Status .
     op rt-processing : -> Status .
     op rt-send : -> Status .
+
+    --- rt-process: do the optimization
+    --- assumed to return the input value, i.e., do nothing
     op rt-process : Value -> Value .
+    eq rt-process(V) = V .
       
     --- rt-main always waits for the realtime data
     crl [core-rt-main-wait-some] :
@@ -1710,10 +1761,31 @@ endom)
     
 endom)
 
-        
+(fmod VALUE-LIST is
+    protecting VALUE .
+    sort VList .
+
+    op nil : -> VList [ctor] .
+    op _;_ : Value VList -> VList [ctor] .
+endfm)
+            
 (omod LKJ is
-    protecting DATA .
-    class LKJ | data : Data .
+    protecting VALUE-LIST .
+    protecting SOCKET .
+    protecting BOARD .
+    class LKJ | data : VList .
+
+    var O : Oid .
+    var V : Value .
+    var L : VList .
+
+    op lkj : -> Oid [ctor] .
+    
+    --- send out realtime data
+    rl [ljk-realtime-data] :
+	< O : LKJ | data : V ; L > [==> COM-DES : PORT-LKJ | none ]
+      => < O : LKJ | data : L > [==> COM-DES : PORT-LKJ | some V ] .
+
 endom)
 
 (omod CTRL-BOX is
@@ -1728,22 +1800,63 @@ endom)
     protecting VOTE .
     protecting LKJ .
     protecting CTRL-BOX .
----    pr QUEUE .
     pr THREADPOOL .
 
     op mem : -> Memory .
     op pool : -> ThreadPool .
+    op sys : -> Configuration .
 
-
-
-
-    --- j  
-***(    ceq < O:Oid : Board | cpu : C:Object, mem : M:Memory, pool : P:ThreadPool >
-      = < O:Oid : Board | cpu : ideal, mem : mem, pool : pool >
-      if C:Object =/= ideal /\ M:Memory =/= mem /\ P:ThreadPool =/= pool . )
+    eq sys =
+	< lkj : LKJ | data : 13 ; 24 ; nil >
+	< COM-DES : Comm | cpu : ideal, mem : empty, pool :
+			   < socket-rcv(SOCKET-TYPE-0) : Thread | st : read > ;
+	                   < socket-rcv(SOCKET-TYPE-1) : Thread | st : read > ;
+  	                   < socket-rcv(SOCKET-TYPE-2) : Thread | st : read > ;
+	                   < socket-rcv(SOCKET-TYPE-3) : Thread | st : read > ;
+	                   < socket-rcv(SOCKET-TYPE-4) : Thread | st : read > ;
+	                   < socket-rcv(SOCKET-TYPE-5) : Thread | st : read > ;
+	                   < net-thread : Thread | st : read > ; empty >
+	< CORE-DES : Core | cpu : ideal, mem : ('rt-arr-flag -> 0), pool :
+			   < socket-rcv(SOCKET-TYPE-0) : Thread | st : read > ;
+	                   < socket-rcv(SOCKET-TYPE-1) : Thread | st : read > ;
+  	                   < socket-rcv(SOCKET-TYPE-2) : Thread | st : read > ;
+	                   < socket-rcv(SOCKET-TYPE-3) : Thread | st : read > ;
+	                   < socket-rcv(SOCKET-TYPE-4) : Thread | st : read > ;
+	                   < socket-rcv(SOCKET-TYPE-5) : Thread | st : read > ;
+	                   < rt-main : Thread | st : wait > ; empty >
+	< VOTE-DES : Vote | cpu : ideal, mem : empty, pool :
+			   < socket-rcv(SOCKET-TYPE-0) : Thread | st : read > ;
+	                   < socket-rcv(SOCKET-TYPE-1) : Thread | st : read > ;
+  	                   < socket-rcv(SOCKET-TYPE-2) : Thread | st : read > ;
+	                   < socket-rcv(SOCKET-TYPE-3) : Thread | st : read > ;
+	                   < socket-rcv(SOCKET-TYPE-4) : Thread | st : read > ;
+	                   < socket-rcv(SOCKET-TYPE-5) : Thread | st : read > ;    
+	                   < socket-rcv(SOCKET-TYPE-CAN2NET) : Thread | st : read > ;
+                           < receive-throttle : Thread | st : receive > ;
+                           < fsm-run : Thread | st : while-fsm-start > ; empty > 
+	[==> COM-DES : PORT-LKJ | none ] 
+	[==> COM-DES : SOCKET-TYPE-0 | none ]
+	[==> COM-DES : SOCKET-TYPE-1 | none ]
+	[==> COM-DES : SOCKET-TYPE-2 | none ]
+	[==> COM-DES : SOCKET-TYPE-3 | none ]
+	[==> COM-DES : SOCKET-TYPE-4 | none ]
+	[==> COM-DES : SOCKET-TYPE-5 | none ]
+	[==> CORE-DES : SOCKET-TYPE-0 | none ]
+	[==> CORE-DES : SOCKET-TYPE-1 | none ]
+	[==> CORE-DES : SOCKET-TYPE-2 | none ]
+	[==> CORE-DES : SOCKET-TYPE-3 | none ]
+	[==> CORE-DES : SOCKET-TYPE-4 | none ]
+	[==> CORE-DES : SOCKET-TYPE-5 | none ]
+	[==> VOTE-DES : SOCKET-TYPE-0 | none ]
+	[==> VOTE-DES : SOCKET-TYPE-1 | none ]
+	[==> VOTE-DES : SOCKET-TYPE-2 | none ]
+	[==> VOTE-DES : SOCKET-TYPE-3 | none ]
+	[==> VOTE-DES : SOCKET-TYPE-4 | none ]
+	[==> VOTE-DES : SOCKET-TYPE-5 | none ]
+	[==> VOTE-DES : SOCKET-TYPE-CAN2NET | none ] 
+	[==> VOTE-DES : PORT-CANINOUT | none ] .
     
     
-    
-        
+
 endom)
   

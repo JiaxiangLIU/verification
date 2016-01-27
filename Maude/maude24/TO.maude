@@ -114,9 +114,11 @@ endom)
 (omod FRAME is
     protecting COMMAND .
     protecting DATA .
+    protecting VALUE .
     sort Frame .
     sorts DataFrame CommandFrame .
     subsorts DataFrame CommandFrame < Frame .
+    subsort Value < Frame .
     
     op command : Command -> CommandFrame [ctor] .
     op data : Data -> DataFrame [ctor] .
@@ -131,9 +133,11 @@ endom)
     protecting NAT .
     protecting FRAME .
     sort SocketType .
+    sort PortType .
+    subsort SocketType < PortType .
 
     --- define a msg to send frames to some socket port
-    msg `[==>_:_|_`] : Oid SocketType MaybeFrame -> Msg .
+    msg `[==>_:_|_`] : Oid PortType MaybeFrame -> Msg .
 
     op SOCKET-TYPE-0 : -> SocketType [ctor] . --- 0x80
     op SOCKET-TYPE-1 : -> SocketType [ctor] . --- 0x40
@@ -146,7 +150,7 @@ endom)
     op DAT-SOC : -> SocketType . --- 0x04
     op DAT-VOTE-SOC : -> SocketType . --- 0x08
 
-    op SOCKET-TYPE-CANINOUT : -> SocketType [ctor] . --- for cssl in CAN-INOUT
+    op PORT-CANINOUT : -> PortType [ctor] . --- for cssl in CAN-INOUT
 
     eq COM-SOC = SOCKET-TYPE-2 .
     eq DAT-SOC = SOCKET-TYPE-5 .
@@ -257,12 +261,15 @@ endom)
     sort RtCore .
     subsort RtCore < Value .
 
-    op `(rt-gear:_`) : Nat -> RtCore [ctor] .
+    op `(rt-gear:_`,rt-enable-status:_`) : Nat Nat -> RtCore [ctor] .
 
-    var N : Nat .
-    
+    vars N M : Nat .
+
     op _.rt-gear : RtCore -> Nat .
-    eq ((rt-gear: N )).rt-gear = N .
+    eq ((rt-gear: N ,rt-enable-status: M )).rt-gear = N .
+
+    op _.rt-enable-status : RtCore -> Nat .
+    eq ((rt-gear: N ,rt-enable-status: M )).rt-enable-status = M .    
 endfm)
 
 (fmod RT-VOTE is
@@ -458,7 +465,14 @@ endom)
     eq test(59) = < COM-DES : Comm | cpu : < socket-rcv(SOCKET-TYPE-2) : Thread | st : read >,
 	mem : mem1, pool : empty >
 	[==> COM-DES : SOCKET-TYPE-2
-	  | some command( SOURCE-CORE | EVENT-REAL-TIME-INFO | 1 ) ]  .    
+	  | some command( SOURCE-CORE | EVENT-REAL-TIME-INFO | 1 ) ]  .
+
+
+    ************************************************
+    *** behavior of net_thread
+    ************************************************
+
+    op net-thread : -> ThreadID .
     
 endom)
 
@@ -1093,15 +1107,17 @@ endom)
     --- definition of function can_manual_to_auto
     --- simply assume it is primitive
     op can-manual-to-auto : Memory -> Bool .
-    op pred-rt-core : -> Bool . --- a predicate on rt_core, assumed to be true.
+    op pred-rt-core : Memory -> Bool . --- a predicate on rt_core.
     ceq can-manual-to-auto(M) = false
       if M['branch-status] == 1 /\ (M['branch-pos]) >= 2 .
     ceq can-manual-to-auto(M) = false
       if M['side-status] == 1 /\ ((M['side-pos]) == 2 or (M['side-pos]) == 3) .
     eq can-manual-to-auto(M)
-      = if pred-rt-core then true else false fi [owise] .
+      = if pred-rt-core(M) then true else false fi [owise] .
 
-    eq pred-rt-core = true .
+    --- definition of pred-rt-core
+    --- incomplete wrt the code
+    eq pred-rt-core(M) = (((M['fsm-rt]).rt-core).rt-enable-status == 1) .
 
     --- behavior of compute-auto-status in fsm_run
     crl [vote-compute-auto-status] :
@@ -1143,9 +1159,9 @@ endom)
     crl [vote-compute-to-manual-status] :
 	< O : Vote | cpu : T, mem : M, pool : P >
       => if M['auto-status] == 1
-	then < O : Vote | cpu : ideal, mem : M,
+	then < O : Vote | cpu : ideal, mem : (M).fsm-set-enable(1),
 			  pool : enqueue(T', P) > 
-	else < O : Vote | cpu : ideal, mem : M['to-manual-status := 1],
+	else < O : Vote | cpu : ideal, mem : (M['to-manual-status := 1]).fsm-set-enable(0),
 			  pool : enqueue(T', P) >
 	fi
       if < fsm-run : Thread | st : compute-to-manual-status ; ST > := T
@@ -1197,8 +1213,14 @@ endom)
 
     op _.fsm-set-gear`(_`) : Memory Nat -> Memory .
     eq (M).fsm-set-gear(N) = M['fsm-rt := 
-	  (rt-core: (rt-gear: N ) ,rt-control-status: (M['fsm-rt]).rt-control-status ) ] .
+	  (rt-core: (rt-gear: N ,rt-enable-status: ((M['fsm-rt]).rt-core).rt-enable-status )
+	    ,rt-control-status: (M['fsm-rt]).rt-control-status ) ] .
 
+    op _.fsm-set-enable`(_`) : Memory Nat -> Memory .
+    eq (M).fsm-set-enable(N) = M['fsm-rt := 
+	  (rt-core: (rt-gear: ((M['fsm-rt]).rt-core).rt-gear ,rt-enable-status: N )
+	    ,rt-control-status: (M['fsm-rt]).rt-control-status ) ] .    
+    
     var CS : ControlStatus .
     
     op _.fsm-set-control`(_`) : Memory ControlStatus -> Memory .
@@ -1376,21 +1398,21 @@ endom)
 
     --- behavior of send-throttle in fsm_run
     crl [vote-send-throttle-0-succ] :
-	< O : Vote | cpu : T, mem : M, pool : P > [==> OUT-DES : SOCKET-TYPE-CANINOUT | none]
+	< O : Vote | cpu : T, mem : M, pool : P > [==> OUT-DES : PORT-CANINOUT | none]
       => < O : Vote | cpu : ideal, pool : enqueue(T', P) >
-	[==> OUT-DES : SOCKET-TYPE-CANINOUT | some (gear: N ,auto-or-manual: 0) ]
+	[==> OUT-DES : PORT-CANINOUT | some (gear: N ,auto-or-manual: 0) ]
       if < fsm-run : Thread | st : send-throttle(N , CONTROL-MANNUL) ; ST > := T
 	  /\ T' := < fsm-run : Thread | st : ST > .
     crl [vote-send-throttle-1-succ] :
-	< O : Vote | cpu : T, mem : M, pool : P > [==> OUT-DES : SOCKET-TYPE-CANINOUT | none]
+	< O : Vote | cpu : T, mem : M, pool : P > [==> OUT-DES : PORT-CANINOUT | none]
       => < O : Vote | cpu : ideal, pool : enqueue(T', P) >
-	[==> OUT-DES : SOCKET-TYPE-CANINOUT | some (gear: N ,auto-or-manual: 1) ]
+	[==> OUT-DES : PORT-CANINOUT | some (gear: N ,auto-or-manual: 1) ]
       if < fsm-run : Thread | st : send-throttle(N , CONTROL-AUTO) ; ST > := T
 	  /\ T' := < fsm-run : Thread | st : ST > .
     crl [vote-send-throttle-block] :
-	< O : Vote | cpu : T, mem : M, pool : P > [==> OUT-DES : SOCKET-TYPE-CANINOUT | some F]
+	< O : Vote | cpu : T, mem : M, pool : P > [==> OUT-DES : PORT-CANINOUT | some F]
       => < O : Vote | cpu : ideal, pool : enqueue(T, P) >
-	[==> OUT-DES : SOCKET-TYPE-CANINOUT | some F]
+	[==> OUT-DES : PORT-CANINOUT | some F]
       if < fsm-run : Thread | st : send-throttle(N , CS) ; ST > := T . 
 
     --- behavior of set-fsm-temp in fsm_run
@@ -1406,7 +1428,7 @@ endom)
     *********************************
     *** Testing
     *********************************
-    
+
     eq test(24) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
 	mem : (('side-status -> 0), ('throttle-gear1 -> (gear: 8 ,auto-or-manual: 0 )),
 	       ('rt-vote -> (rt-core: 123 ,rt-control-status: CONTROL-AUTO ))),
@@ -1450,7 +1472,7 @@ endom)
 	  | some command( SOURCE-CONTROL | EVENT-AUTO-TO-MANNAL | 1 ) ] .     
     eq test(30) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
 	mem : (('side-status -> 1),
-	  ('rt-vote -> (rt-core: (rt-gear: 8) ,rt-control-status: CONTROL-AUTO )),
+	  ('rt-vote -> (rt-core: (rt-gear: 8 ,rt-enable-status: 1) ,rt-control-status: CONTROL-AUTO )),
 	  ('side-pos -> 4), ('branch-status -> 1), ('branch-pos -> 3),
 	  ('fsm-state -> FSM-MANUAL),
 	  ('throttle-gear1 -> (gear: 6 ,auto-or-manual: 0 ))),
@@ -1459,7 +1481,7 @@ endom)
 	  | some command( SOURCE-CONTROL | EVENT-AUTO-TO-MANNAL | 1 ) ] .
     eq test(31) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
 	mem : (('side-status -> 1),
-	  ('rt-vote -> (rt-core: (rt-gear: 8) ,rt-control-status: CONTROL-AUTO )),
+	  ('rt-vote -> (rt-core: (rt-gear: 8 ,rt-enable-status: 1) ,rt-control-status: CONTROL-AUTO )),
 	  ('side-pos -> 4), ('branch-status -> 1), ('branch-pos -> 3),
 	  ('fsm-state -> FSM-MANUAL), ('to-auto-status -> 1),
 	  ('throttle-gear1 -> (gear: 6 ,auto-or-manual: 0 ))),
@@ -1468,7 +1490,7 @@ endom)
 	  | some command( SOURCE-CONTROL | EVENT-AUTO-TO-MANNAL | 1 ) ] .         
     eq test(32) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
 	mem : (('side-status -> 1),
-	  ('rt-vote -> (rt-core: (rt-gear: 8) ,rt-control-status: CONTROL-AUTO )),
+	  ('rt-vote -> (rt-core: (rt-gear: 8 ,rt-enable-status: 1) ,rt-control-status: CONTROL-AUTO )),
 	  ('side-pos -> 4), ('branch-status -> 1), ('branch-pos -> 3),
 	  ('fsm-state -> FSM-MANUAL), ('to-auto-status -> 1),
 	  ('throttle-gear1 -> (gear: 6 ,auto-or-manual: 0 )),
@@ -1477,7 +1499,7 @@ endom)
 	[==> VOTE-DES : SOCKET-TYPE-1 | none ] .         
     eq test(33) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
 	mem : (('side-status -> 1),
-	  ('rt-vote -> (rt-core: (rt-gear: 8) ,rt-control-status: CONTROL-AUTO )),
+	  ('rt-vote -> (rt-core: (rt-gear: 8 ,rt-enable-status: 1) ,rt-control-status: CONTROL-AUTO )),
 	  ('side-pos -> 4), ('branch-status -> 1), ('branch-pos -> 3),
 	  ('fsm-state -> FSM-MANUAL), ('to-auto-status -> 1),
 	  ('throttle-gear1 -> (gear: 6 ,auto-or-manual: 0 )),
@@ -1486,7 +1508,7 @@ endom)
 	[==> VOTE-DES : SOCKET-TYPE-1 | none ] .         
     eq test(34) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
 	mem : (('side-status -> 1),
-	  ('rt-vote -> (rt-core: (rt-gear: 8) ,rt-control-status: CONTROL-AUTO )),
+	  ('rt-vote -> (rt-core: (rt-gear: 8 ,rt-enable-status: 1) ,rt-control-status: CONTROL-AUTO )),
 	  ('side-pos -> 4), ('branch-status -> 1), ('branch-pos -> 3),
 	  ('fsm-state -> FSM-MANUAL), ('to-auto-status -> 1),
 	  ('throttle-gear1 -> (gear: 8 ,auto-or-manual: 0 )),
@@ -1495,7 +1517,7 @@ endom)
 	[==> VOTE-DES : SOCKET-TYPE-1 | none ] .         
     eq test(35) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
 	mem : (('side-status -> 1),
-	  ('rt-vote -> (rt-core: (rt-gear: 8) ,rt-control-status: CONTROL-AUTO )),
+	  ('rt-vote -> (rt-core: (rt-gear: 8 ,rt-enable-status: 1) ,rt-control-status: CONTROL-AUTO )),
 	  ('side-pos -> 4), ('branch-status -> 1), ('branch-pos -> 3),
 	  ('fsm-state -> FSM-MANUAL), ('to-auto-status -> 1),
 	  ('throttle-gear1 -> (gear: 7 ,auto-or-manual: 0 )),
@@ -1504,7 +1526,7 @@ endom)
 	[==> VOTE-DES : SOCKET-TYPE-1 | none ] .         
     eq test(36) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
 	mem : (('side-status -> 1),
-	  ('rt-vote -> (rt-core: (rt-gear: 8) ,rt-control-status: CONTROL-AUTO )),
+	  ('rt-vote -> (rt-core: (rt-gear: 8 ,rt-enable-status: 1) ,rt-control-status: CONTROL-AUTO )),
 	  ('side-pos -> 4), ('branch-status -> 1), ('branch-pos -> 3),
 	  ('fsm-state -> FSM-MANUAL), ('to-auto-status -> 1),
 	  ('throttle-gear1 -> (gear: 7 ,auto-or-manual: 0 )),
@@ -1513,7 +1535,7 @@ endom)
 	[==> VOTE-DES : SOCKET-TYPE-1 | none ] .         
     eq test(37) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
 	mem : (('side-status -> 1),
-	  ('rt-vote -> (rt-core: (rt-gear: 8) ,rt-control-status: CONTROL-AUTO )),
+	  ('rt-vote -> (rt-core: (rt-gear: 8 ,rt-enable-status: 1) ,rt-control-status: CONTROL-AUTO )),
 	  ('side-pos -> 4), ('branch-status -> 1), ('branch-pos -> 3),
 	  ('fsm-state -> FSM-MANUAL), ('to-auto-status -> 1),
 	  ('throttle-gear1 -> (gear: 7 ,auto-or-manual: 0 )),
@@ -1522,7 +1544,7 @@ endom)
 	[==> VOTE-DES : SOCKET-TYPE-1 | none ] .         
     eq test(38) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
 	mem : (('side-status -> 1),
-	  ('rt-vote -> (rt-core: (rt-gear: 0) ,rt-control-status: CONTROL-AUTO )),
+	  ('rt-vote -> (rt-core: (rt-gear: 0 ,rt-enable-status: 1) ,rt-control-status: CONTROL-AUTO )),
 	  ('side-pos -> 4), ('branch-status -> 1), ('branch-pos -> 3),
 	  ('fsm-state -> FSM-MANUAL), ('to-auto-status -> 1),
 	  ('throttle-gear1 -> (gear: 7 ,auto-or-manual: 0 )),
@@ -1531,7 +1553,7 @@ endom)
 	[==> VOTE-DES : SOCKET-TYPE-1 | none ] .         
     eq test(39) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
 	mem : (('side-status -> 1),
-	  ('rt-vote -> (rt-core: (rt-gear: 6) ,rt-control-status: CONTROL-AUTO )),
+	  ('rt-vote -> (rt-core: (rt-gear: 6 ,rt-enable-status: 1) ,rt-control-status: CONTROL-AUTO )),
 	  ('side-pos -> 4), ('branch-status -> 1), ('branch-pos -> 3),
 	  ('fsm-state -> FSM-MANUAL), ('to-auto-status -> 1),
 	  ('throttle-gear1 -> (gear: 0 ,auto-or-manual: 0 )),
@@ -1540,7 +1562,7 @@ endom)
 	[==> VOTE-DES : SOCKET-TYPE-1 | none ] .         
     eq test(40) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
 	mem : (('side-status -> 1),
-	  ('rt-vote -> (rt-core: (rt-gear: 6) ,rt-control-status: CONTROL-AUTO )),
+	  ('rt-vote -> (rt-core: (rt-gear: 6 ,rt-enable-status: 1) ,rt-control-status: CONTROL-AUTO )),
 	  ('side-pos -> 4), ('branch-status -> 1), ('branch-pos -> 3),
 	  ('fsm-state -> FSM-START-MANUAL), ('to-auto-status -> 1),
 	  ('throttle-gear1 -> (gear: 0 ,auto-or-manual: 0 )),
@@ -1549,7 +1571,7 @@ endom)
 	[==> VOTE-DES : SOCKET-TYPE-1 | none ] .         
     eq test(41) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
 	mem : (('side-status -> 1),
-	  ('rt-vote -> (rt-core: (rt-gear: 6) ,rt-control-status: CONTROL-AUTO )),
+	  ('rt-vote -> (rt-core: (rt-gear: 6 ,rt-enable-status: 1) ,rt-control-status: CONTROL-AUTO )),
 	  ('side-pos -> 4), ('branch-status -> 1), ('branch-pos -> 3),
 	  ('fsm-state -> FSM-START-MANUAL), ('to-auto-status -> 1),
 	  ('throttle-gear1 -> (gear: 7 ,auto-or-manual: 0 )),
@@ -1558,7 +1580,7 @@ endom)
 	[==> VOTE-DES : SOCKET-TYPE-1 | none ] .         
     eq test(42) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
 	mem : (('side-status -> 1),
-	  ('rt-vote -> (rt-core: (rt-gear: 5) ,rt-control-status: CONTROL-AUTO )),
+	  ('rt-vote -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1) ,rt-control-status: CONTROL-AUTO )),
 	  ('side-pos -> 4), ('branch-status -> 1), ('branch-pos -> 3),
 	  ('fsm-state -> FSM-START-MANUAL), ('to-auto-status -> 1),
 	  ('throttle-gear1 -> (gear: 8 ,auto-or-manual: 0 )),
@@ -1567,7 +1589,7 @@ endom)
 	[==> VOTE-DES : SOCKET-TYPE-1 | none ] .         
     eq test(43) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
 	mem : (('side-status -> 1),
-	  ('rt-vote -> (rt-core: (rt-gear: 5) ,rt-control-status: CONTROL-AUTO )),
+	  ('rt-vote -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1) ,rt-control-status: CONTROL-AUTO )),
 	  ('side-pos -> 4), ('branch-status -> 1), ('branch-pos -> 3),
 	  ('fsm-state -> FSM-ACK-MANUAL), ('to-auto-status -> 1),
 	  ('throttle-gear1 -> (gear: 8 ,auto-or-manual: 0 )),
@@ -1576,7 +1598,7 @@ endom)
 	[==> VOTE-DES : SOCKET-TYPE-1 | none ] .         
     eq test(44) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
 	mem : (('side-status -> 1),
-	  ('rt-vote -> (rt-core: (rt-gear: 5) ,rt-control-status: CONTROL-AUTO )),
+	  ('rt-vote -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1) ,rt-control-status: CONTROL-AUTO )),
 	  ('side-pos -> 4), ('branch-status -> 1), ('branch-pos -> 3),
 	  ('fsm-state -> FSM-ACK-MANUAL), ('to-auto-status -> 1),
 	  ('throttle-gear1 -> (gear: 8 ,auto-or-manual: 0 )),
@@ -1585,8 +1607,8 @@ endom)
 	[==> VOTE-DES : SOCKET-TYPE-1 | none ] .         
     eq test(45) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
 	mem : (('side-status -> 1),
-	  ('rt-vote -> (rt-core: (rt-gear: 5) ,rt-control-status: CONTROL-AUTO )),
-	  ('fsm-temp -> (rt-core: (rt-gear: 5) ,rt-control-status: CONTROL-AUTO )),
+	  ('rt-vote -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1) ,rt-control-status: CONTROL-AUTO )),
+	  ('fsm-temp -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1) ,rt-control-status: CONTROL-AUTO )),
 	  ('side-pos -> 4), ('branch-status -> 1), ('branch-pos -> 3),
 	  ('fsm-state -> FSM-AUTO), ('to-auto-status -> 1),
 	  ('throttle-gear1 -> (gear: 8 ,auto-or-manual: 0 )),
@@ -1595,8 +1617,8 @@ endom)
 	[==> VOTE-DES : SOCKET-TYPE-1 | none ] .         
     eq test(46) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
 	mem : (('side-status -> 1),
-	  ('rt-vote -> (rt-core: (rt-gear: 5) ,rt-control-status: CONTROL-AUTO )),
-	  ('fsm-temp -> (rt-core: (rt-gear: 5) ,rt-control-status: CONTROL-AUTO )),
+	  ('rt-vote -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1) ,rt-control-status: CONTROL-AUTO )),
+	  ('fsm-temp -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1) ,rt-control-status: CONTROL-AUTO )),
 	  ('side-pos -> 4), ('branch-status -> 1), ('branch-pos -> 3),
 	  ('fsm-state -> FSM-MANUAL), ('to-auto-status -> 1),
 	  ('throttle-gear1 -> (gear: 8 ,auto-or-manual: 0 )),
@@ -1605,8 +1627,8 @@ endom)
 	[==> VOTE-DES : SOCKET-TYPE-1 | none ] .         
     eq test(47) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
 	mem : (('side-status -> 1),
-	  ('rt-vote -> (rt-core: (rt-gear: 5) ,rt-control-status: CONTROL-AUTO )),
-	  ('fsm-temp -> (rt-core: (rt-gear: 5) ,rt-control-status: CONTROL-AUTO )),
+	  ('rt-vote -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1) ,rt-control-status: CONTROL-AUTO )),
+	  ('fsm-temp -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1) ,rt-control-status: CONTROL-AUTO )),
 	  ('side-pos -> 4), ('branch-status -> 1), ('branch-pos -> 3),
 	  ('fsm-state -> FSM-OVER-TIME), ('to-auto-status -> 1),
 	  ('throttle-gear1 -> (gear: 8 ,auto-or-manual: 0 )),
@@ -1615,34 +1637,34 @@ endom)
 	[==> VOTE-DES : SOCKET-TYPE-1 | none ] .         
     eq test(48) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
 	mem : (('side-status -> 1),
-	  ('rt-vote -> (rt-core: (rt-gear: 5) ,rt-control-status: CONTROL-AUTO )),
-	  ('fsm-temp -> (rt-core: (rt-gear: 5) ,rt-control-status: CONTROL-AUTO )),
+	  ('rt-vote -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1) ,rt-control-status: CONTROL-AUTO )),
+	  ('fsm-temp -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1) ,rt-control-status: CONTROL-AUTO )),
 	  ('side-pos -> 4), ('branch-status -> 1), ('branch-pos -> 3),
 	  ('fsm-state -> FSM-OVER-TIME), ('to-auto-status -> 1),
 	  ('throttle-gear1 -> (gear: 8 ,auto-or-manual: 0 )),
 	  ('to-auto-gear -> 8), ('manual-ack-status -> 1)),
 	pool : empty >
-	[==> OUT-DES : SOCKET-TYPE-CANINOUT | none ] .         
+	[==> OUT-DES : PORT-CANINOUT | none ] .         
     eq test(49) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
 	mem : (('side-status -> 1),
-	  ('rt-vote -> (rt-core: (rt-gear: 5) ,rt-control-status: CONTROL-AUTO )),
-	  ('fsm-temp -> (rt-core: (rt-gear: 5) ,rt-control-status: CONTROL-AUTO )),
+	  ('rt-vote -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1) ,rt-control-status: CONTROL-AUTO )),
+	  ('fsm-temp -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1) ,rt-control-status: CONTROL-AUTO )),
 	  ('side-pos -> 4), ('branch-status -> 1), ('branch-pos -> 3),
 	  ('fsm-state -> FSM-MANUAL), ('to-auto-status -> 1),
 	  ('throttle-gear1 -> (gear: 8 ,auto-or-manual: 0 )),
 	  ('to-auto-gear -> 8), ('manual-ack-status -> 1)),
 	pool : empty >
-	[==> OUT-DES : SOCKET-TYPE-CANINOUT | none ] .         
+	[==> OUT-DES : PORT-CANINOUT | none ] .         
     eq test(50) = < VOTE-DES : Vote | cpu : < fsm-run : Thread | st : while-fsm-start >,
 	mem : (('side-status -> 1),
-	  ('rt-vote -> (rt-core: (rt-gear: 5) ,rt-control-status: CONTROL-AUTO )),
-	  ('fsm-temp -> (rt-core: (rt-gear: 5) ,rt-control-status: CONTROL-AUTO )),
+	  ('rt-vote -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1) ,rt-control-status: CONTROL-AUTO )),
+	  ('fsm-temp -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1) ,rt-control-status: CONTROL-AUTO )),
 	  ('side-pos -> 4), ('branch-status -> 1), ('branch-pos -> 3),
 	  ('fsm-state -> FSM-MANUAL), ('to-auto-status -> 1),
 	  ('throttle-gear1 -> (gear: 8 ,auto-or-manual: 0 )),
 	  ('to-auto-gear -> 8), ('manual-ack-status -> 1)),
 	pool : empty >
-	[==> OUT-DES : SOCKET-TYPE-CANINOUT | some (gear: 0 ,auto-or-manual: 0) ] .         
+	[==> OUT-DES : PORT-CANINOUT | some (gear: 0 ,auto-or-manual: 0) ] .         
 
 
     ************************************
@@ -1658,17 +1680,17 @@ endom)
     --- behavior of set-fsm-rt in fsm_run
     crl [vote-receive-throttle-some] :
 	< O : Vote | cpu : T, mem : M, pool : P >
-	[==> O : SOCKET-TYPE-CANINOUT | some G ]
+	[==> O : PORT-CANINOUT | some G ]
       => < O : Vote | cpu : ideal, mem : M['throttle-gear1 := G],
 		      pool : enqueue(T', P) >
-	 [==> O : SOCKET-TYPE-CANINOUT | none ]
+	 [==> O : PORT-CANINOUT | none ]
       if < receive-throttle : Thread | st : receive > := T
 	  /\ T' := < receive-throttle : Thread | st : receive > .
     crl [vote-receive-throttle-none] :
 	< O : Vote | cpu : T, pool : P >
-	[==> O : SOCKET-TYPE-CANINOUT | none ]
+	[==> O : PORT-CANINOUT | none ]
       => < O : Vote | cpu : ideal, pool : enqueue(T', P) >
-	 [==> O : SOCKET-TYPE-CANINOUT | none ]
+	 [==> O : PORT-CANINOUT | none ]
       if < receive-throttle : Thread | st : receive > := T
 	  /\ T' := < receive-throttle : Thread | st : receive > .      
 
@@ -1678,13 +1700,13 @@ endom)
 	  ('throttle-gear1 -> (gear: 8 ,auto-or-manual: 0 )),
 	  ('to-auto-gear -> 8), ('manual-ack-status -> 1)),
 	pool : empty >
-	[==> VOTE-DES : SOCKET-TYPE-CANINOUT | some (gear: 0 ,auto-or-manual: 1) ] .
+	[==> VOTE-DES : PORT-CANINOUT | some (gear: 0 ,auto-or-manual: 1) ] .
     eq test(52) = < VOTE-DES : Vote | cpu : < receive-throttle : Thread | st : receive >,
 	mem : (('side-status -> 1),
 	  ('throttle-gear1 -> (gear: 8 ,auto-or-manual: 0 )),
 	  ('to-auto-gear -> 8), ('manual-ack-status -> 1)),
 	pool : pool1 >
-	[==> VOTE-DES : SOCKET-TYPE-CANINOUT | none ] .         
+	[==> VOTE-DES : PORT-CANINOUT | none ] .         
     
 endom)
 

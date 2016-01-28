@@ -1892,6 +1892,8 @@ endom)
 	                   < socket-rcv(SOCKET-TYPE-CAN2NET) : Thread | st : read > ;
                            < receive-throttle : Thread | st : receive > ;
                            < fsm-run : Thread | st : while-fsm-start > ; empty > 
+	< CON-DES : CtrlBox | controls : nil >
+	< OUT-DES : OutputBrd | gear : 0, auto-or-manual : 0 >
 	[==> COM-DES : PORT-LKJ | none ] 
 	[==> COM-DES : SOCKET-TYPE-0 | none ]
 	[==> COM-DES : SOCKET-TYPE-1 | none ]
@@ -1912,7 +1914,9 @@ endom)
 	[==> VOTE-DES : SOCKET-TYPE-4 | none ]
 	[==> VOTE-DES : SOCKET-TYPE-5 | none ]
 	[==> VOTE-DES : SOCKET-TYPE-CAN2NET | none ] 
-	[==> VOTE-DES : PORT-CANINOUT | none ] .
+	[==> VOTE-DES : PORT-CANINOUT | none ]
+	[==> CON-DES : SOCKET-TYPE-5 | none ]
+	[==> OUT-DES : PORT-CANINOUT | none ] .    
 
     eq sys =
 	< lkj : LKJ | data : 13 ; 24 ; nil >
@@ -1935,15 +1939,20 @@ endom)
 			      ('fsm-temp -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
 				  ,rt-control-status: CONTROL-MANNUL )) ),
 			    pool :
-	                   < socket-rcv(SOCKET-TYPE-1) : Thread | st : read > ;
-                           < receive-throttle : Thread | st : receive > ;
-                           < fsm-run : Thread | st : while-fsm-start > ; empty > 
+	                    < socket-rcv(SOCKET-TYPE-1) : Thread | st : read > ;
+	                    < socket-rcv(SOCKET-TYPE-CAN2NET) : Thread | st : read > ;	
+                            < receive-throttle : Thread | st : receive > ;
+                            < fsm-run : Thread | st : while-fsm-start > ; empty > 
+	< CON-DES : CtrlBox | controls : nil >
+	< OUT-DES : OutputBrd | gear : 0, auto-or-manual : 0 >
 	[==> COM-DES : PORT-LKJ | none ] 
 	[==> COM-DES : SOCKET-TYPE-0 | none ]
 	[==> CORE-DES : SOCKET-TYPE-1 | none ]
 	[==> VOTE-DES : SOCKET-TYPE-1 | none ]
 	[==> VOTE-DES : SOCKET-TYPE-CAN2NET | none ] 
-	[==> VOTE-DES : PORT-CANINOUT | none ] .
+	[==> VOTE-DES : PORT-CANINOUT | none ]
+	[==> CON-DES : SOCKET-TYPE-5 | none ]
+	[==> OUT-DES : PORT-CANINOUT | none ] .
 
     
     op pat : -> Configuration .

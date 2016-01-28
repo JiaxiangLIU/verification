@@ -368,9 +368,9 @@ endom)
     op command-frame-rcv-handle : -> ThreadID .
     
     op read : -> Status .
-    op frame-parse : Frame -> Status .
+    op comm-frame-parse : Frame -> Status .
     op threadpool-add : ThreadID Command -> Status .
-    op data-frame-rcv-handle : Data -> Status .
+    op comm-data-frame-rcv-handle : Data -> Status .
     op done : -> Status .
 
     --- rl [schedule] :
@@ -388,7 +388,7 @@ endom)
       => < O : Comm | cpu : ideal, pool : enqueue(T', P) >
 	[==> O : S | none ]
       if < socket-rcv(S) : Thread | st : read > := T
-	  /\ T' := < socket-rcv(S) : Thread | st : frame-parse(F) > .
+	  /\ T' := < socket-rcv(S) : Thread | st : comm-frame-parse(F) > .
 
     --- wait to read msgs, if not exisiting, then switch
     crl [comm-socket-rcv-n-read-none] :
@@ -397,10 +397,10 @@ endom)
       if < socket-rcv(S) : Thread | st : read > := T .
 
     --- parse frames, including commands and data
-    eq frame-parse(command(C)) = threadpool-add(command-frame-rcv-handle, C) .
-    eq frame-parse(data(D)) = data-frame-rcv-handle(D) .
+    eq comm-frame-parse(command(C)) = threadpool-add(command-frame-rcv-handle, C) .
+    eq comm-frame-parse(data(D)) = comm-data-frame-rcv-handle(D) .
 
-    op handle : Command -> Status .
+    op comm-handle : Command -> Status .
 
     --- create a new thread in pool to handle commands, then return to while loop reading
     crl [comm-threadpool-add-command] :
@@ -408,7 +408,7 @@ endom)
       => < O : Comm | cpu : ideal, pool : enqueue(T', enqueue(NEW, P)) >
       if < socket-rcv(S) : Thread | st : threadpool-add(command-frame-rcv-handle, C) > := T
 	  /\ T' := < socket-rcv(S) : Thread | st : read >
-	  /\ NEW := < command-frame-rcv-handle : Thread | st : handle(C) > .
+	  /\ NEW := < command-frame-rcv-handle : Thread | st : comm-handle(C) > .
 
     --- definition of "done" status of the thread socekt_rcv():
     --- back to loop reading
@@ -432,7 +432,7 @@ endom)
     *** behavior of data_frame_rcv_handle
     **********************************************
     
-    eq data-frame-rcv-handle( S:EventSource | E:EventType | V | AMOUNT | CNT )
+    eq comm-data-frame-rcv-handle( S:EventSource | E:EventType | V | AMOUNT | CNT )
       = done .
     *** DONE for COMM
 
@@ -454,7 +454,7 @@ endom)
     --- definition of handle
     *** all events from SOURCE-VOTE are omitted
     *** all events from SOURCE-CORE are omitted
-    eq handle( S:EventSource | E:EventType | V ) = done .
+    eq comm-handle( S:EventSource | E:EventType | V ) = done .
     *** DONE for COMM 
 
     --- thread command_frame_rcv_handle done
@@ -537,9 +537,9 @@ endom)
     op command-frame-rcv-handle : -> ThreadID .
     
     op read : -> Status .
-    op frame-parse : Frame -> Status .
+    op core-frame-parse : Frame -> Status .
     op threadpool-add : ThreadID Command -> Status .
-    op data-frame-rcv-handle : Data -> Status .
+    op core-data-frame-rcv-handle : Data -> Status .
     op done : -> Status .
 
     
@@ -622,7 +622,7 @@ endom)
       => < O : Core | cpu : ideal, pool : enqueue(T', P) >
 	[==> O : S | none ]
       if < socket-rcv(S) : Thread | st : read > := T
-	  /\ T' := < socket-rcv(S) : Thread | st : frame-parse(F) > .
+	  /\ T' := < socket-rcv(S) : Thread | st : core-frame-parse(F) > .
 
     --- wait to read msgs, if not exisiting, then switch
     crl [core-socket-rcv-n-read-none] :
@@ -631,10 +631,10 @@ endom)
       if < socket-rcv(S) : Thread | st : read > := T .
 
     --- parse frames, including commands and data
-    eq frame-parse(command(C)) = threadpool-add(command-frame-rcv-handle, C) .
-    eq frame-parse(data(D)) = data-frame-rcv-handle(D) .
+    eq core-frame-parse(command(C)) = threadpool-add(command-frame-rcv-handle, C) .
+    eq core-frame-parse(data(D)) = core-data-frame-rcv-handle(D) .
 
-    op handle : Command -> Status .
+    op core-handle : Command -> Status .
 
     --- create a new thread in pool to handle commands, then return to while loop reading
     crl [core-threadpool-add-command] :
@@ -642,17 +642,17 @@ endom)
       => < O : Core | cpu : ideal, pool : enqueue(T', enqueue(NEW, P)) >
       if < socket-rcv(S) : Thread | st : threadpool-add(command-frame-rcv-handle, C) > := T
 	  /\ T' := < socket-rcv(S) : Thread | st : read >
-	  /\ NEW := < command-frame-rcv-handle : Thread | st : handle(C) > . 
+	  /\ NEW := < command-frame-rcv-handle : Thread | st : core-handle(C) > . 
 
     op limit-data-rcv-handle : Value -> Status .
     op realtime-data-rcv-handle : Value -> Status .
 
     --- data_frame_rcv_handle
-    eq data-frame-rcv-handle( SOURCE-COM | EVENT-FRONT-SPEED-LIMIT | V | AMOUNT | CNT )
+    eq core-data-frame-rcv-handle( SOURCE-COM | EVENT-FRONT-SPEED-LIMIT | V | AMOUNT | CNT )
       = limit-data-rcv-handle(V) .
-    eq data-frame-rcv-handle( SOURCE-COM | EVENT-REAL-TIME-INFO | V | AMOUNT | CNT )
+    eq core-data-frame-rcv-handle( SOURCE-COM | EVENT-REAL-TIME-INFO | V | AMOUNT | CNT )
       = realtime-data-rcv-handle(V) .
-    eq data-frame-rcv-handle( S:EventSource | E:EventType | V | AMOUNT | CNT )
+    eq core-data-frame-rcv-handle( S:EventSource | E:EventType | V | AMOUNT | CNT )
       = done [owise] .
     *** DONE for CORE
         
@@ -677,14 +677,14 @@ endom)
     op set-trip-status : TripStatus -> Status .
       
     --- command_frame_rcv_handle
-    eq handle( SOURCE-VOTE | EVENT-BROADCAST-COM-ADDR | V )
+    eq core-handle( SOURCE-VOTE | EVENT-BROADCAST-COM-ADDR | V )
       = if V == SOURCE-COM then set-commu-addr(COM-DES) 
         else done fi .
-    eq handle( SOURCE-VOTE | EVENT-MASTER-VOTE-EXCHANGE | V )
+    eq core-handle( SOURCE-VOTE | EVENT-MASTER-VOTE-EXCHANGE | V )
       = set-sys-status(V) .
-    eq handle( SOURCE-VOTE | EVENT-SYS-TRIP-STATUS-SEND | V ) 
+    eq core-handle( SOURCE-VOTE | EVENT-SYS-TRIP-STATUS-SEND | V ) 
       = set-trip-status(V) .
-    eq handle( S:EventSource | E:EventType | V ) = done [owise] .
+    eq core-handle( S:EventSource | E:EventType | V ) = done [owise] .
     *** DONE for CORE 
 
     --- behavior of set_commu_addr( ) in command_frame_rcv_handle
@@ -807,9 +807,9 @@ endom)
     op command-frame-rcv-handle : -> ThreadID .
     
     op read : -> Status .
-    op frame-parse : Frame -> Status .
+    op vote-frame-parse : Frame -> Status .
     op threadpool-add : ThreadID Command -> Status .
-    op data-frame-rcv-handle : Data -> Status .
+    op vote-data-frame-rcv-handle : Data -> Status .
     op done : -> Status .
     op _;_ : Status Status -> Status [ctor assoc id: done] .
 
@@ -857,7 +857,7 @@ endom)
       => < O : Vote | cpu : ideal, pool : enqueue(T', P) >
 	[==> O : S | none ]
       if < socket-rcv(S) : Thread | st : read > := T
-	  /\ T' := < socket-rcv(S) : Thread | st : frame-parse(F) > .
+	  /\ T' := < socket-rcv(S) : Thread | st : vote-frame-parse(F) > .
 
     --- wait to read msgs, if not exisiting, then switch
     crl [vote-socket-rcv-n-read-none] :
@@ -866,10 +866,10 @@ endom)
       if < socket-rcv(S) : Thread | st : read > := T .
 
     --- parse frames, including commands and data
-    eq frame-parse(command(C)) = threadpool-add(command-frame-rcv-handle, C) .
-    eq frame-parse(data(D)) = data-frame-rcv-handle(D) .
+    eq vote-frame-parse(command(C)) = threadpool-add(command-frame-rcv-handle, C) .
+    eq vote-frame-parse(data(D)) = vote-data-frame-rcv-handle(D) .
 
-    op handle : Command -> Status .
+    op vote-handle : Command -> Status .
 
     --- create a new thread in pool to handle commands, then return to while loop reading
     crl [vote-threadpool-add-command] :
@@ -877,7 +877,7 @@ endom)
       => < O : Vote | cpu : ideal, pool : enqueue(T', enqueue(NEW, P)) >
       if < socket-rcv(S) : Thread | st : threadpool-add(command-frame-rcv-handle, C) > := T
 	  /\ T' := < socket-rcv(S) : Thread | st : read >
-	  /\ NEW := < command-frame-rcv-handle : Thread | st : handle(C) > .
+	  /\ NEW := < command-frame-rcv-handle : Thread | st : vote-handle(C) > .
 
     **********************************
     *** behavior of data-frame-rcv-handle
@@ -898,13 +898,13 @@ endom)
     op rt-handle : Value -> Status .
 
     --- data_frame_rcv_handle
-    eq data-frame-rcv-handle( SOURCE-COM | EVENT-FRONT-BRANCH-TRANSFER | V | AMOUNT | CNT )
+    eq vote-data-frame-rcv-handle( SOURCE-COM | EVENT-FRONT-BRANCH-TRANSFER | V | AMOUNT | CNT )
       = set-branch-status(1) ; set-branch-info(V) ; done .
-    eq data-frame-rcv-handle( SOURCE-COM | EVENT-FRONT-SIDE-LINE-PASS | V | AMOUNT | CNT )
+    eq vote-data-frame-rcv-handle( SOURCE-COM | EVENT-FRONT-SIDE-LINE-PASS | V | AMOUNT | CNT )
       = handle-event-front-side-line-pass(V) .
-    eq data-frame-rcv-handle( SOURCE-CORE | EVENT-REAL-TIME-CTRL | V | AMOUNT | CNT )
+    eq vote-data-frame-rcv-handle( SOURCE-CORE | EVENT-REAL-TIME-CTRL | V | AMOUNT | CNT )
       = rt-handle(V) .
-    eq data-frame-rcv-handle( S:EventSource | E:EventType | V | AMOUNT | CNT )
+    eq vote-data-frame-rcv-handle( S:EventSource | E:EventType | V | AMOUNT | CNT )
       = done [owise] .
     *** DONE for VOTE
     
@@ -1000,15 +1000,15 @@ endom)
     --- command_frame_rcv_handle
     *** events from SOURCE-COM are all omitted
     *** events from SOURCE-CORE are all omitted
-    eq handle( SOURCE-CONTROL | EVENT-GEAR8-AUTO-CONFIRM-ACK | V )
+    eq vote-handle( SOURCE-CONTROL | EVENT-GEAR8-AUTO-CONFIRM-ACK | V )
       = set-auto-ack-status(1) .
-    eq handle( SOURCE-CONTROL | EVENT-TWO-GEAR-TO-MANNUL | V )
+    eq vote-handle( SOURCE-CONTROL | EVENT-TWO-GEAR-TO-MANNUL | V )
       = set-manual-ack-status(1) .
-    eq handle( SOURCE-CONTROL | EVENT-MANNAL-TO-AUTO | V )
+    eq vote-handle( SOURCE-CONTROL | EVENT-MANNAL-TO-AUTO | V )
       = handle-event-mannal-to-auto .
-    eq handle( SOURCE-CONTROL | EVENT-AUTO-TO-MANNAL | V )
+    eq vote-handle( SOURCE-CONTROL | EVENT-AUTO-TO-MANNAL | V )
       = set-to-manual-status(1) .
-    eq handle( S:EventSource | E:EventType | V ) = done [owise] .
+    eq vote-handle( S:EventSource | E:EventType | V ) = done [owise] .
     *** DONE for VOTE
     
 
@@ -1785,28 +1785,74 @@ endfm)
     rl [ljk-realtime-data] :
 	< O : LKJ | data : V ; L > [==> COM-DES : PORT-LKJ | none ]
       => < O : LKJ | data : L > [==> COM-DES : PORT-LKJ | some V ] .
-
 endom)
 
+(fmod EVENT-LIST is
+    protecting TO-STATUS .
+    sort EList .
+
+    op nil : -> EList [ctor] .
+    op _;_ : EventType EList -> EList [ctor] .
+endfm)
+    
 (omod CTRL-BOX is
-    protecting DATA .
-    class CtrlBox | data : Data .
+    protecting EVENT-LIST .
+    protecting SOCKET .
+    protecting BOARD .
+    class CtrlBox | controls : EList .
+
+    var O : Oid .
+    var E : EventType .
+    var L : EList .
+    var P : PortType .
+
+    --- send out operations (from the driver)
+    rl [control-box-operation] :
+	< O : CtrlBox | controls : E ; L >
+	[==> VOTE-DES : SOCKET-TYPE-CAN2NET | none ]
+      => < O : CtrlBox | controls : L >
+	[==> VOTE-DES : SOCKET-TYPE-CAN2NET |
+	  some command( SOURCE-CONTROL | E | 1 ) ] .
+
+    --- receive events from VOTE
+    rl [control-box-rcv-command] :
+	< O : CtrlBox | > [==> CON-DES : P | some (F:Frame) ]
+      => < O : CtrlBox | > [==> CON-DES : P | none ] .
+endom)
+
+(omod OUTPUT-BOARD is
+    protecting THROTTLE-GEAR .
+    protecting SOCKET .
+    protecting BOARD .
+    class OutputBrd | gear : Nat, auto-or-manual : Nat .
+
+    var O : Oid .
+    vars N M : Nat .
+    
+    --- receive the throttle sent by VOTE
+    rl [output-throttle-receive] :
+	< O : OutputBrd | >
+	[==> OUT-DES : PORT-CANINOUT | some (gear: N ,auto-or-manual: M) ]
+      => < O : OutputBrd | gear : N, auto-or-manual : M >
+	[==> OUT-DES : PORT-CANINOUT | none ] .
 endom)
     
-(omod SYSTEM is
+(tomod SYSTEM is
     protecting SOCKET .
     protecting COMM .
     protecting CORE .
     protecting VOTE .
     protecting LKJ .
     protecting CTRL-BOX .
-    pr THREADPOOL .
+    protecting THREADPOOL .
+    protecting OUTPUT-BOARD . 
 
     op mem : -> Memory .
     op pool : -> ThreadPool .
-    op sys : -> Configuration .
+    op sys-full : -> Configuration .
+    op sys : -> Configuration .    
 
-    eq sys =
+    eq sys-full =
 	< lkj : LKJ | data : 13 ; 24 ; nil >
 	< COM-DES : Comm | cpu : ideal, mem : empty, pool :
 			   < socket-rcv(SOCKET-TYPE-0) : Thread | st : read > ;
@@ -1824,7 +1870,19 @@ endom)
 	                   < socket-rcv(SOCKET-TYPE-4) : Thread | st : read > ;
 	                   < socket-rcv(SOCKET-TYPE-5) : Thread | st : read > ;
 	                   < rt-main : Thread | st : wait > ; empty >
-	< VOTE-DES : Vote | cpu : ideal, mem : empty, pool :
+	< VOTE-DES : Vote | cpu : ideal,
+			    mem : (('throttle-gear1 -> (gear: 7 ,auto-or-manual: 1)),
+			      ('side-status -> 0), ('branch-status -> 0),
+			      ('fsm-state -> FSM-MANUAL), ('to-auto-status -> 0),
+			      ('to-manual-status -> 0), ('auto-ack-status -> 0),
+			      ('manual-ack-status -> 0), ('auto-status -> 0),
+			      ('rt-vote -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-MANNUL )),
+			      ('fsm-rt -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-MANNUL )),
+			      ('fsm-temp -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-MANNUL )) ),
+			    pool :
 			   < socket-rcv(SOCKET-TYPE-0) : Thread | st : read > ;
 	                   < socket-rcv(SOCKET-TYPE-1) : Thread | st : read > ;
   	                   < socket-rcv(SOCKET-TYPE-2) : Thread | st : read > ;
@@ -1855,8 +1913,57 @@ endom)
 	[==> VOTE-DES : SOCKET-TYPE-5 | none ]
 	[==> VOTE-DES : SOCKET-TYPE-CAN2NET | none ] 
 	[==> VOTE-DES : PORT-CANINOUT | none ] .
-    
-    
 
-endom)
+    eq sys =
+	< lkj : LKJ | data : 13 ; 24 ; nil >
+	< COM-DES : Comm | cpu : ideal, mem : empty, pool :
+			   < socket-rcv(SOCKET-TYPE-0) : Thread | st : read > ;
+	                   < net-thread : Thread | st : read > ; empty >
+	< CORE-DES : Core | cpu : ideal, mem : ('rt-arr-flag -> 0), pool :
+	                   < socket-rcv(SOCKET-TYPE-1) : Thread | st : read > ;
+	                   < rt-main : Thread | st : wait > ; empty >
+	< VOTE-DES : Vote | cpu : ideal,
+			    mem : (('throttle-gear1 -> (gear: 7 ,auto-or-manual: 1)),
+			      ('side-status -> 0), ('branch-status -> 0),
+			      ('fsm-state -> FSM-MANUAL), ('to-auto-status -> 0),
+			      ('to-manual-status -> 0), ('auto-ack-status -> 0),
+			      ('manual-ack-status -> 0), ('auto-status -> 0),
+			      ('rt-vote -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-MANNUL )),
+			      ('fsm-rt -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-MANNUL )),
+			      ('fsm-temp -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-MANNUL )) ),
+			    pool :
+	                   < socket-rcv(SOCKET-TYPE-1) : Thread | st : read > ;
+                           < receive-throttle : Thread | st : receive > ;
+                           < fsm-run : Thread | st : while-fsm-start > ; empty > 
+	[==> COM-DES : PORT-LKJ | none ] 
+	[==> COM-DES : SOCKET-TYPE-0 | none ]
+	[==> CORE-DES : SOCKET-TYPE-1 | none ]
+	[==> VOTE-DES : SOCKET-TYPE-1 | none ]
+	[==> VOTE-DES : SOCKET-TYPE-CAN2NET | none ] 
+	[==> VOTE-DES : PORT-CANINOUT | none ] .
+
+    
+    op pat : -> Configuration .
+    eq pat = < lkj : LKJ | data : 24 ; nil > [==> COM-DES : PORT-LKJ | some 13 ] .
+
+    op state : Configuration -> Bool .
+    eq state(< lkj : LKJ | data : nil > [==> COM-DES : PORT-LKJ | none ]
+	  [==> CORE-DES : SOCKET-TYPE-1 | none ]
+	  < CORE-DES : Core | cpu : < socket-rcv(SOCKET-TYPE-1) : Thread | st : read > >
+	  C:Configuration)
+      = true .
+    eq state(C:Configuration) = false [owise] .
+
+    eq test(90) = < CON-DES : CtrlBox | controls :
+				     EVENT-MANNAL-TO-AUTO ;
+				     EVENT-TWO-GEAR-TO-MANNUL ; nil >
+	[==> VOTE-DES : SOCKET-TYPE-CAN2NET | none ]
+	[==> CON-DES : SOCKET-TYPE-5 | some data(data1) ] .
+    eq test(91) = < OUT-DES : OutputBrd | gear : 2, auto-or-manual : 1 >
+	[==> OUT-DES : PORT-CANINOUT | some (gear: 5 ,auto-or-manual: 0) ] .
+    
+endtom)
   

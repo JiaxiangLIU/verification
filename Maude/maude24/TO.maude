@@ -1850,7 +1850,7 @@ endom)
     op mem : -> Memory .
     op pool : -> ThreadPool .
     op sys-full : -> Configuration .
-    op sys : -> Configuration .    
+    op sys : Nat -> Configuration .    
 
     eq sys-full =
 	< lkj : LKJ | data : 13 ; 24 ; nil >
@@ -1918,8 +1918,18 @@ endom)
 	[==> CON-DES : SOCKET-TYPE-5 | none ]
 	[==> OUT-DES : PORT-CANINOUT | none ] .    
 
-    eq sys =
-	< lkj : LKJ | data : 13 ; 24 ; nil >
+    ***(
+    --- the train is controlled by 5 in manual mode in the auto-enable area;
+    --- then the driver switch to auto mode;
+    --- when changing mode, the train enters in the auto-disable area.
+    --- meeting CONFLICT property:
+    --- (not isAutoEnable(C:Configuration)) and (not switchToManual(C:Configuration))
+    )
+    eq sys(1) =
+	< lkj : LKJ | data :
+		      (rt-gear: 5 ,rt-enable-status: 1) ;
+		      (rt-gear: 2 ,rt-enable-status: 0) ;
+		      nil >
 	< COM-DES : Comm | cpu : ideal, mem : empty, pool :
 			   < socket-rcv(SOCKET-TYPE-0) : Thread | st : read > ;
 	                   < net-thread : Thread | st : read > ; empty >
@@ -1927,7 +1937,7 @@ endom)
 	                   < socket-rcv(SOCKET-TYPE-1) : Thread | st : read > ;
 	                   < rt-main : Thread | st : wait > ; empty >
 	< VOTE-DES : Vote | cpu : ideal,
-			    mem : (('throttle-gear1 -> (gear: 7 ,auto-or-manual: 1)),
+			    mem : (('throttle-gear1 -> (gear: 5 ,auto-or-manual: 0)),
 			      ('side-status -> 0), ('branch-status -> 0),
 			      ('fsm-state -> FSM-MANUAL), ('to-auto-status -> 0),
 			      ('to-manual-status -> 0), ('auto-ack-status -> 0),
@@ -1943,8 +1953,8 @@ endom)
 	                    < socket-rcv(SOCKET-TYPE-CAN2NET) : Thread | st : read > ;	
                             < receive-throttle : Thread | st : receive > ;
                             < fsm-run : Thread | st : while-fsm-start > ; empty > 
-	< CON-DES : CtrlBox | controls : nil >
-	< OUT-DES : OutputBrd | gear : 0, auto-or-manual : 0 >
+	< CON-DES : CtrlBox | controls : EVENT-MANNAL-TO-AUTO ; nil >
+	< OUT-DES : OutputBrd | gear : 5, auto-or-manual : 0 >
 	[==> COM-DES : PORT-LKJ | none ] 
 	[==> COM-DES : SOCKET-TYPE-0 | none ]
 	[==> CORE-DES : SOCKET-TYPE-1 | none ]
@@ -1955,24 +1965,93 @@ endom)
 	[==> OUT-DES : PORT-CANINOUT | none ] .
 
     
-    op pat : -> Configuration .
-    eq pat = < lkj : LKJ | data : 24 ; nil > [==> COM-DES : PORT-LKJ | some 13 ] .
+    var M : Memory .
+    
+    --- to see if the system is on the procedure to switch to manual mode
+    op switchToManual : Configuration -> Bool .
+    eq switchToManual( < VOTE-DES : Vote | mem : M > C:Configuration )
+      = M['fsm-state] == FSM-MANUAL or M['fsm-state] == FSM-START-MANUAL
+	or M['fsm-state] == FSM-ACK-MANUAL or M['fsm-state] == FSM-ERGE-AUTO
+	or M['fsm-state] == FSM-OVER-TIME .
 
-    op state : Configuration -> Bool .
-    eq state(< lkj : LKJ | data : nil > [==> COM-DES : PORT-LKJ | none ]
-	  [==> CORE-DES : SOCKET-TYPE-1 | none ]
-	  < CORE-DES : Core | cpu : < socket-rcv(SOCKET-TYPE-1) : Thread | st : read > >
-	  C:Configuration)
+    --- to see if the optimized result enable the auto controlling
+    op isAutoEnable : Configuration -> Bool .
+    eq isAutoEnable( < VOTE-DES : Vote | mem : M > C:Configuration )
+      = ((M['fsm-temp]).rt-core).rt-enable-status == 1 .
+
+endtom)
+
+(tomod SYSTEM-VERIFICATION is
+    protecting SYSTEM .
+    including TIMED-MODEL-CHECKER .
+
+    op timeoutControl : Configuration -> Bool .
+    eq timeoutControl( < OUT-DES : OutputBrd | gear : 0, auto-or-manual : 1 >
+	  C:Configuration )
       = true .
-    eq state(C:Configuration) = false [owise] .
+    eq timeoutControl( C:Configuration ) = false [owise] .
 
-    eq test(90) = < CON-DES : CtrlBox | controls :
-				     EVENT-MANNAL-TO-AUTO ;
-				     EVENT-TWO-GEAR-TO-MANNUL ; nil >
-	[==> VOTE-DES : SOCKET-TYPE-CAN2NET | none ]
-	[==> CON-DES : SOCKET-TYPE-5 | some data(data1) ] .
-    eq test(91) = < OUT-DES : OutputBrd | gear : 2, auto-or-manual : 1 >
-	[==> OUT-DES : PORT-CANINOUT | some (gear: 5 ,auto-or-manual: 0) ] .
+    op autoControl : Configuration -> Bool .
+    eq autoControl( < OUT-DES : OutputBrd | auto-or-manual : 1 > C:Configuration )
+      = true .
+    eq autoControl( C:Configuration ) = false [owise] .
+
+    op manualControl : Configuration -> Bool .
+    eq manualControl( < OUT-DES : OutputBrd | auto-or-manual : 0 > C:Configuration )
+      = true .
+    eq manualControl( C:Configuration ) = false [owise] .
+
+    vars N M : Nat .
+    var C : Configuration .
+    
+    op _.gearEquals`(_`) : Configuration Nat -> Bool .
+    eq (< OUT-DES : OutputBrd | gear : N > C:Configuration).gearEquals(M)
+      = N == M .
+
+    op slide : -> Prop .
+    eq {C:Configuration} |= slide = timeoutControl(C:Configuration) .
+
+    op auto : Nat -> Prop .
+    eq {C} |= auto(N) = autoControl(C) and (C).gearEquals(N) .
+
+    op manual : Nat -> Prop .
+    eq {C} |= manual(N) = manualControl(C) and (C).gearEquals(N) .
+
+
+    eq sys(2) =
+	< lkj : LKJ | data : nil >
+	< COM-DES : Comm | cpu : ideal, mem : empty, pool :
+			   < socket-rcv(SOCKET-TYPE-0) : Thread | st : read > ;
+	                   < net-thread : Thread | st : read > ; empty >
+	< CORE-DES : Core | cpu : ideal, mem : ('rt-arr-flag -> 0), pool :
+	                   < socket-rcv(SOCKET-TYPE-1) : Thread | st : read > ;
+	                   < rt-main : Thread | st : wait > ; empty >
+	< VOTE-DES : Vote | cpu : ideal,
+			    mem : (('throttle-gear1 -> (gear: 5 ,auto-or-manual: 0)),
+			      ('side-status -> 0), ('branch-status -> 0),
+			      ('fsm-state -> FSM-MANUAL), ('to-auto-status -> 0),
+			      ('to-manual-status -> 0), ('auto-ack-status -> 0),
+			      ('manual-ack-status -> 0), ('auto-status -> 0),
+			      ('rt-vote -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-AUTO )),
+			      ('fsm-rt -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-MANNUL )),
+			      ('fsm-temp -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-MANNUL )) ),
+			    pool :
+	                    < socket-rcv(SOCKET-TYPE-1) : Thread | st : read > ;
+	                    < socket-rcv(SOCKET-TYPE-CAN2NET) : Thread | st : read > ;	
+                            < receive-throttle : Thread | st : receive > ;
+                            < fsm-run : Thread | st : while-fsm-start > ; empty > 
+	< CON-DES : CtrlBox | controls : nil >
+	< OUT-DES : OutputBrd | gear : 5, auto-or-manual : 0 >
+	[==> COM-DES : PORT-LKJ | none ] 
+	[==> COM-DES : SOCKET-TYPE-0 | none ]
+	[==> CORE-DES : SOCKET-TYPE-1 | none ]
+	[==> VOTE-DES : SOCKET-TYPE-1 | none ]
+	[==> VOTE-DES : SOCKET-TYPE-CAN2NET | none ] 
+	[==> VOTE-DES : PORT-CANINOUT | none ]
+	[==> CON-DES : SOCKET-TYPE-5 | none ]
+	[==> OUT-DES : PORT-CANINOUT | none ] .
     
 endtom)
-  

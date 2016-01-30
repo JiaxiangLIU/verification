@@ -836,7 +836,7 @@ endom)
     op msg1 : Oid Nat -> Msg .
     op cpu1 : -> Object .
     op mem1 : -> Memory .
-    op pool1 : -> ThreadPool .
+    op pool1 : -> ThreadPool . 
     op ftest : -> Frame .
     op com1 : -> Command .
     op data1 : -> Data .
@@ -913,7 +913,7 @@ endom)
     crl [vote-set-branch-status] :
 	< O : Vote | cpu : T, mem : M, pool : P >
       => < O : Vote | cpu : ideal, mem : M['branch-status := 1],
-		      pool : enqueue(T', P) >
+ 		      pool : enqueue(T', P) >
       if < socket-rcv(S) : Thread | st : set-branch-status(1) ; ST > := T
 	  /\ T' := < socket-rcv(S) : Thread | st : ST > .
 
@@ -1283,10 +1283,10 @@ endom)
 	< O : Vote | cpu : T, mem : M, pool : P >
       => if M['to-auto-status] == 1
 	then < O : Vote | cpu : ideal,
-                          mem : ((M['fsm-state := FSM-START-AUTO]).fsm-set-gear((M['throttle-gear1]).gear)).fsm-set-control(CONTROL-MANNUL),
+                          mem : ((M['counter := 0]['fsm-state := FSM-START-AUTO]).fsm-set-gear((M['throttle-gear1]).gear)).fsm-set-control(CONTROL-MANNUL),
 			  pool : enqueue(T', P) > 
 	else < O : Vote | cpu : ideal,
-			  mem : ((M).fsm-set-gear((M['throttle-gear1]).gear)).fsm-set-control(CONTROL-MANNUL),
+			  mem : ((M['counter := 0]).fsm-set-gear((M['throttle-gear1]).gear)).fsm-set-control(CONTROL-MANNUL),
 			  pool : enqueue(T', P) >
 	fi
       if < fsm-run : Thread | st : case-fsm-manual ; ST > := T
@@ -1295,28 +1295,30 @@ endom)
     op _.status-init : Memory -> Memory .
     eq (M).status-init
       = M['to-auto-status := 0]['to-manual-status := 0]['auto-ack-status := 0]['manual-ack-status := 0] .
-      
+
     --- behavior of case-fsm-start-auto in fsm_run
     crl [vote-case-fsm-start-auto-timeout] :
 	< O : Vote | cpu : T, mem : M, pool : P >
       => < O : Vote | cpu : ideal, mem : M['fsm-state := FSM-OVER-TIME], 
 		      pool : enqueue(T', P) >
       if < fsm-run : Thread | st : case-fsm-start-auto ; ST > := T
+	  /\ (M['counter]) >= 5
 	  /\ T' := < fsm-run : Thread | st : ST > .
     crl [vote-case-fsm-start-auto] :
 	< O : Vote | cpu : T, mem : M, pool : P >
       => if M['to-auto-gear] == 8
 	then < O : Vote | cpu : ideal,
-                          mem : M['fsm-state := FSM-ACK-AUTO],
+                          mem : M['counter := s(M['counter])]['fsm-state := FSM-ACK-AUTO],
 			  pool : enqueue(T', P) > 
 	else (if (M['throttle-gear1]).gear == 8
       	      then < O : Vote | cpu : ideal,
-		   	        mem : (M['fsm-state := FSM-AUTO]).status-init,
+		   	        mem : (M['counter := s(M['counter])]['fsm-state := FSM-AUTO]).status-init,
 			        pool : enqueue(T', P) >
-	      else < O : Vote | cpu : ideal, mem : M, pool : enqueue(T', P) >
+	      else < O : Vote | cpu : ideal, mem : M['counter := s(M['counter])], pool : enqueue(T', P) >
 	      fi)
 	fi
       if < fsm-run : Thread | st : case-fsm-start-auto ; ST > := T
+	  /\ (M['counter]) < 5
 	  /\ T' := < fsm-run : Thread | st : ST > .
 
     --- behavior of case-fsm-ack-auto in fsm_run
@@ -1325,6 +1327,7 @@ endom)
       => < O : Vote | cpu : ideal, mem : M['fsm-state := FSM-OVER-TIME], 
 		      pool : enqueue(T', P) >
       if < fsm-run : Thread | st : case-fsm-ack-auto ; ST > := T
+	  /\ (M['counter]) >= 5
 	  /\ T' := < fsm-run : Thread | st : ST > . 
     crl [vote-case-fsm-ack-auto] :
 	< O : Vote | cpu : T, mem : M, pool : P >
@@ -1332,9 +1335,10 @@ endom)
 	then < O : Vote | cpu : ideal,
                           mem : (M['fsm-state := FSM-AUTO]).status-init,
 			  pool : enqueue(T', P) > 
-	else < O : Vote | cpu : ideal, mem : M, pool : enqueue(T', P) >
+	else < O : Vote | cpu : ideal, mem : M['counter := s(M['counter])], pool : enqueue(T', P) >
 	fi
       if < fsm-run : Thread | st : case-fsm-ack-auto ; ST > := T
+	  /\ (M['counter]) < 5
 	  /\ T' := < fsm-run : Thread | st : ST > .
 
     --- behavior of case-fsm-over-time-compare-gear in fsm_run
@@ -1366,9 +1370,9 @@ endom)
 	< O : Vote | cpu : T, mem : M, pool : P >
       => if (M['throttle-gear1]).gear =/= 8
 	then < O : Vote | cpu : ideal,
-                          mem : M['to-manual-status := 1],
+                          mem : M['counter := 0]['to-manual-status := 1],
 			  pool : enqueue(T', P) > 
-	else < O : Vote | cpu : ideal, mem : M, pool : enqueue(T', P) >
+	else < O : Vote | cpu : ideal, mem : M['counter := 0], pool : enqueue(T', P) >
 	fi
       if < fsm-run : Thread | st : case-fsm-auto-compare-throttle ; ST > := T
 	  /\ T' := < fsm-run : Thread | st : ST > .
@@ -1391,21 +1395,23 @@ endom)
       => < O : Vote | cpu : ideal, mem : M['fsm-state := FSM-OVER-TIME], 
 		      pool : enqueue(T', P) >
       if < fsm-run : Thread | st : case-fsm-start-manual ; ST > := T
+	  /\ (M['counter]) >= 5
 	  /\ T' := < fsm-run : Thread | st : ST > . 
     crl [vote-case-fsm-start-manual] :
 	< O : Vote | cpu : T, mem : M, pool : P >
       => if (M['throttle-gear1]).gear <= ((M['fsm-rt]).rt-core).rt-gear
 	then < O : Vote | cpu : ideal,
-                          mem : (M['fsm-state := FSM-MANUAL]).status-init,
+                          mem : (M['counter := s(M['counter])]['fsm-state := FSM-MANUAL]).status-init,
 			  pool : enqueue(T', P) > 
 	else (if (M['throttle-gear1]).gear <= 2 + ((M['fsm-rt]).rt-core).rt-gear
       	      then < O : Vote | cpu : ideal,
-		   	        mem : M['fsm-state := FSM-ACK-MANUAL],
+		   	        mem : M['counter := s(M['counter])]['fsm-state := FSM-ACK-MANUAL],
 			        pool : enqueue(T', P) >
-	      else < O : Vote | cpu : ideal, mem : M, pool : enqueue(T', P) >
+	      else < O : Vote | cpu : ideal, mem : M['counter := s(M['counter])], pool : enqueue(T', P) >
 	      fi)
 	fi
       if < fsm-run : Thread | st : case-fsm-start-manual ; ST > := T
+	  /\ (M['counter]) < 5
 	  /\ T' := < fsm-run : Thread | st : ST > .
 
     --- behavior of case-fsm-ack-manual in fsm_run
@@ -1414,6 +1420,7 @@ endom)
       => < O : Vote | cpu : ideal, mem : M['fsm-state := FSM-OVER-TIME], 
 		      pool : enqueue(T', P) >
       if < fsm-run : Thread | st : case-fsm-ack-manual ; ST > := T
+	  /\ (M['counter]) >= 5
 	  /\ T' := < fsm-run : Thread | st : ST > . 
     crl [vote-case-fsm-ack-manual] :
 	< O : Vote | cpu : T, mem : M, pool : P >
@@ -1421,9 +1428,10 @@ endom)
 	then < O : Vote | cpu : ideal,
                           mem : (M['fsm-state := FSM-MANUAL]).status-init,
 			  pool : enqueue(T', P) > 
-	else < O : Vote | cpu : ideal, mem : M, pool : enqueue(T', P) >
+	else < O : Vote | cpu : ideal, mem : M['counter := s(M['counter])], pool : enqueue(T', P) >
 	fi
       if < fsm-run : Thread | st : case-fsm-ack-manual ; ST > := T
+	  /\ (M['counter]) < 5
 	  /\ T' := < fsm-run : Thread | st : ST > . 
 
 
@@ -1830,11 +1838,21 @@ endom)
     vars N M : Nat .
     
     --- receive the throttle sent by VOTE
+    ***(
     rl [output-throttle-receive] :
 	< O : OutputBrd | >
 	[==> OUT-DES : PORT-CANINOUT | some (gear: N ,auto-or-manual: M) ]
       => < O : OutputBrd | gear : N, auto-or-manual : M >
 	[==> OUT-DES : PORT-CANINOUT | none ] .
+    )
+
+    --- receive the throttle sent by VOTE
+    --- the mandatory version
+    eq < O : OutputBrd | >
+	[==> OUT-DES : PORT-CANINOUT | some (gear: N ,auto-or-manual: M) ]
+      = < O : OutputBrd | gear : N, auto-or-manual : M >
+	[==> OUT-DES : PORT-CANINOUT | none ] .
+    
 endom)
     
 (tomod SYSTEM is
@@ -2018,6 +2036,13 @@ endtom)
     eq {C} |= manual(N) = manualControl(C) and (C).gearEquals(N) .
 
 
+    ***(
+    --- the train is controlled by 5 in manual mode in the auto-enable area ;
+    --- the driver does no operations;
+    --- the train would always remain controlled by 5 in manual mode
+    --- SATISFY:
+    --- [] manual(5)
+    )
     eq sys(2) =
 	< lkj : LKJ | data : nil >
 	< COM-DES : Comm | cpu : ideal, mem : empty, pool :
@@ -2053,5 +2078,42 @@ endtom)
 	[==> VOTE-DES : PORT-CANINOUT | none ]
 	[==> CON-DES : SOCKET-TYPE-5 | none ]
 	[==> OUT-DES : PORT-CANINOUT | none ] .
+
+    ***(
+    --- the train is controlled by 5 in manual mode in the auto-enable area ;
+    --- the driver pushes the button to switch to auto mode, then does no other opeartions ;
+    --- the train is expected to go to the slide mode .
+    --- SATISFY:
+    --- <> slide
+    )
+    eq sys(3) =
+	< VOTE-DES : Vote | cpu : ideal,
+			    mem : (('throttle-gear1 -> (gear: 5 ,auto-or-manual: 0)),
+			      ('side-status -> 0), ('branch-status -> 0),
+			      ('fsm-state -> FSM-MANUAL), ('to-auto-status -> 0),
+			      ('to-manual-status -> 0), ('auto-ack-status -> 0),
+			      ('manual-ack-status -> 0), ('auto-status -> 0),
+			      ('counter -> 0),
+			      ('rt-vote -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-AUTO )),
+			      ('fsm-rt -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-MANNUL )),
+			      ('fsm-temp -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-MANNUL )) ),
+			    pool :
+	                    < socket-rcv(SOCKET-TYPE-1) : Thread | st : read > ;
+	                    < socket-rcv(SOCKET-TYPE-CAN2NET) : Thread | st : read > ;	
+                            < receive-throttle : Thread | st : receive > ;
+                            < fsm-run : Thread | st : while-fsm-start > ; empty > 
+	< OUT-DES : OutputBrd | gear : 5, auto-or-manual : 0 >
+	[==> COM-DES : PORT-LKJ | none ] 
+	[==> COM-DES : SOCKET-TYPE-0 | none ]
+	[==> CORE-DES : SOCKET-TYPE-1 | none ]
+	[==> VOTE-DES : SOCKET-TYPE-1 | none ]
+	[==> VOTE-DES : SOCKET-TYPE-CAN2NET
+	  | some command( SOURCE-CONTROL | EVENT-MANNAL-TO-AUTO | 1 ) ] 
+	[==> VOTE-DES : PORT-CANINOUT | none ]
+	[==> CON-DES : SOCKET-TYPE-5 | none ]
+	[==> OUT-DES : PORT-CANINOUT | none ] .    
     
 endtom)

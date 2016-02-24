@@ -1,0 +1,803 @@
+\documentclass[10pt,journal]{IEEEtran}
+%
+% If IEEEtran.cls has not been installed into the LaTeX system files,
+% manually specify the path to it like:
+% \documentclass[10pt,journal,compsoc]{../sty/IEEEtran}
+
+
+
+
+
+% Some very useful LaTeX packages include:
+% (uncomment the ones you want to load)
+
+
+% *** MISC UTILITY PACKAGES ***
+%
+%\usepackage{ifpdf}
+% Heiko Oberdiek's ifpdf.sty is very useful if you need conditional
+% compilation based on whether the output is pdf or dvi.
+% usage:
+% \ifpdf
+%   % pdf code
+% \else
+%   % dvi code
+% \fi
+% The latest version of ifpdf.sty can be obtained from:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/oberdiek/
+% Also, note that IEEEtran.cls V1.7 and later provides a builtin
+% \ifCLASSINFOpdf conditional that works the same way.
+% When switching from latex to pdflatex and vice-versa, the compiler may
+% have to be run twice to clear warning/error messages.
+
+
+
+
+
+
+% *** CITATION PACKAGES ***
+%
+\ifCLASSOPTIONcompsoc
+  % IEEE Computer Society needs nocompress option
+  % requires cite.sty v4.0 or later (November 2003)
+  \usepackage[nocompress,noadjust]{cite}
+\else
+  % normal IEEE
+  \usepackage[noadjust]{cite}
+\fi
+% cite.sty was written by Donald Arseneau
+% V1.6 and later of IEEEtran pre-defines the format of the cite.sty package
+% \cite{} output to follow that of IEEE. Loading the cite package will
+% result in citation numbers being automatically sorted and properly
+% "compressed/ranged". e.g., [1], [9], [2], [7], [5], [6] without using
+% cite.sty will become [1], [2], [5]--[7], [9] using cite.sty. cite.sty's
+% \cite will automatically add leading space, if needed. Use cite.sty's
+% noadjust option (cite.sty V3.8 and later) if you want to turn this off
+% such as if a citation ever needs to be enclosed in parenthesis.
+% cite.sty is already installed on most LaTeX systems. Be sure and use
+% version 5.0 (2009-03-20) and later if using hyperref.sty.
+% The latest version can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/cite/
+% The documentation is contained in the cite.sty file itself.
+%
+% Note that some packages require special options to format as the Computer
+% Society requires. In particular, Computer Society  papers do not use
+% compressed citation ranges as is done in typical IEEE papers
+% (e.g., [1]-[4]). Instead, they list every citation separately in order
+% (e.g., [1], [2], [3], [4]). To get the latter we need to load the cite
+% package with the nocompress option which is supported by cite.sty v4.0
+% and later. Note also the use of a CLASSOPTION conditional provided by
+% IEEEtran.cls V1.7 and later.
+
+
+
+
+
+% *** GRAPHICS RELATED PACKAGES ***
+%
+\ifCLASSINFOpdf
+  % \usepackage[pdftex]{graphicx}
+  % declare the path(s) where your graphic files are
+  % \graphicspath{{../pdf/}{../jpeg/}}
+  % and their extensions so you won't have to specify these with
+  % every instance of \includegraphics
+  % \DeclareGraphicsExtensions{.pdf,.jpeg,.png}
+\else
+  % or other class option (dvipsone, dvipdf, if not using dvips). graphicx
+  % will default to the driver specified in the system graphics.cfg if no
+  % driver is specified.
+  % \usepackage[dvips]{graphicx}
+  % declare the path(s) where your graphic files are
+  % \graphicspath{{../eps/}}
+  % and their extensions so you won't have to specify these with
+  % every instance of \includegraphics
+  % \DeclareGraphicsExtensions{.eps}
+\fi
+% graphicx was written by David Carlisle and Sebastian Rahtz. It is
+% required if you want graphics, photos, etc. graphicx.sty is already
+% installed on most LaTeX systems. The latest version and documentation
+% can be obtained at: 
+% http://www.ctan.org/tex-archive/macros/latex/required/graphics/
+% Another good source of documentation is "Using Imported Graphics in
+% LaTeX2e" by Keith Reckdahl which can be found at:
+% http://www.ctan.org/tex-archive/info/epslatex/
+%
+% latex, and pdflatex in dvi mode, support graphics in encapsulated
+% postscript (.eps) format. pdflatex in pdf mode supports graphics
+% in .pdf, .jpeg, .png and .mps (metapost) formats. Users should ensure
+% that all non-photo figures use a vector format (.eps, .pdf, .mps) and
+% not a bitmapped formats (.jpeg, .png). IEEE frowns on bitmapped formats
+% which can result in "jaggedy"/blurry rendering of lines and letters as
+% well as large increases in file sizes.
+%
+% You can find documentation about the pdfTeX application at:
+% http://www.tug.org/applications/pdftex
+
+
+
+
+
+
+% *** MATH PACKAGES ***
+%
+\usepackage[cmex10]{amsmath}
+% A popular package from the American Mathematical Society that provides
+% many useful and powerful commands for dealing with mathematics. If using
+% it, be sure to load this package with the cmex10 option to ensure that
+% only type 1 fonts will utilized at all point sizes. Without this option,
+% it is possible that some math symbols, particularly those within
+% footnotes, will be rendered in bitmap form which will result in a
+% document that can not be IEEE Xplore compliant!
+%
+% Also, note that the amsmath package sets \interdisplaylinepenalty to 10000
+% thus preventing page breaks from occurring within multiline equations. Use:
+%\interdisplaylinepenalty=2500
+% after loading amsmath to restore such page breaks as IEEEtran.cls normally
+% does. amsmath.sty is already installed on most LaTeX systems. The latest
+% version and documentation can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/required/amslatex/math/
+
+
+
+
+
+% *** SPECIALIZED LIST PACKAGES ***
+%
+%\usepackage{algorithmic}
+% algorithmic.sty was written by Peter Williams and Rogerio Brito.
+% This package provides an algorithmic environment fo describing algorithms.
+% You can use the algorithmic environment in-text or within a figure
+% environment to provide for a floating algorithm. Do NOT use the algorithm
+% floating environment provided by algorithm.sty (by the same authors) or
+% algorithm2e.sty (by Christophe Fiorio) as IEEE does not use dedicated
+% algorithm float types and packages that provide these will not provide
+% correct IEEE style captions. The latest version and documentation of
+% algorithmic.sty can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/algorithms/
+% There is also a support site at:
+% http://algorithms.berlios.de/index.html
+% Also of interest may be the (relatively newer and more customizable)
+% algorithmicx.sty package by Szasz Janos:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/algorithmicx/
+
+\usepackage{algpseudocode}
+
+
+% *** ALIGNMENT PACKAGES ***
+%
+%\usepackage{array}
+% Frank Mittelbach's and David Carlisle's array.sty patches and improves
+% the standard LaTeX2e array and tabular environments to provide better
+% appearance and additional user controls. As the default LaTeX2e table
+% generation code is lacking to the point of almost being broken with
+% respect to the quality of the end results, all users are strongly
+% advised to use an enhanced (at the very least that provided by array.sty)
+% set of table tools. array.sty is already installed on most systems. The
+% latest version and documentation can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/required/tools/
+
+
+% IEEEtran contains the IEEEeqnarray family of commands that can be used to
+% generate multiline equations as well as matrices, tables, etc., of high
+% quality.
+
+
+
+
+% *** SUBFIGURE PACKAGES ***
+\ifCLASSOPTIONcompsoc
+  \usepackage[caption=false,font=footnotesize,labelfont=sf,textfont=sf]{subfig}
+\else
+  \usepackage[caption=false,font=footnotesize]{subfig}
+\fi
+% subfig.sty, written by Steven Douglas Cochran, is the modern replacement
+% for subfigure.sty, the latter of which is no longer maintained and is
+% incompatible with some LaTeX packages including fixltx2e. However,
+% subfig.sty requires and automatically loads Axel Sommerfeldt's caption.sty
+% which will override IEEEtran.cls' handling of captions and this will result
+% in non-IEEE style figure/table captions. To prevent this problem, be sure
+% and invoke subfig.sty's "caption=false" package option (available since
+% subfig.sty version 1.3, 2005/06/28) as this is will preserve IEEEtran.cls
+% handling of captions.
+% Note that the Computer Society format requires a sans serif font rather
+% than the serif font used in traditional IEEE formatting and thus the need
+% to invoke different subfig.sty package options depending on whether
+% compsoc mode has been enabled.
+%
+% The latest version and documentation of subfig.sty can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/subfig/
+
+
+
+
+% *** FLOAT PACKAGES ***
+%
+%\usepackage{fixltx2e}
+% fixltx2e, the successor to the earlier fix2col.sty, was written by
+% Frank Mittelbach and David Carlisle. This package corrects a few problems
+% in the LaTeX2e kernel, the most notable of which is that in current
+% LaTeX2e releases, the ordering of single and double column floats is not
+% guaranteed to be preserved. Thus, an unpatched LaTeX2e can allow a
+% single column figure to be placed prior to an earlier double column
+% figure. The latest version and documentation can be found at:
+% http://www.ctan.org/tex-archive/macros/latex/base/
+
+
+%\usepackage{stfloats}
+% stfloats.sty was written by Sigitas Tolusis. This package gives LaTeX2e
+% the ability to do double column floats at the bottom of the page as well
+% as the top. (e.g., "\begin{figure*}[!b]" is not normally possible in
+% LaTeX2e). It also provides a command:
+%\fnbelowfloat
+% to enable the placement of footnotes below bottom floats (the standard
+% LaTeX2e kernel puts them above bottom floats). This is an invasive package
+% which rewrites many portions of the LaTeX2e float routines. It may not work
+% with other packages that modify the LaTeX2e float routines. The latest
+% version and documentation can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/sttools/
+% Do not use the stfloats baselinefloat ability as IEEE does not allow
+% \baselineskip to stretch. Authors submitting work to the IEEE should note
+% that IEEE rarely uses double column equations and that authors should try
+% to avoid such use. Do not be tempted to use the cuted.sty or midfloat.sty
+% packages (also by Sigitas Tolusis) as IEEE does not format its papers in
+% such ways.
+% Do not attempt to use stfloats with fixltx2e as they are incompatible.
+% Instead, use Morten Hogholm'a dblfloatfix which combines the features
+% of both fixltx2e and stfloats:
+%
+\usepackage{dblfloatfix}
+% The latest version can be found at:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/dblfloatfix/
+
+
+
+
+%\ifCLASSOPTIONcaptionsoff
+%  \usepackage[nomarkers]{endfloat}
+% \let\MYoriglatexcaption\caption
+% \renewcommand{\caption}[2][\relax]{\MYoriglatexcaption[#2]{#2}}
+%\fi
+% endfloat.sty was written by James Darrell McCauley, Jeff Goldberg and 
+% Axel Sommerfeldt. This package may be useful when used in conjunction with 
+% IEEEtran.cls'  captionsoff option. Some IEEE journals/societies require that
+% submissions have lists of figures/tables at the end of the paper and that
+% figures/tables without any captions are placed on a page by themselves at
+% the end of the document. If needed, the draftcls IEEEtran class option or
+% \CLASSINPUTbaselinestretch interface can be used to increase the line
+% spacing as well. Be sure and use the nomarkers option of endfloat to
+% prevent endfloat from "marking" where the figures would have been placed
+% in the text. The two hack lines of code above are a slight modification of
+% that suggested by in the endfloat docs (section 8.4.1) to ensure that
+% the full captions always appear in the list of figures/tables - even if
+% the user used the short optional argument of \caption[]{}.
+% IEEE papers do not typically make use of \caption[]'s optional argument,
+% so this should not be an issue. A similar trick can be used to disable
+% captions of packages such as subfig.sty that lack options to turn off
+% the subcaptions:
+% For subfig.sty:
+% \let\MYorigsubfloat\subfloat
+% \renewcommand{\subfloat}[2][\relax]{\MYorigsubfloat[]{#2}}
+% However, the above trick will not work if both optional arguments of
+% the \subfloat command are used. Furthermore, there needs to be a
+% description of each subfigure *somewhere* and endfloat does not add
+% subfigure captions to its list of figures. Thus, the best approach is to
+% avoid the use of subfigure captions (many IEEE journals avoid them anyway)
+% and instead reference/explain all the subfigures within the main caption.
+% The latest version of endfloat.sty and its documentation can obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/endfloat/
+%
+% The IEEEtran \ifCLASSOPTIONcaptionsoff conditional can also be used
+% later in the document, say, to conditionally put the References on a 
+% page by themselves.
+
+
+
+
+% *** PDF, URL AND HYPERLINK PACKAGES ***
+%
+%\usepackage{url}
+% url.sty was written by Donald Arseneau. It provides better support for
+% handling and breaking URLs. url.sty is already installed on most LaTeX
+% systems. The latest version and documentation can be obtained at:
+% http://www.ctan.org/tex-archive/macros/latex/contrib/url/
+% Basically, \url{my_url_here}.
+
+
+
+
+
+% *** Do not adjust lengths that control margins, column widths, etc. ***
+% *** Do not use packages that alter fonts (such as pslatex).         ***
+% There should be no need to do such things with IEEEtran.cls V1.6 and later.
+% (Unless specifically asked to do so by the journal or conference you plan
+% to submit to, of course. )
+
+\usepackage{alltt}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta}
+\usepackage{multicol}
+\newcommand{\hide}[1]{\ignorespaces}
+\newcommand{\jx}[1]{{\bf Jiaxiang: }#1{ \bf End}}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+
+% Define the fontsize in environment {verbatim}
+\makeatletter
+\def\verbatim{\small\@verbatim \frenchspacing\@vobeyspaces \@xverbatim}
+%\def\verbatim@font{\small\ttfamily}
+\makeatother
+
+
+% correct bad hyphenation here
+\hyphenation{op-tical net-works semi-conduc-tor}
+
+
+\begin{document}
+%
+% paper title
+% Titles are generally capitalized except for words such as a, an, and, as,
+% at, but, by, for, in, nor, of, on, or, the, to and up, which are usually
+% not capitalized unless they are the first or last word of the title.
+% Linebreaks \\ can be used within to get better formatting as desired.
+% Do not put math or special symbols in the title.
+\title{Corrections to Manuscript No. 15-TIE-3480}
+%
+%
+% author names and IEEE memberships
+% note positions of commas and nonbreaking spaces ( ~ ) LaTeX will not break
+% a structure at a ~ so this keeps an author's name from being broken across
+% two lines.
+% use \thanks{} to gain access to the first footnote area
+% a separate \thanks must be used for each paragraph as LaTeX2e's \thanks
+% was not built to handle multiple paragraphs
+%
+%
+%\IEEEcompsocitemizethanks is a special \thanks that produces the bulleted
+% lists the Computer Society journals use for "first footnote" author
+% affiliations. Use \IEEEcompsocthanksitem which works much like \item
+% for each affiliation group. When not in compsoc mode,
+% \IEEEcompsocitemizethanks becomes like \thanks and
+% \IEEEcompsocthanksitem becomes a line break with idention. This
+% facilitates dual compilation, although admittedly the differences in the
+% desired content of \author between the different types of papers makes a
+% one-size-fits-all approach a daunting prospect. For instance, compsoc 
+% journal papers have the author affiliations above the "Manuscript
+% received ..."  text while in non-compsoc journals this is reversed. Sigh.
+
+\hide{
+\author{Jiaxiang~Liu,
+        Min~Zhou,
+        Xiaoyu~Song,
+        Ming~Gu,
+        and~Jiaguang~Sun% <-this % stops a space
+\IEEEcompsocitemizethanks{%
+\IEEEcompsocthanksitem J. Liu is with the School of Software, Tsinghua
+University, Beijing 100084, China, and also with LIX, \'Ecole
+Polytechnique, Palaiseau 91120, France.\protect\\ E-mail:
+jiaxiang.liu@hotmail.com
+\IEEEcompsocthanksitem M. Zhou, M. Gu and J. Sun are with the School
+of Software, Tsinghua University, Beijing 100084, China.
+\IEEEcompsocthanksitem X. Song is with the Department of Electrical \&
+Computer Engineering, Portland State University, Portland, OR
+97207-0751, USA.}% <-this % stops an unwanted space
+}
+%\thanks{Manuscript received April 19, 2005; revised September 17, 2014.}}
+
+% note the % following the last \IEEEmembership and also \thanks - 
+% these prevent an unwanted space from occurring between the last author name
+% and the end of the author line. i.e., if you had this:
+% 
+% \author{....lastname \thanks{...} \thanks{...} }
+%                     ^------------^------------^----Do not want these spaces!
+%
+% a space would be appended to the last name and could cause every name on that
+% line to be shifted left slightly. This is one of those "LaTeX things". For
+% instance, "\textbf{A} \textbf{B}" will typeset as "A B" not "AB". To get
+% "AB" then you have to do: "\textbf{A}\textbf{B}"
+% \thanks is no different in this regard, so shield the last } of each \thanks
+% that ends a line with a % and do not let a space in before the next \thanks.
+% Spaces after \IEEEmembership other than the last one are OK (and needed) as
+% you are supposed to have spaces between the names. For what it is worth,
+% this is a minor point as most people would not even notice if the said evil
+% space somehow managed to creep in.
+}
+
+
+% The paper headers
+% The only time the second header will appear is for the odd numbered pages
+% after the title page when using the twoside option.
+% 
+% *** Note that you probably will NOT want to include the author's ***
+% *** name in the headers of peer review papers.                   ***
+% You can use \ifCLASSOPTIONpeerreview for conditional compilation here if
+% you desire.
+
+
+
+% The publisher's ID mark at the bottom of the page is less important with
+% Computer Society journal papers as those publications place the marks
+% outside of the main text columns and, therefore, unlike regular IEEE
+% journals, the available text space is not reduced by their presence.
+% If you want to put a publisher's ID mark on the page you can do it like
+% this:
+%\IEEEpubid{0000--0000/00\$00.00~\copyright~2014 IEEE}
+% or like this to get the Computer Society new two part style.
+%\IEEEpubid{\makebox[\columnwidth]{\hfill 0000--0000/00/\$00.00~\copyright~2014 IEEE}%
+%\hspace{\columnsep}\makebox[\columnwidth]{Published by the IEEE Computer Society\hfill}}
+% Remember, if you use this you must call \IEEEpubidadjcol in the second
+% column for its text to clear the IEEEpubid mark (Computer Society jorunal
+% papers don't need this extra clearance.)
+
+
+
+% use for special paper notices
+%\IEEEspecialpapernotice{(Invited Paper)}
+
+% for Computer Society papers, we must declare the abstract and index terms
+% PRIOR to the title within the \IEEEtitleabstractindextext IEEEtran
+% command as these need to go into the title area created by \maketitle.
+% As a general rule, do not put math, special symbols or citations
+% in the abstract or keywords.
+
+% make the title area
+%\maketitle
+
+
+% To allow for easy dual compilation without having to reenter the
+% abstract/keywords data, the \IEEEtitleabstractindextext text will
+% not be used in maketitle, but will appear (i.e., to be "transported")
+% here as \IEEEdisplaynontitleabstractindextext when the compsoc 
+% or transmag modes are not selected <OR> if conference mode is selected 
+% - because all conference papers position the abstract like regular
+% papers do.
+%\IEEEdisplaynontitleabstractindextext
+% \IEEEdisplaynontitleabstractindextext has no effect when using
+% compsoc or transmag under a non-conference mode.
+
+
+
+% For peer review papers, you can put extra information on the cover
+% page as needed:
+% \ifCLASSOPTIONpeerreview
+% \begin{center} \bfseries EDICS Category: 3-BBND \end{center}
+% \fi
+%
+% For peerreview papers, this IEEEtran command inserts a page break and
+% creates the second title. It will be ignored for other modes.
+%\IEEEpeerreviewmaketitle
+
+\twocolumn[
+  \begin{@twocolumnfalse}
+\maketitle
+
+\begin{center}
+  \begin{tabular}{r l}
+    \hline\hline
+    & \\
+    Manuscript Number: & 15-TIE-3480\\
+    Manuscript Title: & Formal Modeling and Verification of a Rate-Monotonic Scheduling Implementation\\
+    & with Real-Time Maude \\
+    Submitted to: & Transactions on Industrial Eletronics \\
+    Manuscript Type: & Regular paper \\
+    & \\
+    \hline\hline
+  \end{tabular}
+  \bigskip
+\end{center}
+
+  \end{@twocolumnfalse}
+]
+
+
+\section{Answers to the Reviewers}
+\subsection{Reviewer 1}
+Comments to the Author
+
+The paper shows a realistic implementation of a Rate-Monotonic
+Scheduling algorithm using Real-Time Maude (a modeling language based
+on rewriting logic) by taking into account the overhead of scheduling
+and some other details of the hardware platform. The correctness of
+the implementation with respect to the algorithm and the completeness
+of the model are verified by model checking, and validated within
+different realistic scenarios.
+
+On the positive side, this paper presents a solid piece of
+work. Periodic task scheduling is an important (and difficult)
+problem, and the topic of the paper appears to be well suited within
+the field of the industrial real-time systems. Overall the paper is
+well structured, technically accurate, presents the work in a
+comprehensive and reasonable way, and tackles theoretical as well as
+practical aspects. There are two principal contributions of the paper:
+
+1) A novel implementation of the Rate-Monotonic Scheduling algorithm,
+which contains more complex and realistic details instead of the ideal
+setting.
+
+2) Rate-Monotonic Scheduling is investigated using Real-Time Maude for
+the first time, to apply formal methods such as model checking and
+theorem proving to analyze theoretical results, verify desired
+properties, and evaluate results.
+
+On the negative side:
+
+1) The weak point is the lack of evidence of practicality, efficiency
+and scalability. Since there are only small and simplistic scenarios
+to analyze this model, it is difficult to judge the effectiveness of
+the proposed implementation. The key scenarios appear conveniently
+small to allow the implementation fully supports all these examples,
+returning at the same time appropriate counterexamples to guide and
+adjust the design. Is this true for larger examples of "real world"
+applications within the field of industrial real-time systems? How do
+the authors propose to handle very large scenarios? ¿How does it
+behave on typical real-time scheduling problems used in industry? I
+would like to see more complex examples to convince the reader of the
+practicability of the approach on the assumptions given for the model,
+and would probably increase the mentioned benefits. The paper does not
+give any directions to the above problems, and some sentences pointing
+out the difficulties in the implementation of more generic and
+realistic scenarios would be most welcome to understand the real
+contribution of the paper.
+
+2) One of my biggest problems with the theoretical part of this work
+is that the paper is technically solid as far as I can tell, but
+there's not much yet in the way of theorems and results about formal
+properties in Maude. The complete and detailed proof of the Theorem 2
+should be provided somewhere. If the proof of the main results of
+schedulability and correctness of the model is straightforward (as is
+suggested) it seems not necessary to present a complex formalism on
+Real-Time Maude and all the theorems provided are natural consequences
+of Theorem 1. I agree that even non-surprising results need to be
+investigated in the proof of Theorem 2, some sentences pointing out
+the difficulties in the theoretical formalization in Real-Time Maude
+would be most welcome. Please, include (e.g., in an appendix or even
+in a technical report) a detailed proof.
+
+3) Another important point which needs improvement is the description
+of the implementation. I guess other readers might have less
+difficulties with the motivations if they know Maude and the Real-Time
+Maude extension, but if you aim for a more general audience, it might
+not work. Many pages are spent for the description of the formal
+modeling of the implementation and the section is hard to read. I
+highly recommend the authors to thoroughly revise this part of the
+paper to make it easy-to-read. It would be better preferable to have a
+much shorter description of the principal insights for the
+implementation followed by more convincing examples and benchmarks
+with respect to related work to convince the reader of the
+practicability of the approach. You should try to summarize this
+section and to extend the original contribution. From my point of
+view, there is a trade off in this paper between the contributions and
+the presentation of the implementation.
+
+In conclusion, the RMS implementation proposed by the authors by using
+Real-Time Maude is interesting, but not complete (theorems and results
+about the formal modeling and verification of the implementation in
+Maude ought be clearly demonstrated). Moreover, the weak point is the
+lack of evidence for practicality, and the presentation of Section IV
+can be improved. It's not clear at all how this kind of key scenarios
+could actually run in practice in more general real-time
+systems. However, I think that the paper is worthy of publication,
+because is the first time that Rate-Monotonic Scheduling is
+investigated using Real-Time Maude in a (more) realistic
+implementation, providing a solid semantic foundation for formal
+verification. Therefore, I recommend the (weak) acceptance of this
+paper.
+
+Some minor remarks:
+
+- Page 7, Related Work. More comparisons with other approaches based
+on model checking would help to evaluate pros and cons of an
+implementation with Real-Time Maude with respect to different
+languages and tools. The authors should review the comparison with
+[24] and [25] more thoroughly. You should benchmark your approach
+against others.
+
+- Page 8, Conclusions. Where in the paper do you show that the details
+of your "realistic" implementation are "sufficient" for the behaviors
+of all real systems used in the current industry? This should be
+briefly discussed.
+
+
+\subsection{Reviewer 2}
+Comments to the Author
+
+The paper proposes a new way of modelling Rate Monotonic Scheduling
+(RMS).  The new modelling approach is more accurate than the
+simplified way originally proposed by Liu and Layland, as it also
+models some of the overhead that is present in a real system
+(e.g. scheduling and switching time).  This implies taking some of the
+hardware details into account.  The model, which is based on the
+formal language of Real-Time Maude, can be analyzed using the formal
+verification tools provided by Real-Time Maude.  The paper shows how
+this approach can be used for modelling and analyzing a particular RMS
+implementation.
+
+Up to my knowledge, this is original work. Related papers address
+different aspects and do not take implementation overhead into
+account.
+
+The technique proposed by the paper is of industrial interest because
+it improves the accuracy of analyzing schedulability in RMS
+implementations with respect to the bare application of the theoretic
+schedulability result.
+
+The paper is well written and it looks sound, but I could not check it
+completely.
+
+One of the problems with this paper is that it is not completely
+self-contained.  Some knowledge about Real-Time Maude is necessary in
+order to fully understand it.  I found the short introduction about
+Real-Time Maude (section II.B) not enough for understanding the
+formalism used in the rest of the paper (see details below).
+
+Another concern is that the significance of the paper could be much
+better if the paper addressed the problem of modelling RMS in a more
+general way. Instead, the paper takes the form of a case study, where
+the formal modelling of one specific RMS implementation is presented,
+rather than a general method for modelling and analyzing RMS
+implementations.  Also, the discussion about soundness and
+completeness of the analysis (section V.C) is not fully developed and,
+once again, it refers to the specific model rather than being a
+general result.
+
+As a conclusion, even if the significance of the paper is not as much
+as it could be, I think the paper provides something novel and
+interesting for the readers. Hence, my recommendation is to accept
+this paper provided it is made more self-contained (without assuming
+any reader's knowledge about Maude) and the proof of completeness and
+soundness is fully developed.
+
+Detailed comments
+
+Section II.B \\ In the definition of IR, it is not clear what s and s'
+are. I guess they are states, but the concept of state was not
+introduced. \\ In the definition of a class, the authors should
+specify that a class includes a collection of rules, otherwise this
+fact may be missed.
+
+Section III \\ Page 2 right column, line -24 The implementation is
+shown as schedule() in Figure 1 -> The pseudocode of schedule() is
+shown in Figure 1
+
+Section IV.A \\ I don't understand the meaning of [ctor] in the
+definition of some operations (maybe because I have no specific
+background on Maude). I could not find the explanation of this writing
+in the introduction to Maude. \\ For the stack sort, the authors
+mention operations push, pop and peek, but then you don't write the
+definitions of these operations. Instead, they write the definitions
+of bottom and \#, which are not explained in the text. This part should
+be made clearer. \\ Also, the meaning of NzNat is not explained.
+
+Section V.C \\ In the statement of theorem 1, the definition of
+time-robust real-time rewrite theory is missing. Also, the meaning of
+tick-stabilizing atomic propositions is not defined. \\ This makes the
+section not self-contained. \\ The proof of theorem 2 is missing. The
+authors just indicate how the proof could be developed, but they do
+not develop it. A possibility would be to point to a document where
+this proof has been developed.
+
+\subsection{Reviewer 3}
+Comments to the Author
+
+This paper stuides the implementation of a rate-monotonic scheduling
+with real-time maude, according to my carefully reading of this paper,
+I do not think this paper is qualified for TIE due to the following
+reasons:
+
+1. Rate-monotonic scheduling is a very simple scheduling and has been
+sufficiently invesigated in the field of embedded system, the authors
+claim the innovation of this paper as the implementation using
+real-time maude, however, I cannot see any special point (or
+advantage) when using this real-time maude in modelling RMS.
+
+2. RMS has many different realizatio methods, no comparison is given
+to justify the strong point of real-time maude when applied to RMS.
+
+3. The assumptions given in IV is too rigid, which makes the
+scheduling problem to be investigated by very simple, then what is the
+difficulty?
+
+4. The description in section IV (A-E) is trivial, it can only be
+viewed as a simple application of the rewriting logic.
+
+5. The model checking part is not sufficiently discussed, the authors
+only list the commands but not illustrate the mechanism behind these
+commands.
+
+Based on the above comments, I thinks this paper is only a simple
+application [26] and [27] in RMS, hence I do not recommend this paper.
+
+\hide{
+% use section* for acknowledgment
+\ifCLASSOPTIONcompsoc
+  % The Computer Society usually uses the plural form
+  \section*{Acknowledgments}
+\else
+  % regular IEEE prefers the singular form
+  \section*{Acknowledgment}
+\fi
+
+The authors would like to thank...
+}
+
+% Can use something like this to put references on a page
+% by themselves when using endfloat and the captionsoff option.
+\ifCLASSOPTIONcaptionsoff
+  \newpage
+\fi
+
+
+
+% trigger a \newpage just before the given reference
+% number - used to balance the columns on the last page
+% adjust value as needed - may need to be readjusted if
+% the document is modified later
+%\IEEEtriggeratref{8}
+% The "triggered" command can be changed if desired:
+%\IEEEtriggercmd{\enlargethispage{-5in}}
+
+% references section
+
+% can use a bibliography generated by BibTeX as a .bbl file
+% BibTeX documentation can be easily obtained at:
+% http://www.ctan.org/tex-archive/biblio/bibtex/contrib/doc/
+% The IEEEtran BibTeX style support page is at:
+% http://www.michaelshell.org/tex/ieeetran/bibtex/
+%\bibliographystyle{IEEEtran}
+% argument is your BibTeX string definitions and bibliography database(s)
+%\bibliography{IEEEabrv,submission}
+%
+% <OR> manually copy in the resultant .bbl file
+% set second argument of \begin to the number of references
+% (used to reserve space for the reference number labels box)
+
+
+% biography section
+% 
+% If you have an EPS/PDF photo (graphicx package needed) extra braces are
+% needed around the contents of the optional argument to biography to prevent
+% the LaTeX parser from getting confused when it sees the complicated
+% \includegraphics command within an optional argument. (You could create
+% your own custom macro containing the \includegraphics command to make things
+% simpler here.)
+%\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{mshell}}]{Michael Shell}
+% or if you just want to reserve a space for a photo:
+
+\hide{
+
+\begin{IEEEbiography}{Jiaxiang Liu}
+Biography text here.
+\end{IEEEbiography}
+
+
+% if you will not have a photo at all:
+\begin{IEEEbiographynophoto}{John Doe}
+Biography text here.
+\end{IEEEbiographynophoto}
+
+% insert where needed to balance the two columns on the last page with
+% biographies
+%\newpage
+
+\begin{IEEEbiographynophoto}{Jane Doe}
+Biography text here.
+\end{IEEEbiographynophoto}
+}
+
+% You can push biographies down or up by placing
+% a \vfill before or after them. The appropriate
+% use of \vfill depends on what kind of text is
+% on the last page and whether or not the columns
+% are being equalized.
+
+%\vfill
+
+% Can be used to pull up biographies so that the bottom of the last one
+% is flush with the other column.
+%\enlargethispage{-5in}
+
+
+
+% that's all folks
+\end{document}
+
+

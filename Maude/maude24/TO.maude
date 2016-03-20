@@ -1854,6 +1854,34 @@ endom)
 	[==> OUT-DES : PORT-CANINOUT | none ] .
     
 endom)
+
+(fmod GEAR-LIST is
+    protecting TO-STATUS .
+    protecting THROTTLE-GEAR .
+    sort GList .
+
+    op nil : -> GList [ctor] .
+    op _;_ : ThrottleGear GList -> GList [ctor] .
+endfm)
+    
+(omod INPUT-BOARD is
+    protecting THROTTLE-GEAR .
+    protecting GEAR-LIST .
+    protecting SOCKET .
+    protecting BOARD .
+    class InputBrd | gear-seq : GList .
+
+    var O : Oid .
+    var G : ThrottleGear .
+    var L : GList .
+    
+    --- send the throttle to VOTE
+    rl [input-throttle-send] :
+	< O : InputBrd | gear-seq : G ; L >
+	[==> VOTE-DES : PORT-CANINOUT | none ]
+      => < O : InputBrd | gear-seq : L >
+	[==> VOTE-DES : PORT-CANINOUT | some G ] .
+endom)
     
 (tomod SYSTEM is
     protecting SOCKET .
@@ -1863,7 +1891,8 @@ endom)
     protecting LKJ .
     protecting CTRL-BOX .
     protecting THREADPOOL .
-    protecting OUTPUT-BOARD . 
+    protecting OUTPUT-BOARD .
+    protecting INPUT-BOARD .
 
     op mem : -> Memory .
     op pool : -> ThreadPool .
@@ -2035,6 +2064,9 @@ endtom)
     op manual : Nat -> Prop .
     eq {C} |= manual(N) = manualControl(C) and (C).gearEquals(N) .
 
+    op manual : -> Prop .
+    eq {C} |= manual = manualControl(C) .
+
 
     ***(
     --- the train is controlled by 5 in manual mode in the auto-enable area ;
@@ -2084,7 +2116,7 @@ endtom)
     --- the driver pushes the button to switch to auto mode, then does no other opeartions ;
     --- the train is expected to go to the slide mode .
     --- SATISFY:
-    --- <> slide
+    --- <> ([] slide)
     )
     eq sys(3) =
 	< VOTE-DES : Vote | cpu : ideal,
@@ -2115,5 +2147,314 @@ endtom)
 	[==> VOTE-DES : PORT-CANINOUT | none ]
 	[==> CON-DES : SOCKET-TYPE-5 | none ]
 	[==> OUT-DES : PORT-CANINOUT | none ] .    
+
+    ***(
+    --- the train is controlled by 5 in manual mode in the auto-enable area ;
+    --- the driver pushes the button to switch to auto mode;
+    --- then push the gear to 8 ;
+    --- the train is expected to go to the slide mode OR to the auto mode (5) .
+    --- SATISFY:
+    --- <> (([] slide) \/ ([] auto(5)))
+    )
+    eq sys(4) =
+	< VOTE-DES : Vote | cpu : ideal,
+			    mem : (('throttle-gear1 -> (gear: 5 ,auto-or-manual: 0)),
+			      ('side-status -> 0), ('branch-status -> 0),
+			      ('fsm-state -> FSM-MANUAL), ('to-auto-status -> 0),
+			      ('to-manual-status -> 0), ('auto-ack-status -> 0),
+			      ('manual-ack-status -> 0), ('auto-status -> 0),
+			      ('counter -> 0),
+			      ('rt-vote -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-AUTO )),
+			      ('fsm-rt -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-MANNUL )),
+			      ('fsm-temp -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-MANNUL )) ),
+			    pool :
+	                    < socket-rcv(SOCKET-TYPE-1) : Thread | st : read > ;
+	                    < socket-rcv(SOCKET-TYPE-CAN2NET) : Thread | st : read > ;	
+                            < receive-throttle : Thread | st : receive > ;
+                            < fsm-run : Thread | st : while-fsm-start > ; empty > 
+	< OUT-DES : OutputBrd | gear : 5, auto-or-manual : 0 >
+	< IN-DES : InputBrd | gear-seq : (gear: 8 ,auto-or-manual: 0) ; nil >
+	[==> COM-DES : PORT-LKJ | none ] 
+	[==> COM-DES : SOCKET-TYPE-0 | none ]
+	[==> CORE-DES : SOCKET-TYPE-1 | none ]
+	[==> VOTE-DES : SOCKET-TYPE-1 | none ]
+	[==> VOTE-DES : SOCKET-TYPE-CAN2NET
+	  | some command( SOURCE-CONTROL | EVENT-MANNAL-TO-AUTO | 1 ) ] 
+	[==> VOTE-DES : PORT-CANINOUT | none ]
+	[==> CON-DES : SOCKET-TYPE-5 | none ]
+	[==> OUT-DES : PORT-CANINOUT | none ] .    
+
+   ***(
+    --- the train is controlled by 5 in manual mode in the auto-enable area ;
+    --- the driver pushes the button to switch to auto mode;
+    --- then push the gear to 7 ;
+    --- the train is expected to go to the slide mode.
+    --- SATISFY:
+    --- <> ([] slide)
+    )
+    eq sys(5) =
+	< VOTE-DES : Vote | cpu : ideal,
+			    mem : (('throttle-gear1 -> (gear: 5 ,auto-or-manual: 0)),
+			      ('side-status -> 0), ('branch-status -> 0),
+			      ('fsm-state -> FSM-MANUAL), ('to-auto-status -> 0),
+			      ('to-manual-status -> 0), ('auto-ack-status -> 0),
+			      ('manual-ack-status -> 0), ('auto-status -> 0),
+			      ('counter -> 0),
+			      ('rt-vote -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-AUTO )),
+			      ('fsm-rt -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-MANNUL )),
+			      ('fsm-temp -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-MANNUL )) ),
+			    pool :
+	                    < socket-rcv(SOCKET-TYPE-1) : Thread | st : read > ;
+	                    < socket-rcv(SOCKET-TYPE-CAN2NET) : Thread | st : read > ;	
+                            < receive-throttle : Thread | st : receive > ;
+                            < fsm-run : Thread | st : while-fsm-start > ; empty > 
+	< OUT-DES : OutputBrd | gear : 5, auto-or-manual : 0 >
+	< IN-DES : InputBrd | gear-seq : (gear: 7 ,auto-or-manual: 0) ; nil >
+	[==> COM-DES : PORT-LKJ | none ] 
+	[==> COM-DES : SOCKET-TYPE-0 | none ]
+	[==> CORE-DES : SOCKET-TYPE-1 | none ]
+	[==> VOTE-DES : SOCKET-TYPE-1 | none ]
+	[==> VOTE-DES : SOCKET-TYPE-CAN2NET
+	  | some command( SOURCE-CONTROL | EVENT-MANNAL-TO-AUTO | 1 ) ] 
+	[==> VOTE-DES : PORT-CANINOUT | none ]
+	[==> CON-DES : SOCKET-TYPE-5 | none ]
+	[==> OUT-DES : PORT-CANINOUT | none ] .    
+
+   ***(
+    --- the train is controlled by 5 in auto mode in the auto-enable area ;
+    --- the driver pushes the button to switch to manual mode;
+    --- then push the gear to 3 ;
+    --- the train is expected to go to the manual mode OR to the slide mode.
+    --- SATISFY:
+    --- <> (([] manual) \/ ([] slide))
+    )
+    eq sys(6) =
+	< VOTE-DES : Vote | cpu : ideal,
+			    mem : (('throttle-gear1 -> (gear: 8 ,auto-or-manual: 1)),
+			      ('side-status -> 0), ('branch-status -> 0),
+			      ('fsm-state -> FSM-AUTO), ('to-auto-status -> 0),
+			      ('to-manual-status -> 0), ('auto-ack-status -> 0),
+			      ('manual-ack-status -> 0), ('auto-status -> 0),
+			      ('counter -> 0),
+			      ('rt-vote -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-AUTO )),
+			      ('fsm-rt -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-AUTO )),
+			      ('fsm-temp -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-AUTO )) ),
+			    pool :
+	                    < socket-rcv(SOCKET-TYPE-1) : Thread | st : read > ;
+	                    < socket-rcv(SOCKET-TYPE-CAN2NET) : Thread | st : read > ;	
+                            < receive-throttle : Thread | st : receive > ;
+                            < fsm-run : Thread | st : while-fsm-start > ; empty > 
+	< OUT-DES : OutputBrd | gear : 5, auto-or-manual : 1 >
+	< IN-DES : InputBrd | gear-seq : (gear: 3 ,auto-or-manual: 1) ; nil >
+	[==> COM-DES : PORT-LKJ | none ] 
+	[==> COM-DES : SOCKET-TYPE-0 | none ]
+	[==> CORE-DES : SOCKET-TYPE-1 | none ]
+	[==> VOTE-DES : SOCKET-TYPE-1 | none ]
+	[==> VOTE-DES : SOCKET-TYPE-CAN2NET
+	  | some command( SOURCE-CONTROL | EVENT-AUTO-TO-MANNAL | 1 ) ] 
+	[==> VOTE-DES : PORT-CANINOUT | none ]
+	[==> CON-DES : SOCKET-TYPE-5 | none ]
+	[==> OUT-DES : PORT-CANINOUT | none ] .    
+
+   ***(
+    --- the train is controlled by 5 in auto mode in the auto-enable area ;
+    --- the driver push the gear to 3 ;
+    --- the train is expected to go to the manual mode .
+    --- SATISFY:
+    --- <> ([] manual)
+    )
+    eq sys(7) =
+	< VOTE-DES : Vote | cpu : ideal,
+			    mem : (('throttle-gear1 -> (gear: 8 ,auto-or-manual: 1)),
+			      ('side-status -> 0), ('branch-status -> 0),
+			      ('fsm-state -> FSM-AUTO), ('to-auto-status -> 0),
+			      ('to-manual-status -> 0), ('auto-ack-status -> 0),
+			      ('manual-ack-status -> 0), ('auto-status -> 0),
+			      ('counter -> 0),
+			      ('rt-vote -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-AUTO )),
+			      ('fsm-rt -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-AUTO )),
+			      ('fsm-temp -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-AUTO )) ),
+			    pool :
+	                    < socket-rcv(SOCKET-TYPE-1) : Thread | st : read > ;
+	                    < socket-rcv(SOCKET-TYPE-CAN2NET) : Thread | st : read > ;	
+                            < receive-throttle : Thread | st : receive > ;
+                            < fsm-run : Thread | st : while-fsm-start > ; empty > 
+	< OUT-DES : OutputBrd | gear : 5, auto-or-manual : 1 >
+	< IN-DES : InputBrd | gear-seq : nil >
+	[==> COM-DES : PORT-LKJ | none ] 
+	[==> COM-DES : SOCKET-TYPE-0 | none ]
+	[==> CORE-DES : SOCKET-TYPE-1 | none ]
+	[==> VOTE-DES : SOCKET-TYPE-1 | none ]
+	[==> VOTE-DES : SOCKET-TYPE-CAN2NET | none ] 
+	[==> VOTE-DES : PORT-CANINOUT | some (gear: 3 ,auto-or-manual: 1) ]
+	[==> CON-DES : SOCKET-TYPE-5 | none ]
+	[==> OUT-DES : PORT-CANINOUT | none ] .    
+
+   ***(
+    --- the train is controlled by 5 in auto mode in the auto-enable area ;
+    --- the driver push the gear to 7 ;
+    --- the train is expected to go to the slide mode .
+    --- SATISFY:
+    --- <> ([] slide)
+    )
+    eq sys(8) =
+	< VOTE-DES : Vote | cpu : ideal,
+			    mem : (('throttle-gear1 -> (gear: 8 ,auto-or-manual: 1)),
+			      ('side-status -> 0), ('branch-status -> 0),
+			      ('fsm-state -> FSM-AUTO), ('to-auto-status -> 0),
+			      ('to-manual-status -> 0), ('auto-ack-status -> 0),
+			      ('manual-ack-status -> 0), ('auto-status -> 0),
+			      ('counter -> 0),
+			      ('rt-vote -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-AUTO )),
+			      ('fsm-rt -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-AUTO )),
+			      ('fsm-temp -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-AUTO )) ),
+			    pool :
+	                    < socket-rcv(SOCKET-TYPE-1) : Thread | st : read > ;
+	                    < socket-rcv(SOCKET-TYPE-CAN2NET) : Thread | st : read > ;	
+                            < receive-throttle : Thread | st : receive > ;
+                            < fsm-run : Thread | st : while-fsm-start > ; empty > 
+	< OUT-DES : OutputBrd | gear : 5, auto-or-manual : 1 >
+	< IN-DES : InputBrd | gear-seq : nil >
+	[==> COM-DES : PORT-LKJ | none ] 
+	[==> COM-DES : SOCKET-TYPE-0 | none ]
+	[==> CORE-DES : SOCKET-TYPE-1 | none ]
+	[==> VOTE-DES : SOCKET-TYPE-1 | none ]
+	[==> VOTE-DES : SOCKET-TYPE-CAN2NET | none ] 
+	[==> VOTE-DES : PORT-CANINOUT | some (gear: 7 ,auto-or-manual: 1) ]
+	[==> CON-DES : SOCKET-TYPE-5 | none ]
+	[==> OUT-DES : PORT-CANINOUT | none ] .    
+
+   ***(
+    --- the train is controlled by 5 in auto mode in the auto-enable area ;
+    --- the driver push the gear to 7 ;
+    --- then the driver push the ack button to switch to manual mode ;
+    --- the train is expected to go to the manual mode OR to the slide mode .
+    --- SATISFY:
+    --- <> (([] manual) \/ ([] slide))
+    )
+    eq sys(9) =
+	< VOTE-DES : Vote | cpu : ideal,
+			    mem : (('throttle-gear1 -> (gear: 8 ,auto-or-manual: 1)),
+			      ('side-status -> 0), ('branch-status -> 0),
+			      ('fsm-state -> FSM-AUTO), ('to-auto-status -> 0),
+			      ('to-manual-status -> 0), ('auto-ack-status -> 0),
+			      ('manual-ack-status -> 0), ('auto-status -> 0),
+			      ('counter -> 0),
+			      ('rt-vote -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-AUTO )),
+			      ('fsm-rt -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-AUTO )),
+			      ('fsm-temp -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-AUTO )) ),
+			    pool :
+	                    < socket-rcv(SOCKET-TYPE-1) : Thread | st : read > ;
+	                    < socket-rcv(SOCKET-TYPE-CAN2NET) : Thread | st : read > ;	
+                            < receive-throttle : Thread | st : receive > ;
+                            < fsm-run : Thread | st : while-fsm-start > ; empty > 
+	< OUT-DES : OutputBrd | gear : 5, auto-or-manual : 1 >
+	< IN-DES : InputBrd | gear-seq : nil >
+	< CON-DES : CtrlBox | controls : EVENT-TWO-GEAR-TO-MANNUL ; nil >
+	[==> COM-DES : PORT-LKJ | none ] 
+	[==> COM-DES : SOCKET-TYPE-0 | none ]
+	[==> CORE-DES : SOCKET-TYPE-1 | none ]
+	[==> VOTE-DES : SOCKET-TYPE-1 | none ]
+	[==> VOTE-DES : SOCKET-TYPE-CAN2NET | none ] 
+	[==> VOTE-DES : PORT-CANINOUT | some (gear: 7 ,auto-or-manual: 1) ]
+	[==> CON-DES : SOCKET-TYPE-5 | none ]
+	[==> OUT-DES : PORT-CANINOUT | none ] .    
+
+    ***(
+    --- the train is controlled by 8 in manual mode in the auto-enable area ;
+    --- the driver pushes the button to switch to auto mode;
+    --- then no operations;
+    --- the train is expected to go to the slide mode .
+    --- SATISFY:
+    --- <> ([] slide)
+    )
+    eq sys(10) =
+	< VOTE-DES : Vote | cpu : ideal,
+			    mem : (('throttle-gear1 -> (gear: 8 ,auto-or-manual: 0)),
+			      ('side-status -> 0), ('branch-status -> 0),
+			      ('fsm-state -> FSM-MANUAL), ('to-auto-status -> 0),
+			      ('to-manual-status -> 0), ('auto-ack-status -> 0),
+			      ('manual-ack-status -> 0), ('auto-status -> 0),
+			      ('counter -> 0),
+			      ('rt-vote -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-AUTO )),
+			      ('fsm-rt -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-MANNUL )),
+			      ('fsm-temp -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-MANNUL )) ),
+			    pool :
+	                    < socket-rcv(SOCKET-TYPE-1) : Thread | st : read > ;
+	                    < socket-rcv(SOCKET-TYPE-CAN2NET) : Thread | st : read > ;	
+                            < receive-throttle : Thread | st : receive > ;
+                            < fsm-run : Thread | st : while-fsm-start > ; empty > 
+	< OUT-DES : OutputBrd | gear : 8, auto-or-manual : 0 >
+	< IN-DES : InputBrd | gear-seq : nil >
+	[==> COM-DES : PORT-LKJ | none ] 
+	[==> COM-DES : SOCKET-TYPE-0 | none ]
+	[==> CORE-DES : SOCKET-TYPE-1 | none ]
+	[==> VOTE-DES : SOCKET-TYPE-1 | none ]
+	[==> VOTE-DES : SOCKET-TYPE-CAN2NET
+	  | some command( SOURCE-CONTROL | EVENT-MANNAL-TO-AUTO | 1 ) ] 
+	[==> VOTE-DES : PORT-CANINOUT | none ]
+	[==> CON-DES : SOCKET-TYPE-5 | none ]
+	[==> OUT-DES : PORT-CANINOUT | none ] .
+
+    ***(
+    --- the train is controlled by 8 in manual mode in the auto-enable area ;
+    --- the driver pushes the button to switch to auto mode;
+    --- then push the ack button to switch to auto mode;
+    --- the train is expected to go to the auto mode (5) OR to the slide mode .
+    --- SATISFY:
+    --- <> (([] auto(5)) \/ ([] slide))
+    )
+    eq sys(11) =
+	< VOTE-DES : Vote | cpu : ideal,
+			    mem : (('throttle-gear1 -> (gear: 8 ,auto-or-manual: 0)),
+			      ('side-status -> 0), ('branch-status -> 0),
+			      ('fsm-state -> FSM-MANUAL), ('to-auto-status -> 0),
+			      ('to-manual-status -> 0), ('auto-ack-status -> 0),
+			      ('manual-ack-status -> 0), ('auto-status -> 0),
+			      ('counter -> 0),
+			      ('rt-vote -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-AUTO )),
+			      ('fsm-rt -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-MANNUL )),
+			      ('fsm-temp -> (rt-core: (rt-gear: 5 ,rt-enable-status: 1)
+				  ,rt-control-status: CONTROL-MANNUL )) ),
+			    pool :
+	                    < socket-rcv(SOCKET-TYPE-1) : Thread | st : read > ;
+	                    < socket-rcv(SOCKET-TYPE-CAN2NET) : Thread | st : read > ;	
+                            < receive-throttle : Thread | st : receive > ;
+                            < fsm-run : Thread | st : while-fsm-start > ; empty > 
+	< OUT-DES : OutputBrd | gear : 8, auto-or-manual : 0 >
+	< IN-DES : InputBrd | gear-seq : nil >
+	< CON-DES : CtrlBox | controls : EVENT-GEAR8-AUTO-CONFIRM-ACK ; nil >
+	[==> COM-DES : PORT-LKJ | none ] 
+	[==> COM-DES : SOCKET-TYPE-0 | none ]
+	[==> CORE-DES : SOCKET-TYPE-1 | none ]
+	[==> VOTE-DES : SOCKET-TYPE-1 | none ]
+	[==> VOTE-DES : SOCKET-TYPE-CAN2NET
+	  | some command( SOURCE-CONTROL | EVENT-MANNAL-TO-AUTO | 1 ) ] 
+	[==> VOTE-DES : PORT-CANINOUT | none ]
+	[==> CON-DES : SOCKET-TYPE-5 | none ]
+	[==> OUT-DES : PORT-CANINOUT | none ] .
     
 endtom)

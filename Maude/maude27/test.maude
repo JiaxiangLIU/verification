@@ -1,25 +1,8 @@
-fmod TIMER is 
-  protecting NAT .
-  sorts Timer LastTick .
-  subsort LastTick < Timer .
-
-  op [_/_] : Nat NzNat -> Timer [ctor] .
-  ops INT-PERIOD CYCLE : -> NzNat .
-
-  op reset : Timer -> Timer .
-  op inc : Timer -> Timer .
-
-  var n : Nat .
-  var N : NzNat .
-  var last : LastTick .
-
-  cmb [ n / N ] : LastTick if s n := N .
-
-  eq reset([ n / N ]) = [ 0 / N ] .
-
-  eq inc(last) = reset(last) .
-  eq inc([ n / N ]) = [ s n / N ] [owise] .
-
-  eq INT-PERIOD = 5 .
-  eq CYCLE = 20 . 
+fmod TEST is 
+    sort Test .
+    pr NAT .
+    subsort Bool < Test .
+    subsort Nat < Test .
+---    op identity : -> Test [ctor] .
+---    op test : Test Test -> Test [id: identity] .
 endfm

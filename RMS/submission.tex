@@ -315,10 +315,12 @@
 \usepackage{alltt}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta}
+\usepackage{mathabx}
 \newcommand{\hide}[1]{\ignorespaces}
 \newcommand{\jx}[1]{{\bf Jiaxiang: }#1{ \bf End}}
 \newtheorem{theorem}{Theorem}
-\newtheorem{lemma}{Lemma}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{definition}[theorem]{Definition}
 
 % Define the fontsize in environment {verbatim}
 \makeatletter
@@ -1328,7 +1330,7 @@ functionality of switching:
 \label{ss:timedbehavior}
 Timed behaviors of the system consist of two parts: the execution of
 tasks and the execution of the interrupt source. Both are modeled
-together by the following single ``standard'' tick
+together by the following single \emph{standard} tick
 rule~\cite{DBLP:journals/entcs/OlveczkyM07a}:
 \begin{verbatim}
   crl [tick]:
@@ -1806,7 +1808,8 @@ sampling strategy.
 
 Therefore, we achieve the following theorem, showing that the results
 in Section~\ref{ss:results} are complete.
-\begin{theorem} 
+\begin{theorem}
+\label{t:main}
 Our approach using untimed model checking to verify the schedulability
 and the correctness of our model is complete.
 \end{theorem}
@@ -1982,6 +1985,88 @@ details to be analyzed for the behaviors of real systems. Two
 important properties--schedulability and correctness--are verified by
 model checking on our model, within several key scenarios. We
 demonstrate the soundness and completeness of our results.
+
+\appendix[Proof of Theorem~\ref{t:main}]
+\setcounter{theorem}{0}
+\renewcommand{\thetheorem}{\thesection.\arabic{theorem}}
+\newcommand{\lrps}[2]{\rightarrow^{#1}_{#2}}
+
+We show here a detailed proof of Theorem~\ref{t:main}.
+
+First we need to introduce some more preliminaries
+from~\cite{DBLP:journals/entcs/OlveczkyM07a}. A term $t$ is called
+\emph{ground} if it contains no variables. For a set $P\subseteq AP$
+of atomic propositions and ground terms $t,t'$, we write $t\simeq_P
+t'$ (or $t\simeq t'$ for simplicity when $P$ is implicit) if $t$ and
+$t'$ satisfy exactly the same set of propositions from $P$.
+
+The following lemma is needed to prove the time-robustness of our
+model:
+\begin{lemma}[\cite{DBLP:journals/entcs/OlveczkyM07a}]
+\label{l:timerobustness}
+Let $\cal R$ be an object-oriented specification with a standard tick
+rule, let the infinity element \verb|INF| be the only element in the
+time domain which is not a normal time value, and let the time domain
+be \emph{linear}. Then $\cal R$ is time-robust if the following
+conditions are satisfied for all appropriate ground terms $t$ and
+$r,r'$:
+
+\noindent
+(i) \verb|mte(delta(|$t$\verb|,|$r$\verb|))| $=$
+\verb|mte(|$t$\verb|) monus |$r$, for all $r\le$
+\verb|mte(|$t$\verb|)|;
+
+\noindent
+(ii) \verb|delta(|$t$\verb|,|$0$\verb|)| $= t$;
+
+\noindent
+(iii) \verb|delta(delta(|$t$\verb|,|$r$\verb|),|$r'$\verb|)| $=$
+\verb|delta(|$t$\verb|,|$r+r'$\verb|)|, for $r+r'\le$
+\verb|mte(|$t$\verb|)|;
+
+\noindent
+(iv) \verb|mte(|$\sigma(l)$\verb|)|$= 0$ for each ground instance
+$\sigma(l)$ of each left-hand side of an instantaneous rewrite rule.
+\end{lemma}
+
+Each one-step rewrite can be categorized and then tick-invariance can
+be defined:
+\begin{definition}[\cite{DBLP:journals/entcs/OlveczkyM07a}]
+A one-step rewrite $t\lrps{r}{1}t'$ using a tick rule and having
+duration $r$ is:\\
+- a \emph{maximal tick step}, written $t\lrps{r}{max}t'$, if there is
+no time value $r'>r$ such that $t\lrps{r'}{1}t''$ for some $t''$; \\
+- an \emph{$\infty$ tick step}, written $t\lrps{r}{\infty}t'$, if
+for each time value $r'>0$, there is a tick rewrite step
+$t\lrps{r'}{1}t''$; and \\
+- a \emph{non-maximal tick step} if there is a maximal tick step
+$t\lrps{r'}{max}t''$ for $r'>r$.
+\end{definition}
+\begin{definition}[\cite{DBLP:journals/entcs/OlveczkyM07a}]
+  A time-robust specification $\cal R$ is \emph{tick-invariant} with
+  respect to a set $P$ of propositions if and only if it is the case
+  that $t\simeq_P t'$ holds for each non-maximal or $\infty$ tick step
+  $t\lrps{r}{}t'$.
+\end{definition}
+
+The following lemma is needed to prove the tick-invariance of our
+defined propositions:
+\begin{lemma}[\cite{DBLP:journals/entcs/OlveczkyM07a}]
+Let $\cal R$ be a time-robust object-oriented specification with a
+standard tick rule, let the infinity element \verb|INF| be the only
+element in the time domain which is not a normal time value, and let
+the time domain be \emph{linear}. Then $\cal R$ is tick-invariant with
+respect to a set $P$ of atomic propositions if \verb|{|$t$\verb|}|
+$\simeq_P$ \verb|{delta(|$t$\verb|,|$r$\verb|)}| for all $t,r$ with
+$r<$ \verb|mte(|$t$\verb|)|.
+\end{lemma}
+
+Now we can present the detailed proof of Theorem~\ref{t:main}:
+\noindent
+\begin{IEEEproof}[Proof of Theorem~\ref{t:main}]
+first
+\end{IEEEproof}
+
 
 
 \hide{

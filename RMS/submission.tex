@@ -1356,7 +1356,7 @@ time elapses, \verb|cnt| of the former increases and \verb|val| of the
 latter decreases, respectively:
 \begin{verbatim}
   ceq delta((L T STS HW ISRC), R)
-      = ((deltaTask(ID, L, R) 
+      = (deltaTask(ID, L, R) 
          T STS HW (deltaIS(ISRC, R)))
       if ID := (HW).getPc /\ ID :: MaybeNat .
 \end{verbatim}
@@ -1993,12 +1993,12 @@ demonstrate the soundness and completeness of our results.
 
 We show here a detailed proof of Theorem~\ref{t:main}.
 
-First we need to introduce some more preliminaries
-from~\cite{DBLP:journals/entcs/OlveczkyM07a}. A term $t$ is called
-\emph{ground} if it contains no variables. For a set $P\subseteq AP$
-of atomic propositions and ground terms $t,t'$, we write $t\simeq_P
-t'$ (or $t\simeq t'$ for simplicity when $P$ is implicit) if $t$ and
-$t'$ satisfy exactly the same set of propositions from $P$.
+Some more preliminaries from~\cite{DBLP:journals/entcs/OlveczkyM07a}
+are needed. A term $t$ is called \emph{ground} if it contains no
+variables. For a set $P\subseteq AP$ of atomic propositions and ground
+terms $t,t'$, we write $t\simeq_P t'$ (or $t\simeq t'$ for simplicity
+when $P$ is implicit) if $t$ and $t'$ satisfy exactly the same set of
+propositions from $P$.
 
 The following lemma is needed to prove the time-robustness of our
 model:
@@ -2010,23 +2010,24 @@ time domain which is not a normal time value, and let the time domain
 be \emph{linear}. Then $\cal R$ is time-robust if the following
 conditions are satisfied for all appropriate ground terms $t$ and
 $r,r'$:
-
-\noindent
-(i) \verb|mte(delta(|$t$\verb|,|$r$\verb|))| $=$
+\begin{enumerate}
+\item
+[(i)] \verb|mte(delta(|$t$\verb|,|$r$\verb|))| $=$
 \verb|mte(|$t$\verb|) monus |$r$, for all $r\le$
 \verb|mte(|$t$\verb|)|;
 
-\noindent
-(ii) \verb|delta(|$t$\verb|,|$0$\verb|)| $= t$;
+\item
+[(ii)] \verb|delta(|$t$\verb|,|$0$\verb|)| $= t$;
 
-\noindent
-(iii) \verb|delta(delta(|$t$\verb|,|$r$\verb|),|$r'$\verb|)| $=$
+\item
+[(iii)] \verb|delta(delta(|$t$\verb|,|$r$\verb|),|$r'$\verb|)| $=$
 \verb|delta(|$t$\verb|,|$r+r'$\verb|)|, for $r+r'\le$
 \verb|mte(|$t$\verb|)|;
 
-\noindent
-(iv) \verb|mte(|$\sigma(l)$\verb|)|$= 0$ for each ground instance
+\item
+[(iv)] \verb|mte(|$\sigma(l)$\verb|)|$= 0$ for each ground instance
 $\sigma(l)$ of each left-hand side of an instantaneous rewrite rule.
+\end{enumerate}
 \end{lemma}
 
 Each one-step rewrite can be categorized and then tick-invariance can
@@ -2064,7 +2065,20 @@ $r<$ \verb|mte(|$t$\verb|)|.
 Now we can present the detailed proof of Theorem~\ref{t:main}:
 \noindent
 \begin{IEEEproof}[Proof of Theorem~\ref{t:main}]
-first
+We first prove the time-robustness of our model by
+Lemma~\ref{l:timerobustness}.  Instantiated on the built-in dense time
+domain \verb|POSRAT-TIME-DOMAIN-WITH-INF|, our model has \verb|INF| as
+the only element which is not a normal time value. As presented in
+Section~\ref{ss:timedbehavior}, only a single standard tick rule is
+defined. Hence our model is time-robust by
+Lemma~\ref{l:timerobustness} provided conditions (i-iv) hold.
+\begin{enumerate}
+\item[(i)] We must prove \verb|mte(delta(|$s$\verb|,|$r$\verb|))| $=$
+  \verb|mte(|$s$\verb|)| \verb|monus| $r$ for all $r\le$
+  \verb|mte(|$s$\verb|)|, with $s$ being a system state of sort
+  \verb|System|.
+\end{enumerate}
+
 \end{IEEEproof}
 
 

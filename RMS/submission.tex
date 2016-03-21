@@ -165,7 +165,7 @@
 
 % *** ALIGNMENT PACKAGES ***
 %
-%\usepackage{array}
+\usepackage{array}
 % Frank Mittelbach's and David Carlisle's array.sty patches and improves
 % the standard LaTeX2e array and tabular environments to provide better
 % appearance and additional user controls. As the default LaTeX2e table
@@ -2061,6 +2061,59 @@ respect to a set $P$ of atomic propositions if \verb|{|$t$\verb|}|
 $\simeq_P$ \verb|{delta(|$t$\verb|,|$r$\verb|)}| for all $t,r$ with
 $r<$ \verb|mte(|$t$\verb|)|.
 \end{lemma}
+
+\newcommand{\mteTask}[2]{\texttt{mteTask(}#1\texttt{,}#2\texttt{)}}
+\newcommand{\deltaTask}[3]{\texttt{deltaTask(}#1\texttt{,}#2\texttt{,}#3\texttt{)}}
+\newcommand{\mteIS}[1]{\texttt{mteIS(}#1\texttt{)}}
+\newcommand{\deltaIS}[2]{\texttt{deltaIS(}#1\texttt{,}#2\texttt{)}}
+\newcommand{\IntSrc}[3]{\texttt{<}#1\texttt{:IntSrc|val:}#2\texttt{,cycle:}#3\texttt{>}}
+ 
+Several auxiliary lemmas are proved:
+\begin{lemma}
+Given $ID$ of sort \verb|MaybeNat| and $L$ of sort \verb|TaskList|,
+\verb|mteTask(|$ID$\verb|,deltaTask(|$ID$\verb|,|$L$\verb|,|$r$\verb|))|
+$=$ \verb|mteTask(|$ID$\verb|,|$L$\verb|)| \verb|monus| $r$ for all
+$r\le$ \verb|mteTask(|$ID$\verb|,|$L$\verb|)|.
+\end{lemma}
+\begin{IEEEproof}
+If $ID=$ \verb|none|, the case is trivial. By definition,
+\verb|mteTask(none,deltaTask(none,|$L$\verb|,|$r$\verb|))| $=$
+\verb|mteTask(none,|$L$\verb|)| $=$ \verb|INF| $=$
+\verb|mteTask(none,|$L$\verb|)| \verb|monus| $r$. Otherwise, $ID=$
+\verb|some| $N$ with $N$ of sort \verb|Nat|. Assume that the
+\verb|cnt| of the $N$th task in $L$ is
+\verb|[|$r_e$\verb|/|$C$\verb|]|. Then by definition,
+\verb|deltaTask(|$ID$\verb|,|$L$\verb|,|$r$\verb|)| $= L'$, where the
+$N$th task in $L'$ has \verb|cnt| value being
+\verb|[|$(r_e+r)$\verb|/|$C$\verb|]|. Hence,
+\begin{IEEEeqnarray*}{Cl}
+  & \mteTask{ID}{\deltaTask{ID}{L}{r}}
+\\  
+= & \mteTask{ID}{L'}
+\\
+= & C~\verb|monus|~(r_e+r) 
+= (C~\verb|monus|~r_e)~\verb|monus|~r 
+\\
+= & \mteTask{ID}{L}~\verb|monus|~r~.
+\end{IEEEeqnarray*}
+\end{IEEEproof}
+\begin{lemma}
+Given $ISRC$ of class \verb|IntSrc| representing an reasonable state
+of interrupt source in our model, \mteIS{\deltaIS{$ISRC$}{$r$}} $=$
+\mteIS{$ISRC$} \verb|monus| $r$ for all $r\le$ \mteIS{$ISRC$}.
+\end{lemma}
+\begin{IEEEproof}
+A reasonable $ISRC$ must be of the form \IntSrc{$O$}{$v$}{$T$} with
+$v\le T$. Thus by definition, 
+\begin{IEEEeqnarray*}{Cl}
+  & \mteIS{\deltaIS{ISRC}{r}}
+\\  
+= & \mteIS{\IntSrc{O}{(v~\texttt{monus}~r)}{T}}
+\\
+= & v~\verb|monus|~r
+= \mteIS{ISRC}~\verb|monus|~r~.
+\end{IEEEeqnarray*}
+\end{IEEEproof}
 
 Now we can present the detailed proof of Theorem~\ref{t:main}:
 \noindent

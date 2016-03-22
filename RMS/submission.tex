@@ -2053,6 +2053,7 @@ $t\lrps{r'}{max}t''$ for $r'>r$.
 The following lemma is needed to prove the tick-invariance of our
 defined propositions:
 \begin{lemma}[\cite{DBLP:journals/entcs/OlveczkyM07a}]
+\label{l:tickinv}
 Let $\cal R$ be a time-robust object-oriented specification with a
 standard tick rule, let the infinity element \verb|INF| be the only
 element in the time domain which is not a normal time value, and let
@@ -2184,6 +2185,88 @@ further reduced:
 
 Condition~(ii) follows from the fact that $r+0=r$ and
 $r$~\verb|monus|~$0=r$ for all $r$.
+
+Condition~(iii). We must prove \deltaS{\deltaS{$s$}{$r$}}{$r'$} $=$
+\deltaS{$s$}{$r+r'$} for all $r+r'\le$ \mteS{$s$}, with $s$ being a
+system state of sort \verb|System|. Using the same symbols as in~(i),
+we only consider the case $\mathit{ID}$\verb|::MaybeNat| in detail. 
+By definition, the left side of the equation
+\begin{IEEEeqnarray*}{Cl}
+  & \deltaS{\deltaS{s}{r}}{r'}
+\\  
+= & \verb|(|\deltaTask{ID}{\deltaTask{ID}{L}{r}}{r'}
+\\
+  & \verb| |~T~STS~HW~\deltaIS{\deltaIS{ISRC}{r}}{r'}\verb|)|~\mbox{,}
+\end{IEEEeqnarray*}
+and the right side of the equation
+\begin{IEEEeqnarray*}{Cl}
+  & \deltaS{s}{r+r'}
+\\  
+= & \verb|(|\deltaTask{ID}{L}{r+r'}
+\\
+  & \verb| |~T~STS~HW~\deltaIS{ISRC}{r+r'}\verb|)|~\mbox{.}
+\end{IEEEeqnarray*}
+\deltaTask{$ID$}{\deltaTask{$ID$}{$L$}{$r$}}{$r'$} $=$
+\deltaTask{$ID$}{$L$}{$r+r'$} holds by the associativity of $+$, while
+\deltaIS{\deltaIS{$ISRC$}{$r$}}{$r'$} $=$ \deltaIS{$ISRC$}{$r+r'$}
+holds since $(v$ \verb|monus| $r)$ \verb|monus| $r'$ $=$ $v$
+\verb|monus| $(r+r')$ with $v$ of sort \verb|Time|. Thus
+condition~(iii) holds.
+
+Condition~(iv). We show that \verb|mte| of each instance of the
+left-hand side of any instantaneous rule is $0$. For example,
+considering the (conditional) rule \verb|interrupt-request|, with its
+condition \verb|(|$ISRC$\verb|).timeout|, we know that the \verb|val|
+of $ISRC$ equals $0$. Therefore,
+\begin{IEEEeqnarray*}{Cl}
+  & \mteS{L~T~STS~HW~ISRC}
+\\  
+= & \verb|minimum(|\mteTask{ID}{L}\verb|,|
+\\
+  & \verb|        |\mteIS{ISRC}\verb|,| \mteIr{HW}\verb|)|
+\\
+= & \verb|minimum(|\mteTask{ID}{L}\verb|,|~0~\verb|,| \mteIr{HW}\verb|)|
+\\
+= & 0~\mbox{.}
+\end{IEEEeqnarray*}
+The other rules can be similarly proved with their conditions. Hence
+our model is time-robust by Lemma~\ref{l:timerobustness}.
+
+Finally we prove the tick-invariance of the propositions used to
+analyze our model, i.e. \verb|taskTimeout| and \verb|correct|. By
+Lemma~\ref{l:tickinv}, we must prove
+$\verb|{|s\verb|}|\simeq_P\verb|{|\deltaS{s}{r}\verb|}|$ with $s$ of
+sort \verb|System| and $r<\mteS{s}$, that is, applying a tick rule
+advancing $r$ time units will not change the value of each
+proposition. Let $s$ be
+$(\mathit{L}~\mathit{T}~\mathit{STS}~\mathit{HW}~\mathit{ISRC})$ and
+$\verb|(|\mathit{HW}\verb|).getPc|=\mathit{ID}$.
+\begin{itemize}
+\item \verb|taskTimeout| holds if and only if $L$ contains an
+  \verb|error|. Since \verb|delta| does not produce or eliminate
+  \verb|error| in $L$, \verb|taskTimeout| holds in $s$ if and only if
+  \verb|taskTimeout| holds in $\deltaS{s}{r}$ for any $r<\mteS{s}$,
+  which means that our model is tick-invariant with respect to
+  \verb|taskTimeout|.
+\hide{ 
+In our model, an \verb|error| cannot be eliminated by any operations,
+hence, if \verb|taskTimeout| holds in $s$, it must hold in
+$\deltaS{s}{r}$. On the other hand, \verb|error| can pop up only when
+operation \verb|update_with_| is applied, i.e., only when the
+instantaneous rule \verb|interrupt-handle| applies. If
+\verb|taskTimeout| does not hold in $s$, it will not hold either in
+$\deltaS{s}{r}$ for any $r<\mteS{s}$, since instantaneous rules cannot
+apply in $\deltaS{s}{r'}$ for any $r'<\mteS{s}$ by time-robustness.}
+\item The value of \verb|correct| depends on $ID$ and the status of
+  each task in $L$. Similarly, \verb|delta| does not change $ID$ or
+  the status of any task in $L$, hence \verb|correct| holds in $s$ if
+  and only if \verb|correct| holds in $\deltaS{s}{r}$ for any
+  $r<\mteS{s}$. It concludes the tick-invariance of \verb|correct|.
+\end{itemize}
+
+Therefore, by Theorem~\ref{t:completeness}, our approach using untimed
+model checking to verify the schedulability and the correctness is
+complete.
 \end{IEEEproof}
 
 

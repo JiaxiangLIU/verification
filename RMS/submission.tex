@@ -2067,9 +2067,13 @@ $r<$ \verb|mte(|$t$\verb|)|.
 \newcommand{\mteIS}[1]{\texttt{mteIS(}#1\texttt{)}}
 \newcommand{\deltaIS}[2]{\texttt{deltaIS(}#1\texttt{,}#2\texttt{)}}
 \newcommand{\IntSrc}[3]{\texttt{<}#1\texttt{:IntSrc|val:}#2\texttt{,cycle:}#3\texttt{>}}
+\newcommand{\mteIr}[1]{\texttt{mteIr(}#1\texttt{)}}
+\newcommand{\mteS}[1]{\texttt{mte(}#1\texttt{)}}
+\newcommand{\deltaS}[2]{\texttt{delta(}#1\texttt{,}#2\texttt{)}}
  
 Several auxiliary lemmas are proved:
 \begin{lemma}
+\label{l:auxtask}
 Given $ID$ of sort \verb|MaybeNat| and $L$ of sort \verb|TaskList|,
 \verb|mteTask(|$ID$\verb|,deltaTask(|$ID$\verb|,|$L$\verb|,|$r$\verb|))|
 $=$ \verb|mteTask(|$ID$\verb|,|$L$\verb|)| \verb|monus| $r$ for all
@@ -2098,6 +2102,7 @@ $N$th task in $L'$ has \verb|cnt| value being
 \end{IEEEeqnarray*}
 \end{IEEEproof}
 \begin{lemma}
+\label{l:auxis}
 Given $ISRC$ of class \verb|IntSrc| representing an reasonable state
 of interrupt source in our model, \mteIS{\deltaIS{$ISRC$}{$r$}} $=$
 \mteIS{$ISRC$} \verb|monus| $r$ for all $r\le$ \mteIS{$ISRC$}.
@@ -2114,6 +2119,15 @@ $v\le T$. Thus by definition,
 = \mteIS{ISRC}~\verb|monus|~r~.
 \end{IEEEeqnarray*}
 \end{IEEEproof}
+\begin{lemma}
+\label{l:auxhw}
+Given $HW$ of sort \verb|Hardware|, for all $r\le$ \mteIr{$HW$},
+\mteIr{$HW$} $=$ \mteIr{$HW$} \verb|monus| $r$.
+\end{lemma}
+\begin{IEEEproof}
+  It concludes by discussing on whether there exists an interrupt
+  request detected in $HW$.
+\end{IEEEproof}
 
 Now we can present the detailed proof of Theorem~\ref{t:main}:
 \noindent
@@ -2125,13 +2139,51 @@ the only element which is not a normal time value. As presented in
 Section~\ref{ss:timedbehavior}, only a single standard tick rule is
 defined. Hence our model is time-robust by
 Lemma~\ref{l:timerobustness} provided conditions (i-iv) hold.
-\begin{enumerate}
-\item[(i)] We must prove \verb|mte(delta(|$s$\verb|,|$r$\verb|))| $=$
-  \verb|mte(|$s$\verb|)| \verb|monus| $r$ for all $r\le$
-  \verb|mte(|$s$\verb|)|, with $s$ being a system state of sort
-  \verb|System|.
-\end{enumerate}
 
+Condition~(i). We must prove \verb|mte(delta(|$s$\verb|,|$r$\verb|))|
+$=$ \verb|mte(|$s$\verb|)| \verb|monus| $r$ for all $r\le$
+\verb|mte(|$s$\verb|)|, with $s$ being a system state of sort
+\verb|System|. Let $s$ be of the form
+$(\mathit{L}~\mathit{T}~\mathit{STS}~\mathit{HW}~\mathit{ISRC})$ and
+$\mathit{ID}=\verb|(|\mathit{HW}\verb|).getPc|$. We only consider the
+case $\mathit{ID}$\verb|::MaybeNat| in detail, while the other case
+$\mathit{ID}$\verb|::Oid| is similar. By definitions of \verb|mte| and
+\verb|delta|,
+\begin{IEEEeqnarray*}{Cl}
+  & \mteS{\deltaS{s}{r}}
+\\  
+= & \mteS{\deltaTask{ID}{L}{r}
+\\
+  & \;\;\;\;\;\;\;\;\;T~STS~HW~\deltaIS{ISRC}{r}}
+\\
+= & \verb|minimum(|\mteTask{ID}{\deltaTask{ID}{L}{r}}\verb|,|
+\\
+  & \verb|        |\mteIS{\deltaIS{ISRC}{r}}\verb|,|
+\\
+  & \verb|        |\mteIr{HW}\verb|)|~.
+\end{IEEEeqnarray*}
+By Lemmas~\ref{l:auxtask},~\ref{l:auxis} and~\ref{l:auxhw}, it can be
+further reduced:
+\begin{IEEEeqnarray*}{Cl}
+  & \mteS{\deltaS{s}{r}}
+\\  
+= & \verb|minimum(|\mteTask{ID}{L}~\verb|monus|~r~\verb|,|
+\\
+  & \verb|        |\mteIS{ISRC}~\verb|monus|~r~\verb|,|
+\\
+  & \verb|        |\mteIr{HW}~\verb|monus|~r~\verb|)|
+\\
+= & \verb|minimum(|\mteTask{ID}{L}\verb|,|
+\\
+  & \verb|        |\mteIS{ISRC}\verb|,|
+\\
+  & \verb|        |\mteIr{HW}\verb|)|~\verb|monus|~r
+\\
+= & \mteS{s}~\verb|monus|~r~.
+\end{IEEEeqnarray*}
+
+Condition~(ii) follows from the fact that $r+0=r$ and
+$r$~\verb|monus|~$0=r$ for all $r$.
 \end{IEEEproof}
 
 

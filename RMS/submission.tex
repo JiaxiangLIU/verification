@@ -2269,6 +2269,22 @@ model checking to verify the schedulability and the correctness is
 complete.
 \end{IEEEproof}
 
+\jx{
+
+  Using a model-based checking approach enhance the ability to check other scheduling
+  algorithms.
+  
+  The chinese one:
+
+  - the model is ideal
+
+  - it should give a model to each task. And given different task sets, the model should be
+  adjusted. But our model need only an instantiation of the task set.
+
+  - the time domain. It uses a global integer to model the time, hence the time dense
+  must be discrete. But our model use a generic time domain, which can be instantiated on
+  both dense and discrete domain.
+}
 
 
 \hide{

@@ -1479,6 +1479,9 @@ below:
   $T_1=5ms$, $C_1=2.5ms$, $T_2=10ms$, $C_2=1.5ms$, $T_3=15ms$ and
 $C_3=4.5ms$.
 \end{itemize}
+Note that thanks to the powerful expressivity of Real-Time Maude, we
+only need to define an initial state of sort \verb|System| to specify
+a given task set. No necessity to modify the model is needed.
 
 \hide{
 \begin{itemize}
@@ -1966,19 +1969,43 @@ applied, our analysis can be adjusted only by modifying the model,
 while theoretical approaches may need thorough analyses and reasoning.
 The last one is that, considering overhead and details of hardware do
 introduce some kind of non-determinism into the model. For example, in
-our model, if the running task is complete ``right'' at the time when
-an interrupt request is performed, two different behaviors are
+our model, if the running task is complete \emph{right} at the time
+when an interrupt request is performed, two different behaviors are
 possible: (i) the system performs task switching, during which the
 interrupt request is masked, hence the scheduling may be delayed; (ii)
-the system answers the interrupt request immediately.
+the system answers the interrupt request immediately, the switching
+being delayed. Tackling such non-determinism via theoretical analyses
+seems more complicated than our automatic approach.
 
-\cite{DBLP:conf/iceccs/CuiDT14} and~\cite{TianD2011} also made use of
+\cite{TianD2011} and~\cite{DBLP:conf/iceccs/CuiDT14} also made use of
 model checking to analyze the RMS algorithm along the same line but
-with different languages and tools. They considered only the ideal
-setting as in~\cite{DBLP:journals/jacm/LiuL73}, instead of an
-implementation which contains much more complex details. Our model of
-the implementation easily degenerates to a model of the RMS algorithm,
-if we let the times for scheduling and switching be zero.
+with different languages and tools. The RMS algorithm is analyzed
+using an extension of SPIN~\cite{DBLP:journals/tse/Holzmann97}
+in~\cite{TianD2011}, while the logic programming language
+TMSVL~\cite{DBLP:conf/icfem/HanDW12} and its model checker are applied
+in~\cite{DBLP:conf/iceccs/CuiDT14}. The work presented
+in~\cite{TianD2011} and~\cite{DBLP:conf/iceccs/CuiDT14} has two main
+differences with ours. The first one, which is also the motivational
+one, is that they considered only the ideal setting of the algorithm
+as in~\cite{DBLP:journals/jacm/LiuL73}, instead of an implementation
+which contains much more complex details. In fact, our model of the
+implementation can easily degenerate to a model of the RMS algorithm,
+if we let the times for scheduling and switching be zero. The other
+difference is that when adding a new task into the task set, the
+models in~\cite{TianD2011} and~\cite{DBLP:conf/iceccs/CuiDT14} should
+be modified by explicitly defining a sub-model of the new task and its
+behaviors. In particular, the scheduling part of the model
+in~\cite{TianD2011} needs adjustments as well to include a new
+task. Nevertheless, a new task set is specified in our approach merely
+by giving a new initial state, without necessity to modify the model,
+as already emphasized in Section~\ref{ss:results}. On the other hand,
+\cite{TianD2011} used a discrete time domain in the model, while we
+employ a generic time domain, which is flexible to be instantiated on
+either discrete or dense ones. In~\cite{DBLP:conf/iceccs/CuiDT14}, the
+time domain is dense, and a modeling strategy like our maximal time
+sampling strategy is applied to reduce the state space. However, a
+completeness statement like Theorem~\ref{t:main} was not given
+in~\cite{DBLP:conf/iceccs/CuiDT14}.
 
 Finally, Maude and Real-Time Maude have been successfully applied on
 large numbers of applications~\cite{DBLP:journals/jlp/Meseguer12},

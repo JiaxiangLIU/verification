@@ -1955,11 +1955,22 @@ account, being not as realistic as ours. Katcher et al. did consider
 overhead in their schedulability analysis, under several models based
 on different kinds of popular
 implementations~\cite{DBLP:journals/tse/KatcherAS93}.  However, our
-target implementation is not in their scope.  Furthermore, compared
+target implementation is not in their scope. Furthermore, compared
 with those theoretical analyses, our approach based on formal modeling
-and verification has a great advantage that if our schedulability test
-answers ``no'', it returns at the same time a real counterexample,
-which is able to guide our engineer to adjust the design.
+and verification has three advantages. One is that if our
+schedulability test answers ``no'', it returns at the same time a real
+counterexample, which is able to guide our engineer to adjust the
+design, by changing either the priorities or even the scheduling
+algorithm. The second is that, when a fresh scheduling strategy is
+applied, our analysis can be adjusted only by modifying the model,
+while theoretical approaches may need thorough analyses and reasoning.
+The last one is that, considering overhead and details of hardware do
+introduce some kind of non-determinism into the model. For example, in
+our model, if the running task is complete ``right'' at the time when
+an interrupt request is performed, two different behaviors are
+possible: (i) the system performs task switching, during which the
+interrupt request is masked, hence the scheduling may be delayed; (ii)
+the system answers the interrupt request immediately.
 
 \cite{DBLP:conf/iceccs/CuiDT14} and~\cite{TianD2011} also made use of
 model checking to analyze the RMS algorithm along the same line but
@@ -2188,7 +2199,7 @@ $r$~\verb|monus|~$0=r$ for all $r$.
 
 Condition~(iii). We must prove \deltaS{\deltaS{$s$}{$r$}}{$r'$} $=$
 \deltaS{$s$}{$r+r'$} for all $r+r'\le$ \mteS{$s$}, with $s$ being a
-system state of sort \verb|System|. Using the same symbols as in~(i),
+system state of sort \verb|System|. Using the same notations as in~(i),
 we only consider the case $\mathit{ID}$\verb|::MaybeNat| in detail. 
 By definition, the left side of the equation
 \begin{IEEEeqnarray*}{Cl}
@@ -2271,8 +2282,11 @@ complete.
 
 \jx{
 
-  Using a model-based checking approach enhance the ability to check other scheduling
-  algorithms.
+  Using a model-based checking approach enhance the ability to check
+  other scheduling algorithms.
+
+  About non-determinism: task finishes right at the time interrupt
+  comes, theoretical results cannot solve
   
   The chinese one:
 

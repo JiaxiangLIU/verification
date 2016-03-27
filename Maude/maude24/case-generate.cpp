@@ -28,6 +28,7 @@ int main() {
   int TESTNUM = 10;
   int caseNum = 0;
 
+
   for (N = 5; N <= 20; N++) { 
     cout << "Task number is: " << N << endl;
     
@@ -75,7 +76,7 @@ int main() {
     // write to the file
 
     //    ofstream out(to_string(N) + "/test-case-" + to_string(caseNum) + ".maude");
-    ofstream out("pow/" + to_string(N) + "-" + to_string(caseNum) + ".maude");
+    ofstream out("pow-ideal/" + to_string(N) + "-" + to_string(caseNum) + ".maude");
     if (out.is_open()) {
       out << "set trace off ." << endl;
       out << "set break off ." << endl;
@@ -98,7 +99,8 @@ int main() {
       out << endl;
 
       out << "  op tsts : -> SysTasks ." << endl;
-      out << "  eq tsts = [ < scheduling : Task | cnt : [ 0 / [ 38 , 38 ] ] > < switching : Task | cnt : [ 0 / [ 20 , 20 ] ] > ] ." << endl;
+      //      out << "  eq tsts = [ < scheduling : Task | cnt : [ 0 / [ 38 , 38 ] ] > < switching : Task | cnt : [ 0 / [ 20 , 20 ] ] > ] ." << endl;
+      out << "  eq tsts = [ < scheduling : Task | cnt : [ 0 / [ 0 , 0 ] ] > < switching : Task | cnt : [ 0 / [ 0 , 0 ] ] > ] ." << endl;      
       out << endl;
  
       out << "  op tHW : -> Hardware ." << endl;

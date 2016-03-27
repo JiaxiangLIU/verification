@@ -1,0 +1,46 @@
+set trace off .
+set break off .
+set profile off .
+
+(tomod INSTANTIATION is 
+  protecting POSRAT-TIME-DOMAIN-WITH-INF .
+  including INTERRUPT-SOURCE .
+  including PERIODIC-TASK .
+  including SYSTEM .
+  including RMS-VERIFICATION .
+  including RMS-MODEL-CHECK .
+  protecting QID .
+  subsort Qid < Oid .
+
+  op tisrc : -> Object .
+  eq tisrc = < 'tisrc : IntSrc | val : 0 , cycle : 5000 > .
+
+  op tsts : -> SysTasks .
+  eq tsts = [ < scheduling : Task | cnt : [ 0 / [ 38 , 38 ] ] > < switching : Task | cnt : [ 0 / [ 20 , 20 ] ] > ] .
+
+  op tHW : -> Hardware .
+  eq tHW = [ < 'tr : Regs | pc : none , mask : false , ir : false , temp : none > ; bottom ] .
+
+  op tl : -> TaskList .
+  eq tl = < 't1 : PTask | priority : 12 , period : 1 , status : DORMANT , cnt : [ 0 / [ 249 , 249 ] ] >
+          :: < 't2 : PTask | priority : 11 , period : 2 , status : DORMANT , cnt : [ 0 / [ 651 , 651 ] ] >
+          :: < 't3 : PTask | priority : 10 , period : 4 , status : DORMANT , cnt : [ 0 / [ 320 , 320 ] ] >
+          :: < 't4 : PTask | priority : 9 , period : 8 , status : DORMANT , cnt : [ 0 / [ 2720 , 2720 ] ] >
+          :: < 't5 : PTask | priority : 8 , period : 16 , status : DORMANT , cnt : [ 0 / [ 3708 , 3708 ] ] >
+          :: < 't6 : PTask | priority : 7 , period : 32 , status : DORMANT , cnt : [ 0 / [ 6916 , 6916 ] ] >
+          :: < 't7 : PTask | priority : 6 , period : 64 , status : DORMANT , cnt : [ 0 / [ 14733 , 14733 ] ] >
+          :: < 't8 : PTask | priority : 5 , period : 128 , status : DORMANT , cnt : [ 0 / [ 9287 , 9287 ] ] >
+          :: < 't9 : PTask | priority : 4 , period : 256 , status : DORMANT , cnt : [ 0 / [ 12601 , 12601 ] ] >
+          :: < 't10 : PTask | priority : 3 , period : 512 , status : DORMANT , cnt : [ 0 / [ 137857 , 137857 ] ] >
+          :: < 't11 : PTask | priority : 2 , period : 1024 , status : DORMANT , cnt : [ 0 / [ 231110 , 231110 ] ] >
+          :: < 't12 : PTask | priority : 1 , period : 2048 , status : DORMANT , cnt : [ 0 / [ 350060 , 350060 ] ] >
+          :: null .
+
+  op tinit : -> GlobalSystem .
+  eq tinit = { tl [ 0 / 2048 ] tsts tHW tisrc } .
+
+endtom)
+
+(set tick max .)
+(mc tinit |=u []schedulable .)
+quit

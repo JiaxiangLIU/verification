@@ -1,0 +1,48 @@
+set trace off .
+set break off .
+set profile off .
+
+(tomod INSTANTIATION is 
+  protecting POSRAT-TIME-DOMAIN-WITH-INF .
+  including INTERRUPT-SOURCE .
+  including PERIODIC-TASK .
+  including SYSTEM .
+  including RMS-VERIFICATION .
+  including RMS-MODEL-CHECK .
+  protecting QID .
+  subsort Qid < Oid .
+
+  op tisrc : -> Object .
+  eq tisrc = < 'tisrc : IntSrc | val : 0 , cycle : 5000 > .
+
+  op tsts : -> SysTasks .
+  eq tsts = [ < scheduling : Task | cnt : [ 0 / [ 38 , 38 ] ] > < switching : Task | cnt : [ 0 / [ 20 , 20 ] ] > ] .
+
+  op tHW : -> Hardware .
+  eq tHW = [ < 'tr : Regs | pc : none , mask : false , ir : false , temp : none > ; bottom ] .
+
+  op tl : -> TaskList .
+  eq tl = < 't1 : PTask | priority : 14 , period : 1 , status : DORMANT , cnt : [ 0 / [ 138 , 138 ] ] >
+          :: < 't2 : PTask | priority : 13 , period : 2 , status : DORMANT , cnt : [ 0 / [ 313 , 313 ] ] >
+          :: < 't3 : PTask | priority : 12 , period : 4 , status : DORMANT , cnt : [ 0 / [ 42 , 42 ] ] >
+          :: < 't4 : PTask | priority : 11 , period : 8 , status : DORMANT , cnt : [ 0 / [ 2514 , 2514 ] ] >
+          :: < 't5 : PTask | priority : 10 , period : 16 , status : DORMANT , cnt : [ 0 / [ 1570 , 1570 ] ] >
+          :: < 't6 : PTask | priority : 9 , period : 32 , status : DORMANT , cnt : [ 0 / [ 8053 , 8053 ] ] >
+          :: < 't7 : PTask | priority : 8 , period : 64 , status : DORMANT , cnt : [ 0 / [ 8592 , 8592 ] ] >
+          :: < 't8 : PTask | priority : 7 , period : 128 , status : DORMANT , cnt : [ 0 / [ 34962 , 34962 ] ] >
+          :: < 't9 : PTask | priority : 6 , period : 256 , status : DORMANT , cnt : [ 0 / [ 39804 , 39804 ] ] >
+          :: < 't10 : PTask | priority : 5 , period : 512 , status : DORMANT , cnt : [ 0 / [ 64442 , 64442 ] ] >
+          :: < 't11 : PTask | priority : 4 , period : 1024 , status : DORMANT , cnt : [ 0 / [ 122330 , 122330 ] ] >
+          :: < 't12 : PTask | priority : 3 , period : 2048 , status : DORMANT , cnt : [ 0 / [ 636781 , 636781 ] ] >
+          :: < 't13 : PTask | priority : 2 , period : 4096 , status : DORMANT , cnt : [ 0 / [ 349040 , 349040 ] ] >
+          :: < 't14 : PTask | priority : 1 , period : 8192 , status : DORMANT , cnt : [ 0 / [ 1115263 , 1115263 ] ] >
+          :: null .
+
+  op tinit : -> GlobalSystem .
+  eq tinit = { tl [ 0 / 8192 ] tsts tHW tisrc } .
+
+endtom)
+
+(set tick max .)
+(mc tinit |=u []schedulable .)
+quit

@@ -12,8 +12,8 @@ int main() {
     cout << "task number " << N << " start:" << endl;
   for (int i = 0; i < TESTNUM; i++) {
     for (int j = 0; j < TIME; j++) {
-      command = "./maude.linux64 real-time-maude.maude RMS.maude pow/"
-	+ to_string(N) + "-" + to_string(i) + ".maude > pow-result/"
+      command = "./maude.linux64 real-time-maude.maude RMS.maude pow-ideal/"
+	+ to_string(N) + "-" + to_string(i) + ".maude > pow-ideal-result/"
 	+ to_string(N) + "-" + to_string(i) + "-" + to_string(j) + ".result";
       system(command.c_str());
       cout << "Task number " << N << " test " << i << " round " << j << " done" << endl;

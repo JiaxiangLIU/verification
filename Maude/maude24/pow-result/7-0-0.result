@@ -1,0 +1,75 @@
+		     \||||||||||||||||||/
+		   --- Welcome to Maude ---
+		     /||||||||||||||||||\
+	    Maude 2.4 built: Nov  6 2008 16:42:13
+	    Copyright 1997-2008 SRI International
+		   Sun Mar 27 02:01:38 2016
+
+	     Full Maude 2.3 `(February 12th`, 2007`)
+
+	  Real-Time Maude 2.3 extension February 4, 2010
+
+rewrites: 2076 in 8ms cpu (8ms real) (259500 rewrites/second)
+Introduced module MAYBE-NAT
+
+rewrites: 2240 in 4ms cpu (3ms real) (560000 rewrites/second)
+Introduced module STACK
+
+rewrites: 5551 in 4ms cpu (4ms real) (1387750 rewrites/second)
+
+Introduced timed module: COUNTER
+
+rewrites: 1683 in 8ms cpu (4ms real) (210375 rewrites/second)
+Introduced module TIMER
+
+rewrites: 8549 in 8ms cpu (8ms real) (1068625 rewrites/second)
+
+Introduced timed module: INTERRUPT-SOURCE
+
+rewrites: 8122 in 4ms cpu (7ms real) (2030500 rewrites/second)
+
+Introduced timed module: TASK
+
+rewrites: 9060 in 12ms cpu (12ms real) (755000 rewrites/second)
+Introduced module PERIODIC-TASK
+
+rewrites: 20009 in 20ms cpu (23ms real) (1000450 rewrites/second)
+Introduced module TASKLIST
+
+rewrites: 7361 in 8ms cpu (8ms real) (920125 rewrites/second)
+Introduced module SYSTEM-TASKS
+
+rewrites: 11126 in 12ms cpu (12ms real) (927166 rewrites/second)
+Introduced module REGISTER
+
+rewrites: 12800 in 16ms cpu (17ms real) (800000 rewrites/second)
+Introduced module HARDWARE
+
+rewrites: 41740 in 48ms cpu (45ms real) (869583 rewrites/second)
+
+Introduced timed module: SYSTEM
+
+rewrites: 22050 in 28ms cpu (26ms real) (787500 rewrites/second)
+Introduced module RMS-VERIFICATION
+
+rewrites: 26858 in 24ms cpu (27ms real) (1119083 rewrites/second)
+
+Introduced timed module: RMS-MODEL-CHECK
+
+rewrites: 47608 in 60ms cpu (56ms real) (793466 rewrites/second)
+
+Introduced timed module: INSTANTIATION
+
+rewrites: 16 in 0ms cpu (2ms real) (~ rewrites/second)
+
+Tick mode set to maximal time increase mode
+
+rewrites: 139859 in 140ms cpu (137ms real) (998992 rewrites/second)
+
+Untimed model check tinit |=u []schedulable in INSTANTIATION with mode maximal
+    time increase
+
+Result Bool :
+  true
+
+Bye.

@@ -654,7 +654,7 @@ TR)$, where:
   \emph{Terms} are expressions built from function symbols and
   variables.
 \item $(\Sigma, E\cup A)$ is a \emph{membership equational logic
-  theory}, with $E$ a set of conditional \emph{equations} and
+  theory}, with $E$ a set of \emph{conditional equations} and
   \emph{memberships} on $\Sigma$, and $A$ a set of equational axioms
   such as associativity, commutativity and identity.  $(\Sigma, E\cup
   A)$ models the system's ``static'' states as terms of some sort, and
@@ -1131,25 +1131,30 @@ handling mechanism: the registers and the stack.
 The set of registers is modeled as an object instance of the class
 \verb|Regs|, with attributes \verb|pc| denoting the program counter,
 \verb|mask| for the interrupt mask bit and \verb|ir| for the interrupt
-request bit, respectively.
+request bit, respectively:
 \begin{verbatim}
   class Regs | pc : TaskID, 
                mask : Bool, ir : Bool .
 \end{verbatim}
-where the sort \verb|TaskID| is a supersort of \verb|MaybeNat| and
+where the sort \verb|TaskID| contains subsorts \verb|MaybeNat| and
 \verb|Oid|, referring to some task.
+\hide{
 \begin{verbatim}
   subsorts MaybeNat Oid < TaskID .
 \end{verbatim}
+}
 Some operations, such as \verb|getPc| and \verb|setMask|, are defined
 on the class \verb|Regs|.
 
-Then the hardware is described by the sort \verb|Hardware|:
+Then the hardware is described by the sort \verb|Hardware| consisting
+of an instance of \verb|Regs| and a term of sort \verb|Stack|.  
+\hide{
 \begin{verbatim}
   op [_;_] : Object Stack ~> Hardware [ctor] .
   mb ([ < O:Oid : Regs |> ; S:Stack ]) 
        : Hardware .
 \end{verbatim}
+}
 
 \subsubsection{Interrupt Source}
 The interrupt source is modeled as an object of class \verb|IntSrc|,
@@ -1162,14 +1167,19 @@ time advances:
 
 \subsubsection{System}
 The entire system in our model is a composition of the parts
-introduced above, of a sort \verb|System|\footnote{Some variable
-  declarations are not shown for simplicity.}:
+introduced above, of a sort \verb|System|\footnote{Following the Maude
+  convention, variables would be written in capital letters. Some
+  variable declarations are not shown for simplicity.}:
 \begin{verbatim}
-  op _____ : TaskList Timer 
-             SysTasks Hardware Object 
-               ~> System [ctor] .
+  op _____ : TaskList Timer SysTasks 
+             Hardware Object ~> System [ctor] .
   mb (L T STS HW < O : IntSrc |>) : System .
 \end{verbatim}
+where ``\verb|~>|'' means that the function defined is a partial
+function and the keyword \verb|mb| declares a membership axiom,
+stating here that a term composed of a \verb|TaskList|, a
+\verb|Timer|, a \verb|SysTasks|, a \verb|Hardware| and an object
+instance of class \verb|IntSrc| is of sort \verb|System|.
 
 \subsection{Interrupt Requests}
 \label{ss:ir}
@@ -1185,12 +1195,15 @@ following instantaneous conditional rule applied on \verb|System|:
 \end{verbatim}
 where the function \verb|_.timeout| examines whether the attribute
 \verb|val| equals \verb|zero|, and \verb|_.intReq| sets the \verb|ir|
-bit indicating there exists an interrupt request to be handled:
+bit indicating there exists an interrupt request to be handled.
+\hide{
 \begin{verbatim}
   op _.intReq : Hardware -> Hardware .
   eq [ REGS ; S ].intReq 
        = [ (REGS).setIr ; S ] .
 \end{verbatim}
+}
+
 Then the request will wait to be handled, which is explained in
 Section~\ref{ss:inthandling}.
 
@@ -1198,19 +1211,19 @@ Section~\ref{ss:inthandling}.
 \label{ss:init}
 Periodic tasks are initiated sequentially by the function
 $updateStatus()$ in Figure~\ref{a:schedule}, which is treated as an
-instantaneous action in our model. It is modeled by the recursive
-function as below:
+instantaneous action in our model. It is modeled by a recursive
+function \verb|updateStatus_with_|:
 \begin{verbatim}
   op updateStatus_with_ : TaskList Timer 
                             -> TaskList . 
-  eq updateStatus null with TIMER = null .
-  eq updateStatus (TASK :: L) with TIMER
-     = (update TASK with TIMER) 
-       :: (updateStatus L with TIMER) .
 \end{verbatim}
-with \verb|TIMER| the current value of the global variable $timer$,
-and function \verb|update_with_| updating the status of individual
-task (Lines~\ref{l:startupdate}-\ref{l:endupdate} in
+%  eq updateStatus null with TIMER = null .
+%  eq updateStatus (TASK :: L) with TIMER
+%     = (update TASK with TIMER) 
+%       :: (updateStatus L with TIMER) .
+which applies function \verb|update_with_| on individual task
+sequentially to update the status
+(Lines~\ref{l:startupdate}-\ref{l:endupdate} in
 Figure~\ref{a:schedule}):
 \begin{verbatim}
   op update_with_ : Object Timer ~> Object .
@@ -1225,18 +1238,19 @@ Figure~\ref{a:schedule}):
        with TIMER
      = if ST == RUNNING 
        then < O : PTask | status : INTERRUPT >
-       else < O : PTask |> fi [owise] .
+       else < O : PTask |> fi [otherwise] .
 \end{verbatim}
-Given a task, if \verb|TIMER|($timer$) can be divided by its period,
-this task should be initiated.  In the case where the task should be
-initiated, it is set \verb|READY| if its \verb|status| is
+with \verb|TIMER| the current value of the global variable $timer$.
+Given a task, if \verb|TIMER|($timer$) can be divided by its period
+\verb|T|, this task should be initiated.  In the case where the task
+should be initiated, it is set \verb|READY| if its \verb|status| is
 \verb|DORMANT|; otherwise that means the previous job of this task is
 not complete, hence it misses its deadline, producing an
 \verb|error|. In the other case where the task should not be
 initiated, its \verb|status| changes only if it is \verb|RUNNING|.
 
 We can see that \verb|updateStatus_with_| behaves the same as
-$updateStatus()$.
+$updateStatus()$ in Figure~\ref{a:schedule}.
 
 \subsection{Interrupt Handling and Task Scheduling}
 \label{ss:inthandling}
@@ -1257,11 +1271,11 @@ where \verb|_.existInt| checks whether \verb|mask| is cleared
 \emph{and} \verb|ir| is set. The function \verb|_.interrupt| models
 the interrupt handling mechanism performed by the hardware and does
 four things: (i) clearing the bit \verb|ir|, which means the request
-has been handled; (ii) pushing the current \verb|pc| value into the
-stack, storing the interrupted context; (iii) assigning
-\verb|scheduling| of sort \verb|Oid| to \verb|pc|, which indicates
-that the system is scheduling; and (iv) setting the bit \verb|mask|,
-to mask coming interrupt requests.
+has been handled; (ii) pushing the current \verb|pc| into the stack,
+storing the interrupted context; (iii) assigning \verb|scheduling| of
+sort \verb|Oid| to \verb|pc|, which indicates that the system is
+scheduling; and (iv) setting the bit \verb|mask|, to mask coming
+interrupt requests.
 
 Unlike periodic tasks, even though the scheduling stage is modeled by
 a \verb|Counter|, its functionality is too important to be abandoned.
@@ -1300,8 +1314,8 @@ that has status \verb|INTERRUPT| or \verb|READY| then performing an
 \emph{interrupt return} or executing it, respectively.
 
 When the execution time of the system task \verb|scheduling| reaches
-its computation requirement, the scheduling stage may finish. We model
-this instantaneous action with the following rule:
+its computation requirement, scheduling is finished. We model this
+instantaneous action with the following rule:
 \begin{verbatim}
   crl [scheduling-finish] :
     (L T STS HW ISRC) 
@@ -1323,12 +1337,13 @@ time of the task reaches its computation requirement.
        = if R lt MIN then false else true fi .
 \end{verbatim}}
 
-Similar to scheduling, the switching stage is divided into timed
+Similar to scheduling, the switching stage is also divided into timed
 behaviors of \verb|switching| and its functionality. \verb|switching|
-starts when the execution time of the running periodic task reaches
-its computation requirement, and finishes when its own execution time
-does so. Two similar instantaneous rules are defined to model the
-functionality of switching:
+starts when the running periodic task is complete, and finishes when
+itself is so. Two similar instantaneous rules \verb|switching-start|
+and \verb|switching-finish| are defined to model the functionality of
+switching. 
+\hide{
 \begin{verbatim}
   crl [task-finish] :
     (L T STS HW ISRC) 
@@ -1343,13 +1358,16 @@ functionality of switching:
        /\ (SYSTEM).running == switching
        /\ switching isComplete?in STS .
 \end{verbatim}
+}
 
 \subsection{Timed Behaviors of the System}
 \label{ss:timedbehavior}
 Timed behaviors of the system consist of two parts: the execution of
 tasks and the execution of the interrupt source. Both are modeled
 together by the following single \emph{standard} tick
-rule~\cite{DBLP:journals/entcs/OlveczkyM07a}:
+rule\footnote{The keyword \texttt{nonexec} should be given to allow
+  the Real-Time Maude engine to apply the rule with some
+  strategies.}~\cite{DBLP:journals/entcs/OlveczkyM07a}:
 \begin{verbatim}
   crl [tick]:
     {SYSTEM} => {delta(SYSTEM, R)} in time R 
@@ -1378,9 +1396,10 @@ latter decreases, respectively:
          T STS HW (deltaIS(ISRC, R)))
       if ID := (HW).getPc /\ ID :: MaybeNat .
 \end{verbatim}
-We omit details for the case where \verb|ID| is of sort \verb|Oid| due
-to similarity. In that case, \verb|deltaTask| applies on \verb|STS|
-instead of \verb|L|.
+where the last condition states that \verb|ID| is of sort
+\verb|MaybeNat|. Due to similarity, we omit details for the case where
+\verb|ID| is of sort \verb|Oid| and \verb|deltaTask| applies on
+\verb|STS| instead of \verb|L|.
 
 \verb|mte|, the maximum amount of time allowed to elapse, depends on
 when the next instantaneous action must perform. Therefore, it is
@@ -1389,9 +1408,8 @@ task, the remaining time to request the next interrupt, and whether or
 not there exists an interrupt request detected for the moment:
 \begin{verbatim}
   ceq mte(L T STS HW ISRC)
-      = minimum( mteTask(ID, L),
-                 minimum( mteIS(ISRC), 
-                          mteIr(HW)))
+      = minimum(mteTask(ID, L),
+                mteIS(ISRC), mteIr(HW))
       if ID := (HW).getPc /\ ID :: MaybeNat .
 \end{verbatim}
 where \verb|mteIr| returns \verb|zero| if there exists an interrupt

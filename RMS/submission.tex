@@ -580,7 +580,7 @@ implementations of RMS is found.
 
 In this paper, we use \emph{Real-Time Maude}, a \emph{rewriting}-based
 formal modeling language and analysis tool for real-time systems, to
-model a realistic implementation of RMS, which serves as a simplified
+model a realistic implementation of RMS that serves as a simplified
 operating system within an avionic control system, and then verify
 several desired properties. Based on a realistic implementation, our
 model extends the standard RMS model proposed
@@ -649,31 +649,35 @@ TR)$, where:
 \begin{itemize}
 \item $\Sigma$ is an algebraic \emph{signature}, that is, a set of
   declarations of \emph{sorts}, \emph{subsorts} and \emph{function
-    symbols}. The function symbols are allowed to be mixfix.
+    symbols}. The function symbols are allowed to be mixfix, in which
+  case underscores ``\verb|_|'' indicate the positions of parameters.
+  \emph{Terms} are expressions built from function symbols and
+  variables.
 \item $(\Sigma, E\cup A)$ is a \emph{membership equational logic
   theory}, with $E$ a set of conditional \emph{equations} and
   \emph{memberships} on $\Sigma$, and $A$ a set of equational axioms
   such as associativity, commutativity and identity.  $(\Sigma, E\cup
-  A)$ models the system's ``static'' states as an algebraic data type,
-  and is equipped with a built-in specification of a sort \verb|Time|.
+  A)$ models the system's ``static'' states as terms of some sort, and
+  is equipped with a built-in specification of a sort \verb|Time|.
 \item $IR$ is a set of \emph{labeled conditional rewrite rules}
   specifying the system's local transitions. Each rule has the form
-  $[l]~:~s\rightarrow s'\mbox{ \textbf{if} }\bigwedge^n_{j=1}cond_j$,
+  $[l]~:~t\rightarrow t'\mbox{ \textbf{if} }\bigwedge^n_{j=1}cond_j$,
   where each $cond_j$ is an equality $u_j=v_j$ and $l$ is a
-  \emph{label}. Such a rule specifies an \emph{instantaneous
-    transition}, without consuming time, from an instance of $s$ to
-  the corresponding instance of $s'$, \emph{provided} the conditions
-  hold.
+  \emph{label}, $t,t'$ are terms. Such a rule specifies an
+  \emph{instantaneous transition}, without consuming time, from an
+  instance of $t$ to the corresponding instance of $t'$,
+  \emph{provided} the conditions hold.
 \item $TR$ is a set of (\emph{labeled}) \emph{tick rules} of the form
-  $[l]~:~\{s\}\rightarrow\{s'\} \mbox{ \textbf{in time} }t\mbox{
+  $[l]~:~\{s\}\rightarrow\{s'\} \mbox{ \textbf{in time} }r\mbox{
   \textbf{if} }cond$ that specify \emph{timed transitions}, which
-  advances time in the \emph{entire} state $s$ by $t$ time units. $IR$
-  and $TR$ together model the ``dynamic'' behaviors of the system.
+  advances time by $r$ time units in the \emph{entire} state modeled
+  by term $s$. $IR$ and $TR$ together model the ``dynamic'' behaviors
+  of the system.
 \end{itemize}
 
 In rewriting logic, rewrite rules are applied non-deterministically,
-that is, when several rules can be applied on a given $s$, any of them
-may be chosen. Hence non-deterministic behaviors can be modeled
+that is, when several rules can be applied on a given term $t$, any of
+them may be chosen. Hence non-deterministic behaviors can be modeled
 naturally in Real-Time Maude.  Real-Time Maude also supports
 specifications in \emph{object-oriented} style.  A class declaration
 $\texttt{class }C\texttt{ |
@@ -684,9 +688,9 @@ as a term $\texttt{< } O\texttt{:} C \texttt{ | }
 att_1\texttt{:}val_1\texttt{,} \ldots
 \texttt{,}att_n\texttt{:}val_n\texttt{ >}$ of sort \verb|Object|,
 where $O$, of sort \verb|Oid|, is the object's \emph{identifier}, and
-$val_i$ is the value of the attribute $att_i$ with $i\in [1,n]$. A
-\emph{subclass} inherits all the attributes and rules of its
-superclasses.
+$val_i$ is the value of the attribute $att_i$ with $i\in [1,n]$. Rules
+can be defined on a given class. A \emph{subclass} inherits all the
+attributes and rules of its superclasses.
 
 \subsubsection{Formal Analysis}
 Real-Time Maude provides many useful commands and tools to analyze a
@@ -722,13 +726,13 @@ behaviors starting from the initial state $s$, \emph{with no time
 
 \section{The Implementation of RMS}
 \label{s:imp}
-The implementation is in an industrial avionic control system.
-Interrupts would be triggered by, and only by, the clock every $T$,
-which we call \emph{interrupt cycle}. When an interrupt request
-occurs, if the system is interruptible, i.e. the interrupt mask bit is
-cleared, the handler function $schedule()$ will be invoked; otherwise
-$schedule()$ will be pending until the interrupt mask bit becomes
-cleared.  The implementation is shown as $schedule()$ in
+The implementation written in C is from an industrial avionic control
+system.  Interrupts would be triggered by, and only by, the clock
+every $T$, which we call \emph{interrupt cycle}. When an interrupt
+request occurs, if the system is interruptible, i.e. the interrupt
+mask bit is cleared, the handler function $schedule()$ will be
+invoked; otherwise $schedule()$ will be pending until the interrupt
+mask bit becomes cleared.  The pseudocode of $schedule()$ is shown in
 Figure~\ref{a:schedule}, where $taskList$ is the list of periodic
 tasks to be scheduled. We assume that the list is in descending order
 of priority, and both variables $taskList$ and $timer$ are global. In
@@ -794,9 +798,9 @@ producing an error. Notice that $schedule()$ is invoked only when the
 interrupt request is handled, not when the interrupt is disabled (the
 interrupt mask bit is set). Due to the interrupt mask bit, its
 execution cannot be interrupted when it is updating status of tasks or
-searching the next task to execute, however, it can be interrupted while
-executing some task (Line~\ref{l:function}). This allows the execution
-of $schedule()$ to be nested.
+searching the next task to execute, however, it can be interrupted
+while executing some task (Line~\ref{l:function}). This allows the
+execution of $schedule()$ to be nested.
 
 For simplicity, in the rest of this paper, we use \emph{scheduling} to
 refer to the stage, from the moment when a pending interrupt request
@@ -850,7 +854,7 @@ assumptions, an example showing the execution of tasks scheduled by
 the implementation is depicted in Figure~\ref{sf:rmsimp}. Note that
 the second job instance of $\tau_1$ is initiated at time $11$ instead
 of $10$, because switching is performed and the interrupt mask bit is
-set at time $10$.
+set at time $10$, exemplifying differences between (A1') and (A1).
 
 \begin{figure}[!t]
 \centering
@@ -995,12 +999,12 @@ set at time $10$.
 \end{figure}
 
 In this section, we introduce first how we model the states--the
-static aspect--of the system using algebraic data types, then how we
-specify the essential behaviors--the dynamic aspect--using rewrite
-rules. In particular, modeling of \emph{instantaneous behaviors} would
-be explained in Sections~\ref{ss:ir}, \ref{ss:init}
-and~\ref{ss:inthandling}, followed by \emph{timed behaviors} in
-Section~\ref{ss:timedbehavior}.
+static aspect--of the system using terms of given sorts, or called
+data types, then how we specify the essential behaviors--the dynamic
+aspect--using rewrite rules. In particular, modeling of
+\emph{instantaneous behaviors} would be explained in
+Sections~\ref{ss:ir}, \ref{ss:init} and~\ref{ss:inthandling}, followed
+by \emph{timed behaviors} in Section~\ref{ss:timedbehavior}.
 
 \subsection{Basic Data Types}
 In our model, tasks are identified by their indexes of sort \verb|Nat|
@@ -1012,14 +1016,18 @@ followed by a \verb|Nat| $n$ indicating the task indexed $n$, and
   op none : -> MaybeNat [ctor] .
   op some_ : Nat -> MaybeNat [ctor] .
 \end{verbatim}
+where the keyword \verb|ctor| denotes the corresponding function
+symbol to be a constructor.
 
 A sort \verb|Stack| is introduced to model the stack of the system,
 storing the tasks that are being interrupted, and equipped with
 operations \verb|push|, \verb|pop| and \verb|peek| on it.
+\hide{
 \begin{verbatim}
   op bottom : -> Stack [ctor] .
   op _#_ : Nat Stack -> Stack [ctor] .
 \end{verbatim}
+}
 
 We also need
 %a sort \verb|Interval| to denote computation requirements of tasks, and 
@@ -1027,9 +1035,11 @@ a sort \verb|Counter| to record the execution of tasks.  We call
 \emph{execution time} the time how long a task has been executing
 for. A \verb|Counter| records the execution time and the computation
 requirement of a task.
+\hide{
 \begin{verbatim}
   op [_/_] : Time Time -> Counter [ctor] .
 \end{verbatim}
+}
 
 \hide{
 At last, to make our model checkable by untimed model checking, it is
@@ -1043,10 +1053,12 @@ The global variable $timer$ is reset when it reaches an upper bound
 while increasing, which is not shown in detail in
 Figure~\ref{a:schedule} but is reasonable. The upper bound is the
 least common multiple of the periods of all tasks. A sort \verb|Timer|
-is defined:
+is defined to model the $timer$.
+\hide{
 \begin{verbatim}
   op [_/_] : Nat NzNat -> Timer [ctor] .
 \end{verbatim}
+}
 
 \subsection{Modeling the System States}
 The system can be considered as consisting of several parts: the tasks
@@ -1070,21 +1082,26 @@ deadline.
 A periodic task, which needs to be scheduled, is an object instance of
 the subclass \verb|PTask| of \verb|Task| with additional attributes
 \verb|priority|, \verb|period| and \verb|status|:
+%  class PTask | priority : Nat, period : NzNat, 
 \begin{verbatim}
-  class PTask | priority : Nat, period : NzNat, 
+  class PTask | priority : Nat, period : Nat, 
                 status : Status .
   subclass PTask < Task .
 \end{verbatim}
-where \verb|Status| is a sort with four constant constructors, same as
-in the implementation:
+where \verb|Status| is a sort with four constant constructors
+\verb|RUNNING|, \verb|INTERRUPT|, \verb|READY| and \verb|DORMANT|,
+same as in the implementation.
+\hide{
 \begin{verbatim}
   ops RUNNING INTERRUPT READY DORMANT 
         : -> Status [ctor] .
 \end{verbatim}
+} 
+
 The list of periodic tasks, the variable $taskList$ in the
-implementation, is modeled as an instance of the sort \verb|TaskList|,
-which is a list of \verb|PTask|s\footnote{Following the Maude
-  convention, variables would be written in capital letters.}:
+implementation, is modeled as an instance of sort \verb|TaskList|,
+which is a list of \verb|PTask|s and/or \verb|error|s.
+\hide{
 \begin{verbatim}
   op null : -> TaskList [ctor] .
   op _::_ : Object TaskList 
@@ -1093,12 +1110,13 @@ which is a list of \verb|PTask|s\footnote{Following the Maude
        : TaskList .
   mb (error :: L:TaskList) : TaskList .
 \end{verbatim}
+}
 Periodic tasks are identified by their indexes in the list.
 
 On the other hand, a system task is an object instance of the subclass
 \verb|SysTask| of \verb|Task| with no extra attributes:
 \begin{verbatim}
-  class SysTask | .            
+  class SysTask | .  
   subclass SysTask < Task .
 \end{verbatim}
 Different from periodic tasks, system tasks are organized in a
@@ -2019,12 +2037,72 @@ We have formally modeled a realistic implementation of RMS using
 Real-Time Maude, a modeling language based on rewriting logic. By
 taking into account the overhead of scheduling and switching, and by
 modeling some mechanism of the hardware, our model contains sufficient
-details to be analyzed for the behaviors of real systems. Two
-important properties--schedulability and correctness--are verified by
-model checking on our model, within several key scenarios. We
-demonstrate the soundness and completeness of our results.
+details to be analyzed for the behaviors of the real target
+system. Two important properties--schedulability and correctness--are
+verified by model checking on our model, within several key
+scenarios. We demonstrate the soundness and completeness of our
+results.
+
+
+
+\hide{
+% use section* for acknowledgment
+\ifCLASSOPTIONcompsoc
+  % The Computer Society usually uses the plural form
+  \section*{Acknowledgments}
+\else
+  % regular IEEE prefers the singular form
+  \section*{Acknowledgment}
+\fi
+
+The authors would like to thank...
+}
+
+% Can use something like this to put references on a page
+% by themselves when using endfloat and the captionsoff option.
+\ifCLASSOPTIONcaptionsoff
+  \newpage
+\fi
+
+
+
+% trigger a \newpage just before the given reference
+% number - used to balance the columns on the last page
+% adjust value as needed - may need to be readjusted if
+% the document is modified later
+%\IEEEtriggeratref{8}
+% The "triggered" command can be changed if desired:
+%\IEEEtriggercmd{\enlargethispage{-5in}}
+
+% references section
+
+% can use a bibliography generated by BibTeX as a .bbl file
+% BibTeX documentation can be easily obtained at:
+% http://www.ctan.org/tex-archive/biblio/bibtex/contrib/doc/
+% The IEEEtran BibTeX style support page is at:
+% http://www.michaelshell.org/tex/ieeetran/bibtex/
+\bibliographystyle{IEEEtran}
+% argument is your BibTeX string definitions and bibliography database(s)
+\bibliography{IEEEabrv,submission}
+%
+% <OR> manually copy in the resultant .bbl file
+% set second argument of \begin to the number of references
+% (used to reserve space for the reference number labels box)
+
+
+% biography section
+% 
+% If you have an EPS/PDF photo (graphicx package needed) extra braces are
+% needed around the contents of the optional argument to biography to prevent
+% the LaTeX parser from getting confused when it sees the complicated
+% \includegraphics command within an optional argument. (You could create
+% your own custom macro containing the \includegraphics command to make things
+% simpler here.)
+%\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{mshell}}]{Michael Shell}
+% or if you just want to reserve a space for a photo:
 
 \appendix[Proof of Theorem~\ref{t:main}]
+\label{a:proof}
 \setcounter{theorem}{0}
 \renewcommand{\thetheorem}{\thesection.\arabic{theorem}}
 \newcommand{\lrps}[2]{\rightarrow^{#1}_{#2}}
@@ -2307,82 +2385,7 @@ model checking to verify the schedulability and the correctness is
 complete.
 \end{IEEEproof}
 
-\jx{
 
-  Using a model-based checking approach enhance the ability to check
-  other scheduling algorithms.
-
-  About non-determinism: task finishes right at the time interrupt
-  comes, theoretical results cannot solve
-  
-  The chinese one:
-
-  - the model is ideal
-
-  - it should give a model to each task. And given different task sets, the model should be
-  adjusted. But our model need only an instantiation of the task set.
-
-  - the time domain. It uses a global integer to model the time, hence the time dense
-  must be discrete. But our model use a generic time domain, which can be instantiated on
-  both dense and discrete domain.
-}
-
-
-\hide{
-% use section* for acknowledgment
-\ifCLASSOPTIONcompsoc
-  % The Computer Society usually uses the plural form
-  \section*{Acknowledgments}
-\else
-  % regular IEEE prefers the singular form
-  \section*{Acknowledgment}
-\fi
-
-The authors would like to thank...
-}
-
-% Can use something like this to put references on a page
-% by themselves when using endfloat and the captionsoff option.
-\ifCLASSOPTIONcaptionsoff
-  \newpage
-\fi
-
-
-
-% trigger a \newpage just before the given reference
-% number - used to balance the columns on the last page
-% adjust value as needed - may need to be readjusted if
-% the document is modified later
-%\IEEEtriggeratref{8}
-% The "triggered" command can be changed if desired:
-%\IEEEtriggercmd{\enlargethispage{-5in}}
-
-% references section
-
-% can use a bibliography generated by BibTeX as a .bbl file
-% BibTeX documentation can be easily obtained at:
-% http://www.ctan.org/tex-archive/biblio/bibtex/contrib/doc/
-% The IEEEtran BibTeX style support page is at:
-% http://www.michaelshell.org/tex/ieeetran/bibtex/
-\bibliographystyle{IEEEtran}
-% argument is your BibTeX string definitions and bibliography database(s)
-\bibliography{IEEEabrv,submission}
-%
-% <OR> manually copy in the resultant .bbl file
-% set second argument of \begin to the number of references
-% (used to reserve space for the reference number labels box)
-
-
-% biography section
-% 
-% If you have an EPS/PDF photo (graphicx package needed) extra braces are
-% needed around the contents of the optional argument to biography to prevent
-% the LaTeX parser from getting confused when it sees the complicated
-% \includegraphics command within an optional argument. (You could create
-% your own custom macro containing the \includegraphics command to make things
-% simpler here.)
-%\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{mshell}}]{Michael Shell}
-% or if you just want to reserve a space for a photo:
 
 \hide{
 

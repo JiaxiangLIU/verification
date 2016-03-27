@@ -320,6 +320,7 @@
 \newcommand{\jx}[1]{{\bf Jiaxiang: }#1{ \bf End}}
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}{Lemma}
+\newcommand{\ANSWER}{{\bf ANSWER}}
 
 % Define the fontsize in environment {verbatim}
 \makeatletter
@@ -528,9 +529,9 @@ small to allow the implementation fully supports all these examples,
 returning at the same time appropriate counterexamples to guide and
 adjust the design. Is this true for larger examples of "real world"
 applications within the field of industrial real-time systems? How do
-the authors propose to handle very large scenarios? ¿How does it
-behave on typical real-time scheduling problems used in industry? I
-would like to see more complex examples to convince the reader of the
+the authors propose to handle very large scenarios? How does it behave
+on typical real-time scheduling problems used in industry? I would
+like to see more complex examples to convince the reader of the
 practicability of the approach on the assumptions given for the model,
 and would probably increase the mentioned benefits. The paper does not
 give any directions to the above problems, and some sentences pointing
@@ -538,7 +539,24 @@ out the difficulties in the implementation of more generic and
 realistic scenarios would be most welcome to understand the real
 contribution of the paper.
 
-ANSWER: TODO
+\ANSWER: As mentioned in the paper, the modeled RMS implementation
+serves in an avionic control systems from our industrial partner. It
+is a real-world application within the field of industrial real-time
+systems. And the scenarios presented in Section V.B are also real
+scenarios that our partner is using in the system. Our partner
+indicated that there would be at most $5$ tasks in the task set for
+the implementation. On the other hand, in the current version, we have
+randomly generated large numbers of test cases to examine the
+efficiency of our schedulability test that is based on model checking,
+as discussed in Section V.B. The capability of model checking is
+restricted by the scale of the state space of the model. In our model,
+the model checking can handle scenarios where $mn$ is up to $10^6$ in
+an acceptable period of time. With $mn=10^6$ and reasonable task
+periods, the number $n$ of tasks can be at least $10$, which has
+already fulfilled the requirements of the target
+implementation. Further with particular task periods, the number $n$
+of tasks can be $20$ or more.
+
 
 2) One of my biggest problems with the theoretical part of this work
 is that the paper is technically solid as far as I can tell, but
@@ -554,7 +572,7 @@ the difficulties in the theoretical formalization in Real-Time Maude
 would be most welcome. Please, include (e.g., in an appendix or even
 in a technical report) a detailed proof.
 
-ANSWER: The detailed proof is now included in the appendix. It is true
+\ANSWER: The detailed proof is now included in the Appendix. It is true
 that readers may be interested in the detailed proof of Theorem~2 to
 feel convinced of the completeness of our approach. However, the proof
 needs a bit more theoretical background about rewriting logic and more
@@ -579,7 +597,14 @@ section and to extend the original contribution. From my point of
 view, there is a trade off in this paper between the contributions and
 the presentation of the implementation.
 
-ANSWER: TODO. To revise the modeling section.
+\ANSWER: Thank you for the invaluable suggestions. Section IV has been
+revised. Some unnecessary detailed definitions presented as codes are
+removed, and replaced by more explanations. We hope that the current
+presentation would make Section IV more easy-to-read, even for an
+audience who does not know Real-Time Maude before. On the other hand,
+Section VI (Related Work) is also improved. We compare our work with
+the existing theoretical work and the existing verification work in a
+more complete way.
 
 In conclusion, the RMS implementation proposed by the authors by using
 Real-Time Maude is interesting, but not complete (theorems and results
@@ -604,7 +629,7 @@ languages and tools. The authors should review the comparison with
 [24] and [25] more thoroughly. You should benchmark your approach
 against others.
 
-ANSWER: The related work section is now improved. More comparisons
+\ANSWER: The related work section is now improved. More comparisons
 with the theoretical approaches and with [24,25] are added. The
 differences with [24,25] in the models and in the way of modeling are
 mainly discussed. On the other hand, it is a bit difficult to compare
@@ -623,7 +648,7 @@ of your "realistic" implementation are "sufficient" for the behaviors
 of all real systems used in the current industry? This should be
 briefly discussed.
 
-ANSWER: The statement has been corrected. The work presented in this
+\ANSWER: The statement has been corrected. The work presented in this
 submission aims at modeling and verifying a realistic RMS
 implementation in an industrial avonic system. It is a piece of real
 work in the industry. Even though we believe that our approach could
@@ -665,7 +690,10 @@ order to fully understand it.  I found the short introduction about
 Real-Time Maude (section II.B) not enough for understanding the
 formalism used in the rest of the paper (see details below).
 
-ANSWER: TODO. to make the paper self-contained.
+\ANSWER: The Sections II.B and IV are improved to be more
+self-contained now. The idea is that, Section II.B contains mainly an
+overview of Real-Time Maude, and then Section IV describes the model
+with introducing necessary syntax on-the-fly.
 
 Another concern is that the significance of the paper could be much
 better if the paper addressed the problem of modelling RMS in a more
@@ -674,7 +702,7 @@ the formal modelling of one specific RMS implementation is presented,
 rather than a general method for modelling and analyzing RMS
 implementations.  
 
-ANSWER: Yes, we agree that we have two choices to do the work
+\ANSWER: Yes, we agree that we have two choices to do the work
 presented in the paper: one is to develop a general way to model RMS
 algorithms or implementations, and then instantiate the general model
 to get a concrete one for our target system; the other is to shape an
@@ -704,7 +732,7 @@ completeness of the analysis (section V.C) is not fully developed and,
 once again, it refers to the specific model rather than being a
 general result.
 
-ANSWER: The section about soundness and completeness is now made more
+\ANSWER: The section about soundness and completeness is now made more
 self-contained. The detailed proof of Theorem~2 is included in the
 appendix. On the other hand, since we chose the accurate way to
 achieve the model as discussed above, yes, the proof is a specific
@@ -722,17 +750,18 @@ Detailed comments
 \item
 Section II.B  
 
-- In the definition of $IR$, it is not clear what $s$
-and $s'$ are. I guess they are states, but the concept of state was
-not introduced. 
+- In the definition of $IR$, it is not clear what $s$ and $s'$ are. I
+guess they are states, but the concept of state was not introduced.
 
-ANSWER: TODO
+\ANSWER: Yes, they can be states. But more generally, they are
+terms. This part has been modified to specify $s$ and $s'$ ($t$ and
+$t'$ now) clearly.
 
-- In the definition of a class, the authors should
-specify that a class includes a collection of rules, otherwise this
-fact may be missed.
+- In the definition of a class, the authors should specify that a
+class includes a collection of rules, otherwise this fact may be
+missed.
 
-ANSWER: TODO
+\ANSWER: Thanks very much for reminding. This is added now.
 
 \item
 Section III 
@@ -741,7 +770,7 @@ Section III
 schedule() in Figure 1 $\rightarrow$ The pseudocode of schedule() is
 shown in Figure 1
 
-ANSWER: It is done.
+\ANSWER: It is done.
 
 \item
 Section IV.A 
@@ -751,34 +780,45 @@ operations (maybe because I have no specific background on Maude). I
 could not find the explanation of this writing in the introduction to
 Maude.
 
-ANSWER: TODO
+\ANSWER: Sorry for missing the explanation of \verb|[ctor]|. It is now
+added when \verb|[ctor]| is used for the first time.
 
 - For the stack sort, the authors mention operations push, pop and
 peek, but then you don't write the definitions of these
 operations. Instead, they write the definitions of bottom and \#,
 which are not explained in the text. This part should be made clearer.
 
-ANSWER: TODO
+\ANSWER: Sorry for the misleading in the text. In fact, \verb|bottom|
+and \verb|#| are constructors of sort \verb|Stack|. This part is
+modified now. Some detailed definitions in codes are removed, and are
+replaced by more explanations. We hope that the current presentation
+would make Section IV more easy-to-read.
 
 - Also, the meaning of NzNat is not explained.
 
-ANSWER: TODO
+\ANSWER: Sorry for this incompleteness. \verb|NzNat| did mean non-zero
+natural numbers. \verb|NzNat| is now replaced by \verb|Nat| to reduce
+unnecessary complexity for the readers.
 
 \item
-Section V.C 
+Section V.C
 
 - In the statement of theorem 1, the definition of time-robust
 real-time rewrite theory is missing. Also, the meaning of
 tick-stabilizing atomic propositions is not defined. This makes the
 section not self-contained.
 
-ANSWER: TODO
+\ANSWER: In fact, the definitions of time-robustness and
+tick-stabilization (which is now replaced with tick-invariance)
+require more knowledge about rewriting logic. We avoid introducing the
+accurate definitions of them. Instead, we now give short descriptions
+of them. More detailed introduction can be found in the Appendix.
 
 - The proof of theorem 2 is missing. The authors just indicate how the
 proof could be developed, but they do not develop it. A possibility
 would be to point to a document where this proof has been developed.
 
-ANSWER: The detailed proof is now included in the appendix.  The
+\ANSWER: The detailed proof is now included in the appendix.  The
 detailed proof requires a bit more theoretical background about
 rewriting logic and more details of our model, which we tried to
 simplify in the submission to ease the understanding of our
@@ -800,7 +840,7 @@ claim the innovation of this paper as the implementation using
 real-time maude, however, I cannot see any special point (or
 advantage) when using this real-time maude in modelling RMS.
 
-ANSWER: We agree that RMS is a very simple scheduling and is the
+\ANSWER: We agree that RMS is a very simple scheduling and is the
 optimum at the same time among the fixed-prority ones, making it
 widely applied and sufficiently investigated. Besides the ideal
 setting, the schedulability of RMS was also investigated under
@@ -817,7 +857,7 @@ schedulability test.
 2. RMS has many different realization methods, no comparison is given
 to justify the strong point of real-time maude when applied to RMS.
 
-ANSWER: The comparison is given in the related work section (Section
+\ANSWER: The comparison is given in the related work section (Section
 VI). We would say that we are not implementing RMS algorithm in
 Real-Time Maude. In fact, we are using Real-Time Maude to model an
 realistic implementation of RMS from an industrial avionic
@@ -831,7 +871,7 @@ piece of real work in the industry.
 scheduling problem to be investigated by very simple, then what is the
 difficulty?
 
-ANSWER: As an industrial application, we are not trying to make the
+\ANSWER: As an industrial application, we are not trying to make the
 problem as difficult as possible. Instead, we are trying to simplify
 the model so that the existing tools are able to solve, while the
 target system satisfies the assumptions on the model so that the
@@ -846,7 +886,7 @@ Section VI.
 4. The description in section IV (A-E) is trivial, it can only be
 viewed as a simple application of the rewriting logic.
 
-ANSWER: Yes, we agree that this is an application of rewriting
+\ANSWER: Yes, we agree that this is an application of rewriting
 logic. In this paper, we do apply the existing theories and techniques
 of rewriting logic to solve a real industrial problem, which has not
 yet been investigated by this sort of techniques, achieving an
@@ -856,14 +896,13 @@ industrial contribution.
 only list the commands but not illustrate the mechanism behind these
 commands.
 
-ANSWER: We do not agree that we should illustrate the mechanism behind
+\ANSWER: We do not agree that we should illustrate the mechanism behind
 the model checking commands, since the model checker is not part of
 our contributions in the paper.
 
 Based on the above comments, I thinks this paper is only a simple
 application [26] and [27] in RMS, hence I do not recommend this paper.
 
-ANSWER: ?
 
 \hide{
 % use section* for acknowledgment

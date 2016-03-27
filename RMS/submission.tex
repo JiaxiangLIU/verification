@@ -1436,33 +1436,32 @@ We consider two properties in this paper: schedulability and
 correctness. By schedulability, we examine whether a given task set is
 schedulable by the implementation. By correctness, we verify whether
 the implementation schedules periodic tasks exactly with respect to
-their priorities and periods.
+the RMS algorithm.
 
 To verify the schedulability of a given set of periodic tasks, we
 define an atomic proposition \verb|taskTimeout| to hold if there
-exists an \verb|error| appearing in $taskList$ of the current state,
-that is, some task misses its deadline:
+exists an \verb|error| in $taskList$ of the current state, that is,
+some task misses its deadline:
 \begin{verbatim}
   op taskTimeout : -> Prop [ctor] .
   eq {L T STS HW ISRC} |= taskTimeout 
      = containError(L) .
 \end{verbatim}
-where \verb|containError| returns \verb|true| if there is an object
-\verb|error| existing in \verb|L|. Then our desired
-property--schedulability--can be formalized as the temporal logic
-formula: \verb|[](~taskTimeout)|. As the property is not
-\emph{clocked}, given an initial state \verb|init|, the following
-untimed model checking command returns \verb|true| if the
-schedulability property holds with no time limit; otherwise a trace
-showing a counterexample is provided:
+where \verb|containError| returns \verb|true| if there is an
+\verb|error| existing in \verb|L|. Then schedulability can be
+formalized as the temporal logic formula: \verb|[](~taskTimeout)|. As
+the property is not \emph{clock-related}, given an initial state
+\verb|init|, the following untimed model checking command returns
+\verb|true| if the schedulability property holds with no time limit;
+otherwise a trace showing a counterexample is provided:
 \begin{verbatim}
   (mc init |=u [](~taskTimeout) .)
 \end{verbatim}
 
-Another objective is to verify the correctness of the implementation.
-The atomic proposition \verb|correct| is hence defined to hold if the
-running periodic task is the one requested to be executed with the
-highest priority:
+Another important objective is to verify the correctness of the
+implementation.  The atomic proposition \verb|correct| is hence
+defined to hold if the running periodic task is the one requested to
+be executed with the highest priority:
 \begin{verbatim}
   op correct : -> Prop [ctor] .
   ceq {L T STS HW ISRC} |= correct
@@ -1472,9 +1471,9 @@ highest priority:
 \end{verbatim}
 where \verb|shouldRun(ID, L)| returns \verb|true| if the task
 identified by \verb|ID|, probably \verb|none|, is the one possessing
-the highest priority among those whose status is \verb|READY|,
-\verb|RUNNING| or \verb|INTERRUPT|. Note that in this paper, we do not
-care the behaviors after some task misses its deadline. Therefore, the
+the highest priority among those whose status is not
+\verb|DORMANT|. Note that during verification, we do not care the
+behaviors after some task misses its deadline. Therefore, the
 correctness property is formalized by the temporal logic formula:
 \verb|([]correct) \/ (correct U taskTimeout)|, and can be verified by
 the following untimed model checking command provided an initial state
@@ -1499,10 +1498,9 @@ statistics provided by our industrial partner:
 \verb|mask| and cleared \verb|ir|.
 \end{itemize}
 
-We have analyzed our model/implementation in ten different scenarios,
-including both realistic ones provided by our industrial partner and
-experimental ones designed by ourselves, four of them are described
-below:
+We have analyzed our model in ten different scenarios, including both
+realistic ones provided by our industrial partner and experimental
+ones designed by ourselves, four of them are described below:
 \begin{itemize}
 \item Scenario~(i) with two tasks $\tau_1$ and $\tau_2$: $T_1=5ms$,
   $C_1=3ms$, $T_2=25ms$ and $C_2=7ms$.
@@ -1680,10 +1678,24 @@ Instantiating our model on dense time domain and choosing the
 \emph{maximal time sampling strategy}, the results of the model
 checking show that the correctness property holds in all scenarios. As
 to the schedulability property, it holds in Scenarios~(i-iii), but
-fails in Scenario~(iv).  One counterexample of the schedulability for
-Scenario~(iv), returned by the model checking command, is pictured in
-Figure~\ref{f:counterexample}, where the third task $\tau_3$ misses
-its deadline at the time $15ms$.
+fails in Scenario~(iv).  One counterexample of the schedulability
+within Scenario~(iv), returned by the model checking command, is
+pictured in Figure~\ref{f:counterexample}, where the third task
+$\tau_3$ misses its deadline at the time $15ms$.
+
+We also randomly generate test scenarios under the above setting to
+exam the efficiency of our approach for verifying the schedulability.
+Among the $50$ generated test scenarios with $5$ tasks, we find that
+the execution time of the model checking command for each scenario
+varies from about $300ms$ up to a timeout, which is set to $90$
+minutes. This is because the efficiency of model checking depends on
+the scale of the state space. And the scale is further positively
+correlated with $mn$, where $m$ is the upper bound of $timer$ and $n$
+is the number of periodic tasks. By the generated test scenarios, it
+turns out that the model checking command for schedulability in our
+model is able to handle scenarios, where $mn$ is up to about $10^6$,
+in an acceptable period of time say $90$ minutes.
+
 
 \hide{
 \begin{figure*}[!t]
@@ -1816,7 +1828,6 @@ its deadline at the time $15ms$.
 We now show in this section that our results are both sound and
 complete.
 
-
 An analysis method is called \emph{sound} if any counterexample found
 using such a method is a real counterexample of the question, and
 \emph{complete} if the fact that no counterexample can be found using
@@ -1833,16 +1844,20 @@ In general, completeness of untimed model checking cannot be achieved
 for any systems, any time sampling strategies and any
 properties. However, \"Olveczky and Meseguer proved the completeness
 of untimed temporal logic model checking, under the maximal time
-sampling strategy, for a large class of real-time
-systems~\cite{DBLP:journals/entcs/OlveczkyM07a}:
+sampling strategy, for a large class of real-time systems possessing a
+set of ``good'' properties that is called \emph{time-robustness}, and
+for a set of ``good'' LTL formulae constructed by
+\emph{tick-invariant} propositions\footnote{We avoid introducing the
+  definitions of time-robustness and tick-invariance, due to the
+  requirements of extra rewriting logic
+  background.}~\cite{DBLP:journals/entcs/OlveczkyM07a}:
 \begin{theorem}[\cite{DBLP:journals/entcs/OlveczkyM07a}]
 \label{t:completeness}
-Given a \emph{time-robust} real-time rewrite theory $\cal R$, a set
-$AP$ of \emph{tick-stabilizing} atomic propositions, an LTL formula
-$\Phi$ (excluding the \emph{next} operator $\bigcirc$) whose atomic
-propositions are contained in $AP$. The untimed temporal logic model
-checking verifying $\Phi$ is \emph{complete} under the maximal time
-sampling strategy.
+Given a time-robust real-time rewrite theory $\cal R$, a set $AP$ of
+tick-invariant atomic propositions, an LTL formula $\Phi$ (excluding
+the \emph{next} operator $\bigcirc$) whose atomic propositions are
+contained in $AP$. The untimed temporal logic model checking verifying
+$\Phi$ is \emph{complete} under the maximal time sampling strategy.
 \end{theorem}
 
 Therefore, we achieve the following theorem, showing that the results
@@ -1855,7 +1870,8 @@ and the correctness of our model is complete.
 \begin{IEEEproof}
 By showing that our model is time-robust and that the two defined
 atomic propositions--\verb|taskTimeout| and \verb|correct|--are
-tick-stabilizing, then using Theorem~\ref{t:completeness}.
+tick-invariant, then using Theorem~\ref{t:completeness}. For a more
+detailed proof, see the Appendix.
 \end{IEEEproof}
 
 
@@ -2006,16 +2022,17 @@ while theoretical approaches may need thorough analyses and reasoning.
 The last one is that, considering overhead and details of hardware do
 introduce some kind of non-determinism into the model. For example, in
 our model, if the running task is complete \emph{right} at the time
-when an interrupt request is performed, two different behaviors are
+when an interrupt request occurs, two different behaviors are
 possible: (i) the system performs task switching, during which the
-interrupt request is masked, hence the scheduling may be delayed; (ii)
-the system answers the interrupt request immediately, the switching
-being delayed. Tackling such non-determinism via theoretical analyses
-seems more complicated than our automatic approach.
+interrupt request is masked, hence the scheduling and initiation of
+tasks may be delayed; (ii) the system answers the interrupt request
+immediately, the switching being delayed. Tackling such
+non-determinism via theoretical analyses seems more complicated than
+our automatic approach.
 
 \cite{TianD2011} and~\cite{DBLP:conf/iceccs/CuiDT14} also made use of
 model checking to analyze the RMS algorithm along the same line but
-with different languages and tools. The RMS algorithm is analyzed
+with different languages and tools. The RMS algorithm is investigated
 using an extension of SPIN~\cite{DBLP:journals/tse/Holzmann97}
 in~\cite{TianD2011}, while the logic programming language
 TMSVL~\cite{DBLP:conf/icfem/HanDW12} and its model checker are applied
@@ -2060,7 +2077,6 @@ system. Two important properties--schedulability and correctness--are
 verified by model checking on our model, within several key
 scenarios. We demonstrate the soundness and completeness of our
 results.
-
 
 
 \hide{
@@ -2134,16 +2150,18 @@ terms $t,t'$, we write $t\simeq_P t'$ (or $t\simeq t'$ for simplicity
 when $P$ is implicit) if $t$ and $t'$ satisfy exactly the same set of
 propositions from $P$.
 
-The following lemma is needed to prove the time-robustness of our
-model:
+Time-robustness is a set of properties expected from a well-behaved
+real-time rewrite theory. We avoid introducing the accurate definition
+of time-robustness, but instead give the following lemma to prove
+time-robustness:
 \begin{lemma}[\cite{DBLP:journals/entcs/OlveczkyM07a}]
 \label{l:timerobustness}
 Let $\cal R$ be an object-oriented specification with a standard tick
-rule, let the infinity element \verb|INF| be the only element in the
-time domain which is not a normal time value, and let the time domain
-be \emph{linear}. Then $\cal R$ is time-robust if the following
-conditions are satisfied for all appropriate ground terms $t$ and
-$r,r'$:
+rule, and let the infinity element \verb|INF| be the only element in
+the time domain which is not a normal time value.
+%and let the time domain be \emph{linear}.
+Then $\cal R$ is time-robust if the following conditions are satisfied
+for all appropriate ground terms $t$ and $r,r'$:
 \begin{enumerate}
 \item
 [(i)] \verb|mte(delta(|$t$\verb|,|$r$\verb|))| $=$
@@ -2189,12 +2207,13 @@ defined propositions:
 \begin{lemma}[\cite{DBLP:journals/entcs/OlveczkyM07a}]
 \label{l:tickinv}
 Let $\cal R$ be a time-robust object-oriented specification with a
-standard tick rule, let the infinity element \verb|INF| be the only
-element in the time domain which is not a normal time value, and let
-the time domain be \emph{linear}. Then $\cal R$ is tick-invariant with
-respect to a set $P$ of atomic propositions if \verb|{|$t$\verb|}|
-$\simeq_P$ \verb|{delta(|$t$\verb|,|$r$\verb|)}| for all $t,r$ with
-$r<$ \verb|mte(|$t$\verb|)|.
+standard tick rule, and let the infinity element \verb|INF| be the
+only element in the time domain which is not a normal time value.
+%and let the time domain be \emph{linear}. 
+Then $\cal R$ is tick-invariant with respect to a set $P$ of atomic
+propositions if \verb|{|$t$\verb|}| $\simeq_P$
+\verb|{delta(|$t$\verb|,|$r$\verb|)}| for all $t,r$ with $r<$
+\verb|mte(|$t$\verb|)|.
 \end{lemma}
 
 \newcommand{\mteTask}[2]{\texttt{mteTask(}#1\texttt{,}#2\texttt{)}}

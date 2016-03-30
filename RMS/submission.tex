@@ -1513,7 +1513,7 @@ ones designed by ourselves, four of them are described below:
   $T_1=5ms$, $C_1=2.5ms$, $T_2=10ms$, $C_2=1.5ms$, $T_3=15ms$ and
 $C_3=4.5ms$.
 \end{itemize}
-Note that thanks to the powerful expressivity of Real-Time Maude, we
+Note that thanks to the powerful expressiveness of Real-Time Maude, we
 only need to define an initial state of sort \verb|System| to specify
 a given task set. No necessity to modify the model is needed.
 
@@ -1683,19 +1683,22 @@ within Scenario~(iv), returned by the model checking command, is
 pictured in Figure~\ref{f:counterexample}, where the third task
 $\tau_3$ misses its deadline at the time $15ms$.
 
-We also randomly generate test scenarios under the above setting to
-exam the efficiency of our approach for verifying the schedulability,
-on an Intel Core 2 Quad Q9550, 2.83GHz, 4-cores machine with 8GB RAM
-running 64-bit Ubuntu 15.04. Among the $50$ generated test scenarios
-with $5$ tasks, we find that the execution time of the model checking
-command for each scenario varies from about $300ms$ up to a timeout,
-which is set to $90$ minutes. This is because the efficiency of model
-checking depends on the scale of the state space. And the scale is
-further positively correlated with $mn$, where $m$ is the upper bound
-of $timer$ and $n$ is the number of periodic tasks. By the generated
-test scenarios, it turns out that the model checking command for
-schedulability in our model is able to handle scenarios, where $mn$ is
-up to about $10^6$, in an acceptable period of time say $90$ minutes.
+The results above have demonstrated that our approach is capable of
+handling realistic industrial systems. However to further exam the
+efficiency of our approach, we also apply our method to larger test
+scenarios. Test scenarios are generated randomly. We verify the
+schedulability of them under the above setting on an Intel Core 2 Quad
+Q9550, 2.83GHz, 4-cores machine with 8GB RAM running 64-bit Ubuntu
+15.04. Among the 50 generated test scenarios with 5 tasks, we find
+that the execution time of the model checking command for each
+scenario varies from about $300ms$ up to a timeout, which is set to
+$90$ minutes. This is because the efficiency of model checking depends
+on the scale of the state space. And the scale is further positively
+correlated with $mn$, where $m$ is the upper bound of $timer$ and $n$
+is the number of periodic tasks. By the generated test scenarios, it
+turns out that the model checking command for schedulability in our
+model is able to handle scenarios, where $mn$ is up to about $10^6$,
+in an acceptable period of time say $90$ minutes.
 
 
 \hide{
@@ -2110,7 +2113,8 @@ for all appropriate ground terms $t$ and $r,r'$:
 \item
 [(i)] \verb|mte(delta(|$t$\verb|,|$r$\verb|))| $=$
 \verb|mte(|$t$\verb|) monus |$r$, for all $r\le$
-\verb|mte(|$t$\verb|)|;
+\verb|mte(|$t$\verb|)|, where \verb|monus| is the minus operation
+defined on sort \verb|Time|;
 
 \item
 [(ii)] \verb|delta(|$t$\verb|,|$0$\verb|)| $= t$;

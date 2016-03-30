@@ -521,7 +521,7 @@ document.
 
 
 %\section{Answers to the Reviewers}
-\section{Reponses to Reviewer 1}
+\section{Responses to Reviewer 1}
 \subsection{General Comments}
 \begin{itemize}
 
@@ -682,7 +682,7 @@ in the way of modeling are mainly discussed. On the other hand, it is
 a bit difficult to compare the efficiency and scalability between
 [24,25] and our approach. One reason is that we have a different
 setting with [24] and [25], since the objectives are different: we aim
-at verifying an RMS implemention from a real-world real-time system,
+at verifying an RMS implementation from a real-world real-time system,
 while [24] and [25] targeted the RMS algorithm itself. Another reason
 is that [24] and [25] presented no discussion on the efficiency and
 scalability. Furthermore, they used \verb|TMSVL| and an extension of
@@ -742,7 +742,7 @@ We chose the latter according to the following considerations. By
 experience, \emph{the development engineers (who write the code) and
   verification engineers (who verify the code or the system) are
   usually not the same persons.} When a verification engineer models a
-system, he is actually abstacting the system or the code. It is
+system, he is actually abstracting the system or the code. It is
 difficult to ensure that the model behaves the same as the system or
 the code.  And it is more difficult to make other engineers and users
 believe that the model behaves the same as the system or the
@@ -751,7 +751,7 @@ behaves not only the same as what they had in mind, but also the same
 as what is written in the code. A way out is to make the model not
 only \emph{behave like} the code, but also \emph{``look'' like} the
 code. This requires the model to be as accurate as possible, based on
-a fact that the expressivity of the modeling language is powerful
+a fact that the expressiveness of the modeling language is powerful
 enough. It makes the model specific, but improves the engineers'
 confidence in the model and the verification results. That is also why
 we emphasize the corresponding relationship between the functions in
@@ -916,7 +916,7 @@ are demonstrated.
 
 \hide{
 is a very simple scheduling and is the optimum at the same time among
-the fixed-prority ones, making it widely applied and sufficiently
+the fixed-priority ones, making it widely applied and sufficiently
 investigated. Besides the ideal setting, the schedulability of RMS was
 also investigated under different kinds of implementations with
 consideration about overhead, as we discuss in the related work
@@ -934,14 +934,15 @@ problem, instead of a schedulability test.
 scheduling problem to be investigated by very simple, then what is the
 difficulty?
 
-\ANSWER Thank you for the question. When an automatic formal
-verification tool (such as model checker) is used to verify a given
-system, it explores the whole system state space to check whether the
-given property holds. Then the state space explosion is the most
-common problem for an automatic verification tool. That means the
-state space of the system/model is too huge for the tool to explore
-with acceptable temporal and spatial cost. The scale of the state
-space depends on the complexity of the model of the system.
+\ANSWER Thank you for the question. When model checking technique is
+used to verify a given system, the tool (model checker) explores the
+whole system state space to check whether the given property
+holds. All feasible combinations of execution traces are checked. As a
+result, the state space explosion is the most common problem for a
+model checker. That means the state space of the system/model is too
+huge for the tool to explore with acceptable temporal and spatial
+cost. The scale of the state space depends on the complexity of the
+model of the system.
 
 As an industrial verification application, we are not trying to make
 the problem as difficult as possible. Instead, we are trying to

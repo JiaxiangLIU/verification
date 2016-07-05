@@ -477,7 +477,7 @@ Computer Engineering, Portland State University, Portland, OR
   \begin{tabular}{r l}
     \hline\hline
     & \\
-    Manuscript Number: & 15-TIE-3480\\
+    Manuscript Number: & 15-TIE-3480.R1\\
     Manuscript Title: & Formal Modeling and Verification of a Rate-Monotonic Scheduling Implementation\\
     & with Real-Time Maude \\
     Submitted to: & Transactions on Industrial Electronics \\
@@ -522,533 +522,87 @@ document.
 
 
 \section{Responses to Reviewer 1}
-\subsection{General Comments}
-
-\hide{ The paper shows a realistic implementation of a Rate-Monotonic
-  Scheduling algorithm using Real-Time Maude (a modeling language
-  based on rewriting logic) by taking into account the overhead of
-  scheduling and some other details of the hardware platform. The
-  correctness of the implementation with respect to the algorithm and
-  the completeness of the model are verified by model checking, and
-  validated within different realistic scenarios.}  
 
 \COMMENT 
 
-On the positive side, this paper presents a solid piece of
-work. Periodic task scheduling is an important (and difficult)
-problem, and the topic of the paper appears to be well suited within
-the field of the industrial real-time systems. Overall the paper is
-well structured, technically accurate, presents the work in a
-comprehensive and reasonable way, and tackles theoretical as well as
-practical aspects. There are two principal contributions of the paper:
+I have read the revised version of the article. Overall, the authors
+did a very good job at addressing the reviewers' comments and I now
+consider the paper to be acceptable for publication.
 
-1) A novel implementation of the Rate-Monotonic Scheduling algorithm,
-which contains more complex and realistic details instead of the ideal
-setting.
+The revised version of this paper has been improved following the
+suggestions given by the reviewers of the original submission:
 
-2) Rate-Monotonic Scheduling is investigated using Real-Time Maude for
-the first time, to apply formal methods such as model checking and
-theorem proving to analyze theoretical results, verify desired
-properties, and evaluate results.
+(1) Sections II.B and IV are improved to be more self-contained now.
 
-\ANSWER 
+(2) A more detailed but simplified version of a proof of Theorem 2 is
+now included in an Appendix, and the authors refer the detailed proof
+to a non-anonymous technical report.
 
-Thanks for the pros. We are happy that the work in the paper interests
-the readers. We hope that it provides a new and formal way to verify a
-real-time system, which is able to investigate important problems
-(such as periodic task scheduling) in a more realistic level.
+However, due to the importance of this theorem, I suggest to put the
+complete detailed proof in the printed version.
 
-\COMMENT 
-
-The weak point is the lack of evidence of practicality, efficiency and
-scalability. Since there are only small and simplistic scenarios to
-analyze this model, it is difficult to judge the effectiveness of the
-proposed implementation. The key scenarios appear conveniently small
-to allow the implementation fully supports all these examples,
-returning at the same time appropriate counterexamples to guide and
-adjust the design. Is this true for larger examples of "real world"
-applications within the field of industrial real-time systems? How do
-the authors propose to handle very large scenarios?  How does it
-behave on typical real-time scheduling problems used in industry? I
-would like to see more complex examples to convince the reader of the
-practicability of the approach on the assumptions given for the model,
-and would probably increase the mentioned benefits. The paper does not
-give any directions to the above problems, and some sentences pointing
-out the difficulties in the implementation of more generic and
-realistic scenarios would be most welcome to understand the real
-contribution of the paper.
+In summary, I am satisfied with the revisions made by the authors and
+consider that the paper can now be accepted for publication.
 
 \ANSWER 
-
-Thanks for the suggestions. As mentioned in the paper, the system
-under verification is a real-world RMS implementation, which is used
-in an avionic control system. The scenarios presented in Section V.B
-are also real scenarios from the online system. Our industrial partner
-has very strict timing requirements. They use at most 5 tasks for
-scheduling to avoid high overhead. They agree that the verification
-results presented in the paper satisfy their practical requirements.
-
-On the other hand, as presented in the revised Section V.B, we have
-examined our approach by verifying randomly generated scenarios where
-the number $n$ of tasks are over $10$. In that case, the least common
-multiple of the periods of all tasks can be as large as $10^5$ times
-the interrupt cycle $T$. All feasible combinations of execution traces
-are checked in our approach. Furthermore, the number $n$ of tasks can
-be $20$ and even more if we allow different tasks possess a same
-period.
-
-\hide{
-the modeled RMS implementation serves in an avionic control systems
-from our industrial partner. It is a real-world application within the
-field of industrial real-time systems. And the scenarios presented in
-Section V.B are also real scenarios that our partner is using in the
-system. Our partner indicated that there would be at most $5$ tasks in
-the task set for the implementation. On the other hand, in the current
-version, we have randomly generated large numbers of test cases to
-examine the efficiency of our schedulability test that is based on
-model checking, as discussed in Section V.B. The capability of model
-checking is restricted by the scale of the state space of the
-model. In our model, the model checking can handle scenarios where
-$mn$ is up to $10^6$ in an acceptable period of time. With $mn=10^6$
-and reasonable task periods, the number $n$ of tasks can be at least
-$10$, which has already fulfilled the requirements of the target
-implementation. Further with particular task periods, the number $n$
-of tasks can be $20$ or more.
-}
-
-\COMMENT 
-
-One of my biggest problems with the theoretical part of this work is
-that the paper is technically solid as far as I can tell, but there's
-not much yet in the way of theorems and results about formal
-properties in Maude. The complete and detailed proof of the Theorem 2
-should be provided somewhere. If the proof of the main results of
-schedulability and correctness of the model is straightforward (as is
-suggested) it seems not necessary to present a complex formalism on
-Real-Time Maude and all the theorems provided are natural consequences
-of Theorem 1. I agree that even non-surprising results need to be
-investigated in the proof of Theorem 2, some sentences pointing out
-the difficulties in the theoretical formalization in Real-Time Maude
-would be most welcome. Please, include (e.g., in an appendix or even
-in a technical report) a detailed proof.
-
-\ANSWER 
-
-We are happy that the readers are interested in the detailed technical
-proof, and we have now included it in the Appendix. It is true that
-readers may be interested in the detailed proof of Theorem~2 to feel
-convinced of the completeness of our approach. However, the proof
-needs a bit more theoretical background about rewriting logic and more
-technical details of our model, which we have simplified in the paper
-in order to ease the understanding of our approach. We would prefer to
-refer the detailed proof to a non-anonymous technical report, if
-possible, in the final version.
-
-\COMMENT 
-
-Another important point which needs improvement is the description of
-the implementation. I guess other readers might have less difficulties
-with the motivations if they know Maude and the Real-Time Maude
-extension, but if you aim for a more general audience, it might not
-work. Many pages are spent for the description of the formal modeling
-of the implementation and the section is hard to read. I highly
-recommend the authors to thoroughly revise this part of the paper to
-make it easy-to-read. It would be better preferable to have a much
-shorter description of the principal insights for the implementation
-followed by more convincing examples and benchmarks with respect to
-related work to convince the reader of the practicability of the
-approach. You should try to summarize this section and to extend the
-original contribution. From my point of view, there is a trade off in
-this paper between the contributions and the presentation of the
-implementation.
-
-\ANSWER 
-
-Thank you for the invaluable suggestions. Section IV has been
-revised. Some unnecessary detailed definitions presented as code are
-removed, and replaced by more literal explanations. We hope that the
-current presentation would make Section IV more easy-to-read, even for
-an audience who did not know Real-Time Maude before. On the other
-hand, Section VI (Related Work) is also improved. We compare our work
-with the existing theoretical work and the existing verification work
-in a more complete way.
-
-
-\subsection{Detailed Comments}
-
-\COMMENT 
-
-Page 7, Related Work. More comparisons with other approaches based on
-model checking would help to evaluate pros and cons of an
-implementation with Real-Time Maude with respect to different
-languages and tools. The authors should review the comparison with
-[24] and [25] more thoroughly. You should benchmark your approach
-against others.
-
-\ANSWER 
-
-Thanks for the pointing this out. The related work section is now
-improved. More comparisons with the theoretical approaches and with
-[24,25] are added. The differences with [24,25] in the models and in
-the way of modeling are mainly discussed. On the other hand, it is a
-bit difficult to compare the efficiency and scalability between
-[24,25] and our approach. One reason is that we have a different
-setting with [24] and [25], since the objectives are different: we aim
-at verifying an RMS implementation from a real-world real-time system,
-while [24] and [25] targeted the RMS algorithm itself. Another reason
-is that [24] and [25] presented no discussion on the efficiency and
-scalability. Furthermore, they used \verb|TMSVL| and an extension of
-SPIN, respectively, as verification tools, which are not open-source,
-making us unable to re-implement their work.
-
-\COMMENT 
-
-Page 8, Conclusions. Where in the paper do you show that the details
-of your "realistic" implementation are "sufficient" for the behaviors
-of all real systems used in the current industry? This should be
-briefly discussed.
-
-\ANSWER 
-
-Sorry for the confusion. The statement has been corrected. The work
-presented in the paper aims at modeling and verifying a realistic RMS
-implementation in an industrial avionic system. It is a piece of real
-work in the industry. In this sense, ``sufficient'' means that the
-details described in our model meet the requirements and expectations
-from the users and the engineers. On the other hand, we believe that
-our approach could be applied to other similar systems as well.
 
 
 \section{Responses to Reviewer 2}
-\subsection{General Comments}
 
-\COMMENT 
+\COMMENT
 
-One of the problems with this paper is that it is not completely
-self-contained.  Some knowledge about Real-Time Maude is necessary in
-order to fully understand it.  I found the short introduction about
-Real-Time Maude (section II.B) not enough for understanding the
-formalism used in the rest of the paper (see details below).
+My most important concerns have been addressed, so I think the paper
+is now in a shape acceptable for publication. I couldn't check the
+proof completely, but it appears sound.
 
-\ANSWER 
+The significance of the paper remains not very high, because the paper
+shows the proposed technique can be used in one particular case while
+it does not provide results of general validity.
 
-Thank you very much for pointing this out. The Sections II.B and IV
-are improved to be more self-contained now. The idea is that, Section
-II.B presents mainly an overview of Real-Time Maude, and then Section
-IV describes the model with introducing necessary syntax on-the-fly.
+Nevertheless, as I said in my previous review, I believe these initial
+results may be useful for readers, since there seem to be no other
+paper providing a similar detail level in the models.
 
-\COMMENT 
+Detailed comments: 
 
-Another concern is that the significance of the paper could be much
-better if the paper addressed the problem of modelling RMS in a more
-general way. Instead, the paper takes the form of a case study, where
-the formal modelling of one specific RMS implementation is presented,
-rather than a general method for modelling and analyzing RMS
-implementations.
+Section II.B, page 2 
 
-\ANSWER 
+left column line 37-38
 
-Thank you for the suggestion. Yes, we agree that we have two choices
-to do the work presented in the paper: one is to develop a general way
-to model RMS algorithms or implementations, and then instantiate the
-general model to get a concrete one for our target system; the other
-is to shape an accurate model of the target system directly.
+What are uj and vj? Are they terms too? This should be specified in
+the text.
 
-We chose the latter according to the following considerations. By
-experience, \emph{the development engineers (who write the code) and
-  verification engineers (who verify the code or the system) are
-  usually not the same persons.} When a verification engineer models a
-system, he is actually abstracting the system or the code. It is
-difficult to ensure that the model behaves the same as the system or
-the code.  And it is more difficult to make other engineers and users
-believe that the model behaves the same as the system or the
-code. Furthermore, the developers and users hope that the model
-behaves not only the same as what they had in mind, but also the same
-as what is written in the code. A way out is to make the model not
-only \emph{behave like} the code, but also \emph{``look'' like} the
-code. This requires the model to be as accurate as possible, based on
-a fact that the expressiveness of the modeling language is powerful
-enough. It makes the model specific, but improves the engineers'
-confidence in the model and the verification results. That is also why
-we emphasize the corresponding relationship between the functions in
-the model and the lines in the pseudocode, when we introduce our model
-in Section~IV.
+left column lines 42-46
 
-On the other hand, we are also interested in the first direction. This
-will be the future work and we would try to get a better balance
-between them.
+I guess s' is the destination state. This should be specifioed in the
+text.  The sentence "IR and TR together..." should not be part of the
+item. It should go into a new paragraph after the list.
 
-\COMMENT 
+right column lines 22-24
 
-Also, the discussion about soundness and completeness of the analysis
-(section V.C) is not fully developed and, once again, it refers to the
-specific model rather than being a general result.
+As it seems the timed operators are not used, I suggest to avoid
+mentioning them. By the way, this mention without any other detail is
+useless.
+
+
+Page 4, line 45
+
+Why is a period of sort Nat? Shouldn't it be Counter?
 
 \ANSWER 
-
-Thanks for this comment. The detailed proof of Theorem~2 is now
-included in the Appendix. On the other hand, since we chose the
-accurate way to achieve the model as discussed above, yes, the proof
-is a specific one.
-
-
-\subsection{Detailed Comments}
-
-\COMMENT 
-
-[Section II.B] In the definition of $IR$, it is not clear what $s$ and
-$s'$ are. I guess they are states, but the concept of state was not
-introduced.
-
-\ANSWER 
-
-Yes, they can be states. But more generally, they are terms. This part
-has been modified to specify $s$ and $s'$ (in fact, $t$ and $t'$ now)
-clearly.
-
-\COMMENT 
-
-[Section II.B] In the definition of a class, the authors should
-specify that a class includes a collection of rules, otherwise this
-fact may be missed.
-
-\ANSWER 
-
-Thanks very much for reminding. This is added now.
-
-\COMMENT 
-
-[Section III] Page 2 right column, line -24: The implementation is
-shown as schedule() in Figure 1 $\rightarrow$ The pseudocode of
-schedule() is shown in Figure 1
-
-\ANSWER 
-
-Thanks for the careful reading. It is done now.
-
-\COMMENT 
-
-[Section IV.A] I don't understand the meaning of \verb|[ctor]| in the
-definition of some operations (maybe because I have no specific
-background on Maude). I could not find the explanation of this writing
-in the introduction to Maude.
-
-\ANSWER 
-
-Sorry for missing the explanation of \verb|[ctor]|. It is now added
-when \verb|[ctor]| is used for the first time.
-
-\COMMENT 
-
-[Section IV.A] For the stack sort, the authors mention operations
-push, pop and peek, but then you don't write the definitions of these
-operations. Instead, they write the definitions of bottom and \#,
-which are not explained in the text. This part should be made clearer.
-
-\ANSWER 
-
-Sorry for the misleading presentation in the text. In fact,
-\verb|bottom| and \verb|#| are constructors of sort \verb|Stack|. This
-part is modified now. Some detailed definitions in code are removed,
-and are replaced by more explanations. We hope that the current
-presentation would make Section IV more easy-to-read.
-
-\COMMENT 
-
-[Section IV.A] Also, the meaning of NzNat is not explained.
-
-\ANSWER 
-
-Sorry for this incompleteness. \verb|NzNat| meant non-zero natural
-numbers. \verb|NzNat| is now replaced by \verb|Nat| to reduce
-unnecessary complexity for the readers.
-
-\COMMENT 
-
-[Section V.C] In the statement of Theorem~1, the definition of
-time-robust real-time rewrite theory is missing. Also, the meaning of
-tick-stabilizing atomic propositions is not defined. This makes the
-section not self-contained.
-
-\ANSWER 
-
-Sorry for the inconvenience for reading. In fact, the definitions of
-time-robustness and tick-stabilization (which is now replaced with
-tick-invariance) require more knowledge about rewriting logic. We
-avoid introducing the accurate definitions of them. Instead, now we
-give short descriptions of them before Theorem~1. More detailed
-introduction can be found in the Appendix.
-
-\COMMENT 
-
-[Section V.C] The proof of theorem 2 is missing. The authors just
-indicate how the proof could be developed, but they do not develop
-it. A possibility would be to point to a document where this proof has
-been developed.
-
-\ANSWER 
-
-We are very happy that the readers are interested in the detailed and
-technical proof, which is now included in the Appendix.  The detailed
-proof requires a bit more theoretical background about rewriting logic
-and more details of our model, which we tried to simplify in the paper
-in order to ease the understanding of our approach. We would prefer to
-refer the detailed proof to a non-anonymous technical report, if
-possible, in the final version.
-
 
 \section{Responses to Reviewer 3}
 
-\COMMENT 
+\COMMENT
 
-RMS has many different realization methods, no comparison is given to
-justify the strong point of real-time maude when applied to RMS.
+This paper has been revised according to reviewers comments and
+suggestions, I recommend to accept it for publication after minor
+revisions on possible typos, such as the word "monus" on page 9 and
+10.
 
-\ANSWER 
-
-The comparison could be found in Section VI (and we have expanded
-according to the reviewers' comments :-)). We would like to clarify
-that we are \emph{not implementing} RMS, we are actually
-\emph{verifying} it. We choose Real-Time Maude since it verifies the
-model using model checking technique. If verification passes, no
-deadline will be missed in the implementation as long as the model
-assumptions are met.
-
-\hide{
-The comparison is given in the related work section (Section
-VI). We would say that we are not implementing RMS algorithm in
-Real-Time Maude. In fact, we are using Real-Time Maude to model an
-realistic implementation of RMS from an industrial avionic
-system. There is no theoretical reason telling us that we have to use
-Real-Time Maude to model the RMS implementation. However, the existing
-verification work as far as we know cannot fit our needs, as discussed
-in Section VI. Therefore, we developed the work in the paper, as a
-piece of real work in the industry.
-}
-
-\COMMENT 
-
-Rate-monotonic scheduling is a very simple scheduling and has been
-sufficiently investigated in the field of embedded system, the authors
-claim the innovation of this paper as the implementation using
-real-time maude, however, I cannot see any special point (or
-advantage) when using this real-time maude in modelling RMS.
 
 \ANSWER 
 
-Thank you for the insightful comment. We agree that RMS has been
-intensively studied because of its importance. However, most of the
-results are based on the assumption that \emph{task switching does not
-  take time}. That assumption is not realistic. Models with and
-without the assumption have totally different behaviors. For instance,
-as shown in Figure~2(b), in the RMS implementation we verified, the
-switching from time $9$ to $11$ blocks the interrupt handling, hence
-delaying the initiation time of $\tau_1$. This kind of phenomenon, to
-our knowledge, would not happen in the theoretical analysis
-models. Although there is very few results that take into account the
-switching overhead (as discussed in Section VI), none of them is
-generic and our system under verification is not in their scope.
-
-Despite the above reason, the most important motivation of this paper
-is to verify the system not only for the schedulability, but also for
-the correctness. That is, we want to verify that the target system
-does schedule the tasks under the RMS algorithm. The work presented
-should be seen as a verification problem, instead of a schedulability
-test. From verification point of view, this paper models a real-world
-RMS implementation with sufficient technical details. Two important
-properties--schedulability and correctness--are verified by model
-checking technique, and the soundness and completeness of the results
-are demonstrated.
-
-\hide{
-is a very simple scheduling and is the optimum at the same time among
-the fixed-priority ones, making it widely applied and sufficiently
-investigated. Besides the ideal setting, the schedulability of RMS was
-also investigated under different kinds of implementations with
-consideration about overhead, as we discuss in the related work
-section (Section VI). Despite the reason that the existing results do
-not fit our target system using RMS, the most important motivation to
-develop the work presented is that, we aim at verifying the system not
-only for the schedulability, but also for the correctness. That is, we
-want to verify that the target system does schedule the tasks under
-the RMS algorithm. The work presented should be seen as a verification
-problem, instead of a schedulability test.
-}
-
-\COMMENT 
-
-The assumptions given in IV is too rigid, which makes the scheduling
-problem to be investigated by very simple, then what is the
-difficulty?
-
-\ANSWER 
-
-Thank you for the question. When model checking technique is used to
-verify a given system, the tool (model checker) explores the whole
-system state space to check whether the given property holds. All
-feasible combinations of execution traces are checked. As a result,
-the state space explosion is the most common problem for a model
-checker. That means the state space of the system/model is too huge
-for the tool to explore with acceptable temporal and spatial cost. The
-scale of the state space depends on the complexity of the model of the
-system.
-
-As an industrial verification application, we are not trying to make
-the problem as difficult as possible. Instead, we are trying to
-simplify the model so that the existing tools are able to solve, while
-the target system satisfies the assumptions on the model so that the
-verification results are trustworthy.
-
-On the other hand, the assumptions are actually not that rigid. For
-example, the mask mechanism considered makes the job initiation times
-of task $\tau_i$ possibly not equal $kT_i$, implying that the
-deadlines of the jobs may be not equal to $(k+1)T_i$ (see assumption
-A1'). This is also discussed in the beginning of Section IV, pointing
-out the blocking at time $10$ in Figure~2(b). Another example is that
-non-determinism exists in our model, as discussed in Section~VI.
-
-\COMMENT 
-
-The description in section IV (A-E) is trivial, it can only be viewed
-as a simple application of the rewriting logic.
-
-\ANSWER 
-
-Thanks for the careful reading. We agree that this is an application
-of rewriting logic. In this paper, we do apply the existing theories
-and techniques of rewriting logic to solve a real industrial problem,
-which has not yet been investigated by this sort of techniques,
-achieving an industrial contribution.
-
-\COMMENT 
-
-The model checking part is not sufficiently discussed, the authors
-only list the commands but not illustrate the mechanism behind these
-commands.
-
-\ANSWER 
-
-Thank you for the suggestion. Our work does focus on how to model a
-realistic industrial system and how to apply formal techniques (such
-as model checking) to verify important properties of the system. The
-mechanism behind the model checking commands (i.e. of a model checker)
-is another issue.
-
-The field of model checking techniques and the implementation of model
-checkers have been intensively studied for decades. If the reviewer is
-interested in the mechanism of the model checker provided by Real-Time
-Maude, we would recommend the reference [A] to the reviewer:
-
-\noindent
-[A] S. Eker, J. Meseguer, and A. Sridharanarayanan, ``The Maude LTL
-Model Checker'', {\it Electr. Notes Theor. Comput. Sci.}, vol. 71,
-pp. 162-187, 2002.
-
-\hide{
-However, since the model checker is not part of our contributions in
-the paper, we do not think it is appropriate to illustrate the
-mechanism behind the model checking commands, which may confuse the
-readers on the other hand.}
 
 
 \hide{

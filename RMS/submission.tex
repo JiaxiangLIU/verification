@@ -340,6 +340,8 @@
 % correct bad hyphenation here
 \hyphenation{op-tical net-works semi-conduc-tor}
 
+\usepackage{microtype}
+
 
 \begin{document}
 %
@@ -652,36 +654,39 @@ specification and analysis of real-time systems.
 
 \subsubsection{Specification}
 Real-Time Maude models systems as \emph{modules}. A module specifies a
-\emph{real-time rewrite theory} ${\cal R} = (\Sigma, E\cup A , IR,
-TR)$, where:
+\emph{real-time rewrite theory} ${\cal R} = (\Sigma, E\cup A ,
+\mathit{IR}, \mathit{TR})$, where:
 \begin{itemize}
 \item $\Sigma$ is an algebraic \emph{signature}, that is, a set of
   declarations of \emph{sorts}, \emph{subsorts} and \emph{function
     symbols}. The function symbols are allowed to be mixfix, in which
   case underscores ``\verb|_|'' indicate the positions of parameters.
-  \hl{\emph{Terms} are expressions built from function symbols and
-  variables.}
+  \emph{Terms} are expressions built from function symbols and
+  variables.
 \item $(\Sigma, E\cup A)$ is a \emph{membership equational logic
   theory}, with $E$ a set of \emph{conditional equations} and
   \emph{memberships} on $\Sigma$, and $A$ a set of equational axioms
   such as associativity, commutativity and identity.  $(\Sigma, E\cup
-  A)$ models the system's ``static'' states \hl{as terms of some sort}, and
+  A)$ models the system's ``static'' states as terms of some sort, and
   is equipped with a built-in specification of a sort \verb|Time|.
-\item $IR$ is a set of \emph{labeled conditional rewrite rules}
-  specifying the system's local transitions. Each rule has the form
-  $[l]~:~t\rightarrow t'\mbox{ \textbf{if} }\bigwedge^n_{j=1}cond_j$,
-  where each $cond_j$ is an equality $u_j=v_j$ and $l$ is a
-  \emph{label}, \hl{$t,t'$ are terms}. Such a rule specifies an
-  \emph{instantaneous transition}, without consuming time, from an
-  instance of $t$ to the corresponding instance of $t'$,
-  \emph{provided} the conditions hold.
-\item $TR$ is a set of (\emph{labeled}) \emph{tick rules} of the form
-  $[l]~:~\{s\}\rightarrow\{s'\} \mbox{ \textbf{in time} }r\mbox{
-  \textbf{if} }cond$ that specify \emph{timed transitions}, which
-  advances time by $r$ time units in the \emph{entire} state modeled
-  by term $s$. $IR$ and $TR$ together model the ``dynamic'' behaviors
-  of the system.
+\item $\mathit{IR}$ is a set of \emph{labeled conditional rewrite
+  rules} specifying the system's local transitions. Each rule has the
+  form $[l]~:~t\rightarrow t'\mbox{ \textbf{if}
+  }\bigwedge^n_{j=1}cond_j$, where each $cond_j$ is an equality
+  $u_j=v_j$, and $l$ is a \emph{label}, \hl{$t,t',u_j,v_j$ are terms}. Such
+  a rule specifies an \emph{instantaneous transition}, without
+  consuming time, from an instance of $t$ to the corresponding
+  instance of $t'$, \emph{provided} the conditions hold.
+\item $\mathit{TR}$ is a set of (\emph{labeled}) \emph{tick rules} of
+  the form $[l]~:~\{s\}\rightarrow\{s'\} \mbox{\textbf{ in time}
+  }r\mbox{ \textbf{if} }cond$ that specify \emph{timed
+    transitions}. \hl{Each tick rule advances time by $r$ time units from
+  the \emph{entire} state modeled by term $s$ to the destination state
+  $s'$.}
 \end{itemize}
+
+\hl{$\mathit{IR}$ and $\mathit{TR}$ together model the ``dynamic''
+behaviors of the system.}
 
 In rewriting logic, rewrite rules are applied non-deterministically,
 that is, when several rules can be applied on a given term $t$, any of
@@ -696,8 +701,8 @@ as a term $\texttt{< } O\texttt{:} C \texttt{ | }
 att_1\texttt{:}val_1\texttt{,} \ldots
 \texttt{,}att_n\texttt{:}val_n\texttt{ >}$ of sort \verb|Object|,
 where $O$, of sort \verb|Oid|, is the object's \emph{identifier}, and
-$val_i$ is the value of the attribute $att_i$ with $i\in [1,n]$. \hl{Rules
-can be defined on a given class.} A \emph{subclass} inherits all the
+$val_i$ is the value of the attribute $att_i$ with $i\in [1,n]$. Rules
+can be defined on a given class. A \emph{subclass} inherits all the
 attributes and rules of its superclasses.
 
 \subsubsection{Formal Analysis}
@@ -831,7 +836,7 @@ periodic task, and (iii) the time for switching context from
 $schedule()$ to that task.
 
 
-\section{\hl{Formal Modeling of the Implementation}}
+\section{Formal Modeling of the Implementation}
 \label{s:formalism}
 Considering some technical details of the platform, such as interrupt
 mask mechanism, we model the implementation under the following
@@ -1521,9 +1526,9 @@ ones designed by ourselves, four of them are described below:
   $T_1=5ms$, $C_1=2.5ms$, $T_2=10ms$, $C_2=1.5ms$, $T_3=15ms$ and
 $C_3=4.5ms$.
 \end{itemize}
-\hl{Note that thanks to the powerful expressiveness of Real-Time Maude, we
-only need to define an initial state of sort} \verb|System| \hl{to specify
-a given task set. No necessity to modify the model is needed.}
+Note that thanks to the powerful expressiveness of Real-Time Maude, we
+only need to define an initial state of sort \verb|System| to specify
+a given task set. No necessity to modify the model is needed.
 
 \hide{
 \begin{itemize}
@@ -1691,7 +1696,7 @@ within Scenario~(iv), returned by the model checking command, is
 pictured in Figure~\ref{f:counterexample}, where the third task
 $\tau_3$ misses its deadline at the time $15ms$.
 
-\hl{The results above have demonstrated that our approach is capable of
+The results above have demonstrated that our approach is capable of
 handling realistic industrial systems. However to further exam the
 efficiency of our approach, we also apply our method to larger test
 scenarios. Test scenarios are generated randomly. We verify the
@@ -1706,7 +1711,7 @@ correlated with $mn$, where $m$ is the upper bound of $timer$ and $n$
 is the number of periodic tasks. By the generated test scenarios, it
 turns out that the model checking command for schedulability in our
 model is able to handle scenarios, where $mn$ is up to about $10^6$,
-in an acceptable period of time say $90$ minutes.}
+in an acceptable period of time say $90$ minutes.
 
 
 \hide{
@@ -1856,13 +1861,13 @@ In general, completeness of untimed model checking cannot be achieved
 for any systems, any time sampling strategies and any
 properties. However, \"Olveczky and Meseguer proved the completeness
 of untimed temporal logic model checking, under the maximal time
-sampling strategy, \hl{for a large class of real-time systems possessing a
+sampling strategy, for a large class of real-time systems possessing a
 set of ``good'' properties that is called \emph{time-robustness}, and
 for a set of ``good'' LTL formulae constructed by
 \emph{tick-invariant} propositions\footnote{We avoid introducing the
   definitions of time-robustness and tick-invariance, due to the
   requirements of extra rewriting logic
-  background.}~\cite{DBLP:journals/entcs/OlveczkyM07a}:}
+  background.}~\cite{DBLP:journals/entcs/OlveczkyM07a}:
 \begin{theorem}[\cite{DBLP:journals/entcs/OlveczkyM07a}]
 \label{t:completeness}
 Given a time-robust real-time rewrite theory $\cal R$, a set $AP$ of
@@ -1882,8 +1887,8 @@ and the correctness of our model is complete.
 \begin{IEEEproof}
 By showing that our model is time-robust and that the two defined
 atomic propositions--\verb|taskTimeout| and \verb|correct|--are
-tick-invariant, then using Theorem~\ref{t:completeness}. \hl{For a more
-detailed proof, see the Appendix.}
+tick-invariant, then using Theorem~\ref{t:completeness}. For a more
+detailed proof, see the Appendix.
 \end{IEEEproof}
 
 
@@ -2022,7 +2027,7 @@ account, being not as realistic as ours. Katcher et al. did consider
 overhead in their schedulability analysis, under several models based
 on different kinds of popular
 implementations~\cite{DBLP:journals/tse/KatcherAS93}.  However, our
-target implementation is not in their scope. \hl{Furthermore, compared
+target implementation is not in their scope. Furthermore, compared
 with those theoretical analyses, our approach based on formal modeling
 and verification has three advantages. One is that if our
 schedulability test answers ``no'', it returns at the same time a real
@@ -2040,9 +2045,9 @@ interrupt request is masked, hence the scheduling and initiation of
 tasks may be delayed; (ii) the system answers the interrupt request
 immediately, the switching being delayed. Tackling such
 non-determinism via theoretical analyses seems more complicated than
-our automatic approach.}
+our automatic approach.
 
-\hl{\cite{TianD2011} and~\cite{DBLP:conf/iceccs/CuiDT14} also made use of
+\cite{TianD2011} and~\cite{DBLP:conf/iceccs/CuiDT14} also made use of
 model checking to analyze the RMS algorithm along the same line but
 with different languages and tools. The RMS algorithm is investigated
 using an extension of SPIN~\cite{DBLP:journals/tse/Holzmann97}
@@ -2070,7 +2075,7 @@ either discrete or dense ones. In~\cite{DBLP:conf/iceccs/CuiDT14}, the
 time domain is dense, and a modeling strategy like our maximal time
 sampling strategy is applied to reduce the state space. However, a
 completeness statement like Theorem~\ref{t:main} was not given
-in~\cite{DBLP:conf/iceccs/CuiDT14}.}
+in~\cite{DBLP:conf/iceccs/CuiDT14}.
 
 Finally, Maude and Real-Time Maude have been successfully applied on
 large numbers of applications~\cite{DBLP:journals/jlp/Meseguer12},
@@ -2091,7 +2096,7 @@ scenarios. We demonstrate the soundness and completeness of our
 results.
 
 
-\appendix[\hl{Proof of Theorem~\ref{t:main}}]
+\appendix[Proof of Theorem~\ref{t:main}]
 \label{a:proof}
 \setcounter{theorem}{0}
 \renewcommand{\thetheorem}{\thesection.\arabic{theorem}}

@@ -599,12 +599,38 @@ useless.
 
 \ANSWER
 
+Thanks for pointing this out. Actually some of the timed operators are
+used in Section V.A when describing the properties we verify. This
+little problem is addressed now. We now only mention the necessary
+timed operators which will be used, and also add explanations when
+using them in Section V.A.
+
 \COMMENT
 
-[Page 4] line 45:
-Why is a period of sort Nat? Shouldn't it be Counter?
+[Page 4] line 45: 
+Why is a period of sort \verb|Nat|? Shouldn't it be \verb|Counter|?
 
 \ANSWER 
+
+This is a good question! 
+
+In our model, as we discuss in Section IV.A, a \verb|Counter| contains
+two elements: the execution time (the time how long a task has been
+executing for) and the computation requirement (the time how long a
+task should execute for). A \verb|Counter| is some kind of
+``dynamic''. It is like a countdown timer to complete the execution of
+a task. Different from \verb|Counter|, a period is a ``static''
+property of a task. Therefore, a period is modeled as a term of sort
+\verb|Nat| instead of \verb|Counter|.
+
+On the other hand, a period can also be modeled as a \verb|Counter|.
+Then it becomes a countdown timer to trigger an execution request of
+the task, while the execution requests are currently triggered by the
+periodic interrupts in our model.
+
+Both ways to model periods are feasible. We choose the former since
+its behaviors are more faithful to the real implementation we model
+and verify.
 
 \section{Responses to Reviewer 3}
 

@@ -724,9 +724,9 @@ $b$ in states which are instances of $statePattern$ provided the
 condition $cond$ holds. These equations together define $prop$ to hold
 in all states $s$ that make $s \texttt{ |= } prop$ evaluate to
 \verb|true|. A temporal logic \emph{formula} is constructed by state
-propositions and temporal logic operators such as \verb|~|(negation),
-\verb|\/|(or), \verb|[]|(``always'') and
-\verb|U|(``until''). Real-Time Maude supports both \emph{timed} and
+propositions and \hl{temporal logic operators such as} \verb|~|\hl{(negation),}
+\verb|\/|\hl{(disjunction),} \verb|[]|\hl{(``always''),}
+\verb|U|\hl{(``until'')}. Real-Time Maude supports both \emph{timed} and
 \emph{untimed LTL model checking}. The untimed model checking command
 \begin{alltt}
   (mc \(s\) |=u \(\Phi\) .)

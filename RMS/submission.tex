@@ -724,9 +724,8 @@ $b$ in states which are instances of $statePattern$ provided the
 condition $cond$ holds. These equations together define $prop$ to hold
 in all states $s$ that make $s \texttt{ |= } prop$ evaluate to
 \verb|true|. A temporal logic \emph{formula} is constructed by state
-propositions and temporal logic operators such as \verb|True|,
-\verb|False|, \verb|~|(negation), \verb|/\|, \verb|\/|,
-\verb|->|(implication), \verb|[]|(``always'') and
+propositions and temporal logic operators such as \verb|~|(negation),
+\verb|\/|(or), \verb|[]|(``always'') and
 \verb|U|(``until''). Real-Time Maude supports both \emph{timed} and
 \emph{untimed LTL model checking}. The untimed model checking command
 \begin{alltt}
@@ -1462,7 +1461,8 @@ some task misses its deadline:
 \end{verbatim}
 where \verb|containError| returns \verb|true| if there is an
 \verb|error| existing in \verb|L|. Then schedulability can be
-formalized as the temporal logic formula: \verb|[](~taskTimeout)|. As
+formalized as the temporal logic formula: \verb|[](~taskTimeout)|,
+\hl{expressing that the proposition} \verb|taskTimeout| \hl{is always false}. As
 the property is not \emph{clock-related}, given an initial state
 \verb|init|, the following untimed model checking command returns
 \verb|true| if the schedulability property holds with no time limit;
@@ -1488,9 +1488,10 @@ the highest priority among those whose status is not
 \verb|DORMANT|. Note that during verification, we do not care the
 behaviors after some task misses its deadline. Therefore, the
 correctness property is formalized by the temporal logic formula:
-\verb|([]correct) \/ (correct U taskTimeout)|, and can be verified by
-the following untimed model checking command provided an initial state
-\verb|init|:
+\verb|([]correct)\/(correct U taskTimeout)|, \hl{stating that}
+\verb|correct| \hl{is always true, or is true until} \verb|taskTimeout|
+\hl{holds}. It can be verified by the following untimed model checking
+command provided an initial state \verb|init|:
 \begin{verbatim}
   (mc init |=u ([]correct) 
                \/ (correct U taskTimeout) .)

@@ -131,7 +131,7 @@
 %
 % Also, note that the amsmath package sets \interdisplaylinepenalty to 10000
 % thus preventing page breaks from occurring within multiline equations. Use:
-%\interdisplaylinepenalty=2500
+\interdisplaylinepenalty=2500
 % after loading amsmath to restore such page breaks as IEEEtran.cls normally
 % does. amsmath.sty is already installed on most LaTeX systems. The latest
 % version and documentation can be obtained at:
@@ -2128,8 +2128,8 @@ for all appropriate ground terms $t$ and $r,r'$:
 \item
 [(i)] \verb|mte(delta(|$t$\verb|,|$r$\verb|))| $=$
 \verb|mte(|$t$\verb|) monus |$r$, for all $r\le$
-\verb|mte(|$t$\verb|)|, where \verb|monus| is the minus operation
-defined on sort \verb|Time|;
+\verb|mte(|$t$\verb|)|, where \verb|monus| is the built-in minus
+operation defined on sort \verb|Time|;
 
 \item
 [(ii)] \verb|delta(|$t$\verb|,|$0$\verb|)| $= t$;
@@ -2215,7 +2215,7 @@ $N$th task in $L'$ has \verb|cnt| value being
 = & C~\verb|monus|~(r_e+r) 
 = (C~\verb|monus|~r_e)~\verb|monus|~r 
 \\
-= & \mteTask{ID}{L}~\verb|monus|~r~.
+= & \mteTask{ID}{L}~\verb|monus|~r~. 
 \end{IEEEeqnarray*}
 \end{IEEEproof}
 \begin{lemma}

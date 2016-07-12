@@ -317,8 +317,8 @@
 \newcommand{\jx}[1]{{\textbf{Jiaxiang: }}#1{ \textbf{ End}}}
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}{Lemma}
-\newcommand{\ANSWER}{\medskip\noindent\textbf{ RESPONSE: }}
-\newcommand{\COMMENT}{\medskip\noindent\textbf{ COMMENT: }}
+\newcommand{\ANSWER}{\medskip\noindent\textbf{RESPONSE: }}
+\newcommand{\COMMENT}{\medskip\noindent\textbf{COMMENT: }}
 
 % Define the fontsize in environment {verbatim}
 \makeatletter
@@ -330,7 +330,6 @@
 % correct bad hyphenation here
 \hyphenation{op-tical net-works semi-conduc-tor}
 
-
 \begin{document}
 %
 % paper title
@@ -341,6 +340,7 @@
 % Do not put math or special symbols in the title.
 %\title{Corrections to Manuscript No. 15-TIE-3480}
 \title{Responses to Reviews}
+\date{}
 %
 %
 % author names and IEEE memberships
@@ -469,7 +469,7 @@ Computer Engineering, Portland State University, Portland, OR
 %% \twocolumn[
 %%   \begin{@twocolumnfalse}
 \maketitle
-
+\vspace{-30pt}
 \begin{center}
   \begin{tabular}{r l}
     \hline\hline
@@ -494,10 +494,12 @@ Computer Engineering, Portland State University, Portland, OR
 
 \section{General Response}
 We thank all the reviewers for their invaluable comments, which help
-us a lot in improving the paper. We believe that the paper is now more
-self-contained and better presented than the original submission.
+us a lot in improving the paper.
 
-According to the comments, we make some minor revisions, which are
+%% We believe that the paper is now more
+%% self-contained and better presented than the original submission.
+
+According to the comments, we make several minor revisions, which are
 highlighted in the manuscript.  And detailed responses to all the
 comments are shown in the rest of this document.
 
@@ -528,9 +530,22 @@ consider that the paper can now be accepted for publication.
 
 Thanks for your positive comments.
 
-Yes, we also agree that Theorem 2 is important. We would consider
-including the detailed proof in the printed version, if the page limit
-of TIE permits.
+%% As to Theorem~2, we also agree that it is important. But due to the
+%% page limit of TIE, we have to refer the detailed proof of this theorem
+%% to the technical report, where the proof is more detailed and more
+%% self-contained.
+
+We agree that Theorem~2 is very important and that is also the reason
+we have carefully revised the proof and extended it to contain all
+necessary deduction steps. However, due to the space limit of TIE, we
+found it almost impossible to include the proof without comprising
+other important details of the paper. As a result, we have to put the
+detailed proof as a separate technical document.
+
+
+%% Yes, we also agree that Theorem 2 is important. We would consider
+%% including the detailed proof in the printed version, if the page limit
+%% of TIE permits.
 
 
 \section{Responses to Reviewer 2}
@@ -559,7 +574,7 @@ Thank you very much for the approval.
 
 \COMMENT
 
-{[Section II.B, page 2]} left column, lines 37-38:
+[Section II.B, page 2] left column, lines 37-38:
 What are $u_j$ and $v_j$? Are they terms too? This should be specified
 in the text.
 
@@ -569,7 +584,7 @@ Yes, they are terms as well. This is specified now.
 
 \COMMENT
 
-{[Section II.B, page 2]} left column, lines 42-46:
+[Section II.B, page 2] left column, lines 42-46:
 I guess $s'$ is the destination state. This should be specified in the
 text.  The sentence "IR and TR together..." should not be part of the
 item. It should go into a new paragraph after the list.
@@ -580,41 +595,44 @@ Yes, thank you for pointing this out. They are modified now.
 
 \COMMENT
 
-{[Section II.B, page 2]} right column, lines 22-24:
+[Section II.B, page 2] right column, lines 22-24:
 As it seems the timed operators are not used, I suggest to avoid
 mentioning them. By the way, this mention without any other detail is
 useless.
 
 \ANSWER
 
-Thanks for the suggestion. Actually some of the timed operators are
-used in Section V.A when describing the properties we verify. This
-little problem is addressed now. We now only mention the necessary
-timed operators which will be used, and also add explanations when
-using them in Section V.A.
+Thanks for the suggestion. It is addressed now. Actually some of the
+timed operators are used in Section~V.A when describing the properties
+we verify. We now only mention the necessary timed operators which
+will be used, and also add explanations when using them in
+Section~V.A.
 
 \COMMENT
 
-{[Page 4]} line 45: 
+[Page 4] line 45: 
 Why is a period of sort \verb|Nat|? Shouldn't it be \verb|Counter|?
 
 \ANSWER 
 
 This is a good question! 
 
-In our model, as we discuss in Section IV.A, a \verb|Counter| contains
-two elements: the execution time (the time how long a task has been
-executing for) and the computation requirement (the time how long a
-task should execute for). A \verb|Counter| is some kind of
-``dynamic''. It is like a countdown timer to complete the execution of
-a task. Different from \verb|Counter|, a period is a ``static''
-property of a task. Therefore, a period is modeled as a term of sort
-\verb|Nat| instead of \verb|Counter|.
+In our model, a period is of sort \verb|Nat| instead of
+\verb|Counter|.
+%% as we discuss in Section IV.A, a \verb|Counter| contains
+%% two elements: the execution time (the time how long a task has been
+%% executing for) and the computation requirement (the time how long a
+%% task should execute for).
+A \verb|Counter| is some kind of ``dynamic''. It is like a countdown
+timer to complete the execution of a task. However, a period is a
+``static'' property of a task. Therefore, a period is modeled as a
+term of sort \verb|Nat| instead of \verb|Counter|.
 
 On the other hand, a period can also be modeled as a \verb|Counter|.
 Then it becomes a countdown timer to trigger an execution request of
-the task, while the execution requests are currently triggered by the
-periodic interrupts in our model.
+the task.
+%% while the execution requests are currently triggered by the
+%% periodic interrupts in our model.
 
 Both ways to model periods are feasible. We choose the former since
 its behaviors are more faithful to the real implementation we model
@@ -631,12 +649,17 @@ revisions on possible typos, such as the word ``monus'' on page 9 and
 
 \ANSWER
 
-Thanks for the pros and the careful reading.
+Thanks for your pros and carefully reading. However, ``monus'' is not
+a typo but the name of the built-in minus operation defined in
+Real-Time Maude (as explained in Lemma A.1). We have done proof
+checking again to avoid other typos.
 
-``monus'' is the name of the built-in minus operation defined in
-Real-Time Maude, as we introduced in Lemma A.1 at page 8 in the
-Appendix. It is not a typo. We have also spell checked the whole
-manuscript again to avoid typos.
+%% Thanks for the pros and the careful reading. We have spell checked
+%% again the whole manuscript to avoid typos.
+
+%% ``monus'' is not a typo. It is the name of the built-in minus
+%% operation defined in Real-Time Maude, as we introduced in Lemma A.1 at
+%% page 8 in the Appendix.
 
 \end{document}
 

@@ -1,11 +1,8 @@
-\documentclass[10pt,journal]{IEEEtran}
+\documentclass[a4paper]{article}
 %
 % If IEEEtran.cls has not been installed into the LaTeX system files,
 % manually specify the path to it like:
 % \documentclass[10pt,journal,compsoc]{../sty/IEEEtran}
-
-
-
 
 
 % Some very useful LaTeX packages include:
@@ -37,14 +34,14 @@
 
 % *** CITATION PACKAGES ***
 %
-\ifCLASSOPTIONcompsoc
+% \ifCLASSOPTIONcompsoc
   % IEEE Computer Society needs nocompress option
   % requires cite.sty v4.0 or later (November 2003)
-  \usepackage[nocompress,noadjust]{cite}
-\else
+%   \usepackage[nocompress,noadjust]{cite}
+% \else
   % normal IEEE
-  \usepackage[noadjust]{cite}
-\fi
+%  \usepackage[noadjust]{cite}
+%\fi
 % cite.sty was written by Donald Arseneau
 % V1.6 and later of IEEEtran pre-defines the format of the cite.sty package
 % \cite{} output to follow that of IEEE. Loading the cite package will
@@ -75,14 +72,14 @@
 
 % *** GRAPHICS RELATED PACKAGES ***
 %
-\ifCLASSINFOpdf
+%\ifCLASSINFOpdf
   % \usepackage[pdftex]{graphicx}
   % declare the path(s) where your graphic files are
   % \graphicspath{{../pdf/}{../jpeg/}}
   % and their extensions so you won't have to specify these with
   % every instance of \includegraphics
   % \DeclareGraphicsExtensions{.pdf,.jpeg,.png}
-\else
+%\else
   % or other class option (dvipsone, dvipdf, if not using dvips). graphicx
   % will default to the driver specified in the system graphics.cfg if no
   % driver is specified.
@@ -92,7 +89,7 @@
   % and their extensions so you won't have to specify these with
   % every instance of \includegraphics
   % \DeclareGraphicsExtensions{.eps}
-\fi
+%\fi
 % graphicx was written by David Carlisle and Sebastian Rahtz. It is
 % required if you want graphics, photos, etc. graphicx.sty is already
 % installed on most LaTeX systems. The latest version and documentation
@@ -185,11 +182,11 @@
 
 
 % *** SUBFIGURE PACKAGES ***
-\ifCLASSOPTIONcompsoc
-  \usepackage[caption=false,font=footnotesize,labelfont=sf,textfont=sf]{subfig}
-\else
-  \usepackage[caption=false,font=footnotesize]{subfig}
-\fi
+%% \ifCLASSOPTIONcompsoc
+%%   \usepackage[caption=false,font=footnotesize,labelfont=sf,textfont=sf]{subfig}
+%% \else
+%%   \usepackage[caption=false,font=footnotesize]{subfig}
+%% \fi
 % subfig.sty, written by Steven Douglas Cochran, is the modern replacement
 % for subfigure.sty, the latter of which is no longer maintained and is
 % incompatible with some LaTeX packages including fixltx2e. However,
@@ -317,11 +314,11 @@
 \usetikzlibrary{arrows.meta}
 \usepackage{multicol}
 \newcommand{\hide}[1]{\ignorespaces}
-\newcommand{\jx}[1]{{\bf Jiaxiang: }#1{ \bf End}}
+\newcommand{\jx}[1]{{\textbf{Jiaxiang: }}#1{ \textbf{ End}}}
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}{Lemma}
-\newcommand{\ANSWER}{\medskip\noindent{\bf RESPONSE: }}
-\newcommand{\COMMENT}{\medskip\noindent{\bf COMMENT: }}
+\newcommand{\ANSWER}{\medskip\noindent\textbf{ RESPONSE: }}
+\newcommand{\COMMENT}{\medskip\noindent\textbf{ COMMENT: }}
 
 % Define the fontsize in environment {verbatim}
 \makeatletter
@@ -443,7 +440,7 @@ Computer Engineering, Portland State University, Portland, OR
 % in the abstract or keywords.
 
 % make the title area
-%\maketitle
+% \maketitle
 
 
 % To allow for easy dual compilation without having to reenter the
@@ -453,7 +450,7 @@ Computer Engineering, Portland State University, Portland, OR
 % or transmag modes are not selected <OR> if conference mode is selected 
 % - because all conference papers position the abstract like regular
 % papers do.
-%\IEEEdisplaynontitleabstractindextext
+% \IEEEdisplaynontitleabstractindextext
 % \IEEEdisplaynontitleabstractindextext has no effect when using
 % compsoc or transmag under a non-conference mode.
 
@@ -469,8 +466,8 @@ Computer Engineering, Portland State University, Portland, OR
 % creates the second title. It will be ignored for other modes.
 %\IEEEpeerreviewmaketitle
 
-\twocolumn[
-  \begin{@twocolumnfalse}
+%% \twocolumn[
+%%   \begin{@twocolumnfalse}
 \maketitle
 
 \begin{center}
@@ -478,7 +475,8 @@ Computer Engineering, Portland State University, Portland, OR
     \hline\hline
     & \\
     Manuscript Number: & 15-TIE-3480.R1\\
-    Manuscript Title: & Formal Modeling and Verification of a Rate-Monotonic Scheduling Implementation\\
+    Manuscript Title: & Formal Modeling and Verification of a \\
+    & Rate-Monotonic Scheduling Implementation \\
     & with Real-Time Maude \\
     Submitted to: & Transactions on Industrial Electronics \\
     Manuscript Type: & Regular paper \\
@@ -488,8 +486,11 @@ Computer Engineering, Portland State University, Portland, OR
   \bigskip
 \end{center}
 
-  \end{@twocolumnfalse}
-]
+  %% \end{@twocolumnfalse}
+
+%% \setlength\parindent{10pt}
+
+%% ]
 
 \section{General Response}
 We thank all the reviewers for their invaluable comments, which help
@@ -499,7 +500,6 @@ self-contained and better presented than the original submission.
 According to the comments, we make some minor revisions, which are
 highlighted in the manuscript.  And detailed responses to all the
 comments are shown in the rest of this document.
-
 
 \section{Responses to Reviewer 1}
 
@@ -532,6 +532,7 @@ Yes, we also agree that Theorem 2 is important. We would consider
 including the detailed proof in the printed version, if the page limit
 of TIE permits.
 
+
 \section{Responses to Reviewer 2}
 
 \subsection{General Comments}
@@ -558,7 +559,7 @@ Thank you very much for the approval.
 
 \COMMENT
 
-[Section II.B, page 2] left column, lines 37-38:
+{[Section II.B, page 2]} left column, lines 37-38:
 What are $u_j$ and $v_j$? Are they terms too? This should be specified
 in the text.
 
@@ -568,7 +569,7 @@ Yes, they are terms as well. This is specified now.
 
 \COMMENT
 
-[Section II.B, page 2] left column, lines 42-46:
+{[Section II.B, page 2]} left column, lines 42-46:
 I guess $s'$ is the destination state. This should be specified in the
 text.  The sentence "IR and TR together..." should not be part of the
 item. It should go into a new paragraph after the list.
@@ -579,7 +580,7 @@ Yes, thank you for pointing this out. They are modified now.
 
 \COMMENT
 
-[Section II.B, page 2] right column, lines 22-24:
+{[Section II.B, page 2]} right column, lines 22-24:
 As it seems the timed operators are not used, I suggest to avoid
 mentioning them. By the way, this mention without any other detail is
 useless.
@@ -594,7 +595,7 @@ using them in Section V.A.
 
 \COMMENT
 
-[Page 4] line 45: 
+{[Page 4]} line 45: 
 Why is a period of sort \verb|Nat|? Shouldn't it be \verb|Counter|?
 
 \ANSWER 
@@ -637,87 +638,6 @@ Real-Time Maude, as we introduced in Lemma A.1 at page 8 in the
 Appendix. It is not a typo. We have also spell checked the whole
 manuscript again to avoid typos.
 
-
-
-% Can use something like this to put references on a page
-% by themselves when using endfloat and the captionsoff option.
-\ifCLASSOPTIONcaptionsoff
-  \newpage
-\fi
-
-
-
-% trigger a \newpage just before the given reference
-% number - used to balance the columns on the last page
-% adjust value as needed - may need to be readjusted if
-% the document is modified later
-%\IEEEtriggeratref{8}
-% The "triggered" command can be changed if desired:
-%\IEEEtriggercmd{\enlargethispage{-5in}}
-
-% references section
-
-% can use a bibliography generated by BibTeX as a .bbl file
-% BibTeX documentation can be easily obtained at:
-% http://www.ctan.org/tex-archive/biblio/bibtex/contrib/doc/
-% The IEEEtran BibTeX style support page is at:
-% http://www.michaelshell.org/tex/ieeetran/bibtex/
-%\bibliographystyle{IEEEtran}
-% argument is your BibTeX string definitions and bibliography database(s)
-%\bibliography{IEEEabrv,submission}
-%
-% <OR> manually copy in the resultant .bbl file
-% set second argument of \begin to the number of references
-% (used to reserve space for the reference number labels box)
-
-
-% biography section
-% 
-% If you have an EPS/PDF photo (graphicx package needed) extra braces are
-% needed around the contents of the optional argument to biography to prevent
-% the LaTeX parser from getting confused when it sees the complicated
-% \includegraphics command within an optional argument. (You could create
-% your own custom macro containing the \includegraphics command to make things
-% simpler here.)
-%\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{mshell}}]{Michael Shell}
-% or if you just want to reserve a space for a photo:
-
-\hide{
-
-\begin{IEEEbiography}{Jiaxiang Liu}
-Biography text here.
-\end{IEEEbiography}
-
-
-% if you will not have a photo at all:
-\begin{IEEEbiographynophoto}{John Doe}
-Biography text here.
-\end{IEEEbiographynophoto}
-
-% insert where needed to balance the two columns on the last page with
-% biographies
-%\newpage
-
-\begin{IEEEbiographynophoto}{Jane Doe}
-Biography text here.
-\end{IEEEbiographynophoto}
-}
-
-% You can push biographies down or up by placing
-% a \vfill before or after them. The appropriate
-% use of \vfill depends on what kind of text is
-% on the last page and whether or not the columns
-% are being equalized.
-
-%\vfill
-
-% Can be used to pull up biographies so that the bottom of the last one
-% is flush with the other column.
-%\enlargethispage{-5in}
-
-
-
-% that's all folks
 \end{document}
 
 

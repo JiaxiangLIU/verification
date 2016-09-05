@@ -1,0 +1,223 @@
+\documentclass{beamer}
+\usepackage[latin1]{inputenc}
+\usepackage{hyperref}
+\usepackage{colortbl}
+\usetheme{Warsaw}
+\title[Make a LaTeX presentation using Beamer]
+      {Termination Analysis of Imperative Programs Using Bitvector Arithmetic}
+\author{Stephan Falke\inst{1}, Deepak Kapur\inst{2}, and Carsten Sinz\inst{1}}
+\institute{\inst{1} Institute for Theoretical Computer Science, KIT, Germany \and %
+  \inst{2} Dept. of Computer Science, University of New Mexico, USA}
+\date{\footnotesize Verified Software: Theories, Tools, Experiments \\ VSTTE 2012}
+
+\AtBeginSubsection[]
+{
+  \begin{frame}<beamer>
+    \frametitle{Layout}
+    \tableofcontents[currentsection,currentsubsection]
+  \end{frame}
+}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}{Summary}
+This paper proposes a novel method for \textcolor{red}{encoding the wrap-around
+  behavior of bitvector arithmetic within integer arithmetic}, such
+that existing methods for reasoning about the termination of integer
+arithmetic programs can be employed for reasoning about the
+termination of bitvector arithmetic programs.
+\end{frame}
+  
+
+\section{Introduction}
+
+\begin{frame}{Existing Methods}
+  Bitvectors are treated as (unbounded) integers (or as real numbers).
+
+  This approximation can cause errors in both directions:
+
+
+
+%  \begin{itemize}
+\begin{columns}
+  \begin{column}{5cm}
+    \begin{block}{Block title}
+This is a block in blue
+\end{block}
+    
+%  \item First column
+\end{column}
+\begin{column}{5cm}
+%\item Second column
+\end{column}
+\end{columns}
+ % \end{itemize}
+
+\end{frame}
+
+\subsection{sub1}
+\begin{frame}{1st}
+  List:
+\begin{itemize}
+\pause \item Beamer is a wonderful class
+\pause \item One can make animations
+\pause \item One uses the\textbf{pause} command, for example
+\pause \item in order to bring in important ideas
+\end{itemize}
+\end{frame}
+
+\subsection{sub2}
+\begin{frame}{2}
+  This is a short introduction to Beamer class.
+  \begin{itemize}
+\item<2-> appears from slide 2 on
+\item<3-> appears from slide 3 on
+\item<4-> appears from slide 4 on
+\item<5-> appears from slide 5 on
+\end{itemize}
+\end{frame}
+
+
+\section{TWO}
+\begin{frame}{3}
+  This is a short introduction to Beamer class.
+  \begin{itemize}
+\item<2-> appears from slide 2 on
+\item<2-3> appears from slide 2 to slide 4
+\item<4> appears on slide 4
+\item<3-> appears from slide 3 on
+\end{itemize}
+\end{frame}
+
+\begin{frame}{4}
+  See
+\begin{itemize}[<+->]
+\item L
+\item A
+\item T
+\item E
+\item X
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\uncover<2->
+{appear from slide 2 on\\}
+\uncover<3-4>
+{appears from 3 to slide 4\\}
+\uncover<4>{appears on slide 4\\}
+\uncover<3->{appears from slide 3 on\\}
+\end{frame}
+
+\begin{frame}
+
+\only<2->
+{appear from slide 2 on\\}
+\only<3-4>
+{appears from 3 to slide 4\\}
+\only<4>{appear on slide 4\\}
+\only<3->{appear from slide 2 on\\}
+
+\end{frame}
+
+\begin{frame}
+
+\begin{itemize}
+\item Language used by Beamer: L\uncover<2->{A}TEX
+\item Language used by Beamer: L\only<2->{A}TEX
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+
+\invisible<2>{This text will be invisible on slide 2, but not on others slides}\\
+This text is always visible\\
+\uncover<1->{Beamer} \uncover<2->{is}  \uncover<3->{super} \uncover<4->{powerful} 
+
+\end{frame}
+
+
+\begin{frame}{5}
+  \alt<3>{I am on slide 3\\}{I am not on slide 3\\}
+\only<2->
+{appears from slide 2 on\\}
+\only<3-4>
+{appears from slide 3 to slide 4\\}
+\only<4>{appears on slide 4\\}
+\only<3->{appears from slide 3 on\\}
+\alert<1>{This text} \alert<2>{is} \alert<3>{red}
+\end{frame}
+
+\begin{frame}{6}
+\begin{itemize}
+\item <+-| alert@+> Robert De Niro
+\item <+-| alert@+> Brian De Palma
+\item <+-| alert@+> Gerard Depardieu
+\item <+-| alert@+> Tux
+\end{itemize}
+\end{frame}
+
+\begin{frame}{7}
+  Some colors ...\\
+\color<2>{green}{Green color} \\
+Great !!!
+\end{frame}
+
+\begin{frame}[label=link]
+The link will point to this frame
+\end{frame}
+
+\begin{frame}{8}
+  \hyperlink{link}{\beamergotobutton{Refer to this page}}
+
+  \begin{block}{Block title}
+This is a block in blue
+\end{block}
+
+\invisible<3->{
+\begin{alertblock}{Alert-block title}
+This is a block in red
+\end{alertblock}}
+
+\invisible<2>{
+\begin{exampleblock}{Example-block title}
+This is a block in green
+\end{exampleblock}}
+  \end{frame}
+
+\begin{frame}{9}
+\begin{tabular}{lcccc}
+  Class & A & B & C & D \\\hline
+  X     & 1 & 2 & 3 & 4 \\\pause
+  Y     & 3 & 4 & 5 & 6 \pause\\
+  Z     &5&6&7&8
+\end{tabular}
+\end{frame}
+
+\begin{frame}{10}
+\begin{tabular}{lc<{\onslide<2->}c<{\onslide<3->}c<{\onslide<4->}c<{\onslide}c}
+  Class & A & B & C & D \\
+  X     & 1 & 2 & 3 & 4 \\
+  Y     & 3 & 4 & 5 & 6 \\
+  Z     &5&6&7&8
+\end{tabular}
+\end{frame}
+
+\begin{frame}{11}
+\begin{columns}
+\begin{column}{0.5\textwidth}
+First column
+\end{column}
+\begin{column}{0.5\textwidth}
+Second column
+\end{column}
+\end{columns}
+\end{frame}
+
+
+\end{document}

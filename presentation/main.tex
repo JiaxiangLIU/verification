@@ -2,21 +2,54 @@
 \usepackage[latin1]{inputenc}
 \usepackage{hyperref}
 \usepackage{colortbl}
+\usepackage{alltt}
+%\usepackage{amsmath,amssymb, latexsym}
+\usepackage{stmaryrd}
 \usetheme{Warsaw}
-\title[Make a LaTeX presentation using Beamer]
-      {Termination Analysis of Imperative Programs Using Bitvector Arithmetic}
+\title[Termination Analysis Using Bitvector Arithmetic]{Termination Analysis of Imperative Programs Using Bitvector Arithmetic}
 \author{Stephan Falke\inst{1}, Deepak Kapur\inst{2}, and Carsten Sinz\inst{1}}
 \institute{\inst{1} Institute for Theoretical Computer Science, KIT, Germany \and %
   \inst{2} Dept. of Computer Science, University of New Mexico, USA}
 \date{\footnotesize Verified Software: Theories, Tools, Experiments \\ VSTTE 2012}
 
-\AtBeginSubsection[]
+\AtBeginSection[]
 {
   \begin{frame}<beamer>
-    \frametitle{Layout}
+    \frametitle{Outline}
     \tableofcontents[currentsection,currentsubsection]
   \end{frame}
 }
+
+\makeatletter
+% add a macro that saves its argument
+\newcommand{\footlineextra}[1]{\gdef\insertfootlineextra{#1}}
+\newbox\footlineextrabox
+
+% add a beamer template that sets the saved argument in a box.
+% The * means that the beamer font and color "footline extra" are automatically added. 
+\defbeamertemplate*{footline extra}{default}{
+    \begin{beamercolorbox}[ht=2.25ex,dp=1ex,leftskip=\Gm@lmargin]{footline extra}
+    \insertfootlineextra
+    %\par\vspace{2.5pt}
+    \end{beamercolorbox}
+}
+
+\addtobeamertemplate{footline}{%
+    % set the box with the extra footline material but make it add no vertical space
+    \setbox\footlineextrabox=\vbox{\usebeamertemplate*{footline extra}}
+    \vskip -\ht\footlineextrabox
+    \vskip -\dp\footlineextrabox
+    \box\footlineextrabox%
+}
+{}
+
+% patch \begin{frame} to reset the footline extra material
+\let\beamer@original@frame=\frame
+\def\frame{\gdef\insertfootlineextra{}\beamer@original@frame}
+\footlineextra{}
+\makeatother
+
+\setbeamercolor{footline extra}{fg=structure.fg}% for instance
 
 \begin{document}
 
@@ -30,194 +63,291 @@ This paper proposes a novel method for \textcolor{red}{encoding the wrap-around
 that existing methods for reasoning about the termination of integer
 arithmetic programs can be employed for reasoning about the
 termination of bitvector arithmetic programs.
+
 \end{frame}
   
+\begin{frame}{Outline}
+\tableofcontents
+\end{frame}
 
 \section{Introduction}
 
-\begin{frame}{Existing Methods}
+\begin{frame}[fragile]{Existing Methods}
   Bitvectors are treated as (unbounded) integers (or as real numbers).
 
+\medskip
   This approximation can cause errors in both directions:
 
+\begin{itemize}
 
-
-%  \begin{itemize}
 \begin{columns}
-  \begin{column}{5cm}
-    \begin{block}{Block title}
-This is a block in blue
-\end{block}
+  \begin{column}{4.5cm}
+\item Terminating wrt bitvector arithmetic, but non-terminating wrt
+  integer arithmetic.
+
+\begin{exampleblock}{Example}
+\begin{verbatim}
+void f(int i) {
+  while (i > 0)  
+    i++;
+}
+\end{verbatim}
+\end{exampleblock}
     
-%  \item First column
 \end{column}
-\begin{column}{5cm}
-%\item Second column
+
+\begin{column}{4.5cm}
+\item Terminating wrt integer arithmetic, but non-terminating wrt
+  bitvector arithmetic.
+
+\begin{exampleblock}{Example}
+\begin{verbatim}
+void g(int i, int j) {
+  while (i <= j) 
+    i++;
+}
+\end{verbatim}
+\end{exampleblock}
+
 \end{column}
 \end{columns}
- % \end{itemize}
+
+\end{itemize}
 
 \end{frame}
 
-\subsection{sub1}
-\begin{frame}{1st}
-  List:
+\begin{frame}{Related Work [CKR+10]}
+Main differences:
 \begin{itemize}
-\pause \item Beamer is a wonderful class
-\pause \item One can make animations
-\pause \item One uses the\textbf{pause} command, for example
-\pause \item in order to bring in important ideas
-\end{itemize}
-\end{frame}
-
-\subsection{sub2}
-\begin{frame}{2}
-  This is a short introduction to Beamer class.
-  \begin{itemize}
-\item<2-> appears from slide 2 on
-\item<3-> appears from slide 3 on
-\item<4-> appears from slide 4 on
-\item<5-> appears from slide 5 on
-\end{itemize}
-\end{frame}
-
-
-\section{TWO}
-\begin{frame}{3}
-  This is a short introduction to Beamer class.
-  \begin{itemize}
-\item<2-> appears from slide 2 on
-\item<2-3> appears from slide 2 to slide 4
-\item<4> appears on slide 4
-\item<3-> appears from slide 3 on
-\end{itemize}
-\end{frame}
-
-\begin{frame}{4}
-  See
-\begin{itemize}[<+->]
-\item L
-\item A
-\item T
-\item E
-\item X
-\end{itemize}
-\end{frame}
-
-\begin{frame}
-\uncover<2->
-{appear from slide 2 on\\}
-\uncover<3-4>
-{appears from 3 to slide 4\\}
-\uncover<4>{appears on slide 4\\}
-\uncover<3->{appears from slide 3 on\\}
-\end{frame}
-
-\begin{frame}
-
-\only<2->
-{appear from slide 2 on\\}
-\only<3-4>
-{appears from 3 to slide 4\\}
-\only<4>{appear on slide 4\\}
-\only<3->{appear from slide 2 on\\}
-
-\end{frame}
-
-\begin{frame}
-
-\begin{itemize}
-\item Language used by Beamer: L\uncover<2->{A}TEX
-\item Language used by Beamer: L\only<2->{A}TEX
+\item The use of quantifiers. Quantifier elimination before ranking
+  function synthesis is expensive.
+\item Template matching for linear ranking functions allows to use
+  SAT, QBF and SMT solver.
 \end{itemize}
 
+\footlineextra{[CKR+10] Byron Cook, Daniel Kroening, Philipp Rümmer,
+  Christoph M. Wintersteiger: Ranking Function Synthesis for
+  Bit-Vector Relations. TACAS 2010: 236-250}
 \end{frame}
 
-\begin{frame}
+\section{Termination Analysis in \texttt{KITTeL}}
 
-\invisible<2>{This text will be invisible on slide 2, but not on others slides}\\
-This text is always visible\\
-\uncover<1->{Beamer} \uncover<2->{is}  \uncover<3->{super} \uncover<4->{powerful} 
+\begin{frame}{The Approach of \texttt{KITTeL}}
+\texttt{KITTeL} is a termination analysis tool on LLVM-IR.
 
-\end{frame}
-
-
-\begin{frame}{5}
-  \alt<3>{I am on slide 3\\}{I am not on slide 3\\}
-\only<2->
-{appears from slide 2 on\\}
-\only<3-4>
-{appears from slide 3 to slide 4\\}
-\only<4>{appears on slide 4\\}
-\only<3->{appears from slide 3 on\\}
-\alert<1>{This text} \alert<2>{is} \alert<3>{red}
-\end{frame}
-
-\begin{frame}{6}
-\begin{itemize}
-\item <+-| alert@+> Robert De Niro
-\item <+-| alert@+> Brian De Palma
-\item <+-| alert@+> Gerard Depardieu
-\item <+-| alert@+> Tux
-\end{itemize}
-\end{frame}
-
-\begin{frame}{7}
-  Some colors ...\\
-\color<2>{green}{Green color} \\
-Great !!!
-\end{frame}
-
-\begin{frame}[label=link]
-The link will point to this frame
-\end{frame}
-
-\begin{frame}{8}
-  \hyperlink{link}{\beamergotobutton{Refer to this page}}
-
-  \begin{block}{Block title}
-This is a block in blue
+\begin{block}{Bird's-eye view of \texttt{KITTeL}'s approach}
+\begin{figure}
+  \includegraphics[width=\textwidth]{view.png}
+\end{figure}
 \end{block}
 
-\invisible<3->{
-\begin{alertblock}{Alert-block title}
-This is a block in red
-\end{alertblock}}
+\end{frame}
 
-\invisible<2>{
-\begin{exampleblock}{Example-block title}
-This is a block in green
-\end{exampleblock}}
-  \end{frame}
+\begin{frame}{From C to LLVM-IR}
+From C code to LLVM-IR code, and then \emph{basic block graph}:
+\begin{exampleblock}{Example 1}
+\begin{figure}
+  \includegraphics[width=\textwidth]{CtoLLVM.png}
+\end{figure}
+\end{exampleblock}
+\end{frame}
 
-\begin{frame}{9}
-\begin{tabular}{lcccc}
-  Class & A & B & C & D \\\hline
-  X     & 1 & 2 & 3 & 4 \\\pause
-  Y     & 3 & 4 & 5 & 6 \pause\\
-  Z     &5&6&7&8
+\begin{frame}{From LLVM-IR to Transition System}
+The corresponding transition system of Example~1:
+\begin{exampleblock}{Example 1}
+\begin{figure}
+  \includegraphics[width=\textwidth]{LLVMtoTS.png}
+\end{figure}
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}[fragile]{From Transition Systems to TRSs}
+\begin{itemize}
+\item A transition system can be represented in the form of an
+  \texttt{int}-based TRS.
+\item Each transition $s_1 \rightarrow^\lambda s_2$ gives rise to a
+  rewrite rule
+\begin{center}
+$s_1(x_1,\ldots,x_n) \rightarrow s_2(e_1,\ldots,e_n) ~ \llbracket\varphi\rrbracket$
+\end{center}
+\end{itemize}
+\begin{exampleblock}{TRS of Example 1}
+\footnotesize
+\begin{tabular}{rcl}
+$\verb|entry|(\verb|x|, \verb|y|, \verb|y.0|, \verb|r.0|, \verb|%1|, \verb|%2|)$ 
+  & $\!\!\!\!\rightarrow\!\!\!\!$ 
+  & $\verb|bb1|(\verb|x|, \verb|y|, \verb|y|, 1, \verb|%1|, \verb|%2|)$ \\
+$\verb|bb1|(\verb|x|, \verb|y|, \verb|y.0|, \verb|r.0|, \verb|%1|, \verb|%2|)$ 
+  & $\!\!\!\!\rightarrow\!\!\!\!$ 
+  & $\verb|bb|(\verb|x|, \verb|y|, \verb|y.0|, \verb|r.0|, \verb|%1|, \verb|%2|) 
+  ~ \llbracket \verb|y.0| > 0 \rrbracket$ \\
+$\verb|bb1|(\verb|x|, \verb|y|, \verb|y.0|, \verb|r.0|, \verb|%1|, \verb|%2|)$ 
+  & $\!\!\!\!\rightarrow\!\!\!\!$ 
+  & $\verb|return|(\verb|x|, \verb|y|, \verb|y.0|, \verb|r.0|, \verb|%1|, \verb|%2|) 
+  ~ \llbracket \neg(\verb|y.0| > 0) \rrbracket$ \\
+$\verb|bb|(\verb|x|, \verb|y|, \verb|y.0|, \verb|r.0|, \verb|%1|, \verb|%2|)$ 
+  & $\!\!\!\!\rightarrow\!\!\!\!$ 
+  & $\verb|bb1|(\verb|x|, \verb|y|, \verb|y.0| - 1, \verb|r.0|, \verb|r.0| * \verb|x|, \verb|y.0| - 1)$
 \end{tabular}
+\end{exampleblock}
 \end{frame}
 
-\begin{frame}{10}
-\begin{tabular}{lc<{\onslide<2->}c<{\onslide<3->}c<{\onslide<4->}c<{\onslide}c}
-  Class & A & B & C & D \\
-  X     & 1 & 2 & 3 & 4 \\
-  Y     & 3 & 4 & 5 & 6 \\
-  Z     &5&6&7&8
+\begin{frame}[fragile]{Reducing TRSs}
+The number of arguments, hence the TRS, can be further reduced by
+standard compiler techniques:
+\begin{itemize}
+\item \emph{Backward slicing} removes all variables that are not
+  relevant for the control flow of the program. (\verb|x|, \verb|r.0|,
+  \verb|%1|, and \verb|%2| in Example~1)
+\item \emph{Liveness analysis} removes variables before they are
+  defined or after they are no longer needed. (\verb|y.0| in
+  \verb|entry| and \verb|return|; \verb|y| in all function symbols but
+  \verb|entry|)
+\end{itemize}
+
+\begin{exampleblock}{Reduced TRS of Example 1}
+\footnotesize
+\begin{tabular}{rcl}
+$\verb|entry|(\verb|y|)$ 
+  & $\rightarrow$ 
+  & $\verb|bb1|(\verb|y|)$ \\
+$\verb|bb1|(\verb|y.0|)$ 
+  & $\rightarrow$ 
+  & $\verb|bb|(\verb|y.0|) 
+  ~ \llbracket \verb|y.0| > 0 \rrbracket$ \\
+$\verb|bb1|(\verb|y.0|)$ 
+  & $\rightarrow$ 
+  & $\verb|return|() 
+  ~ \llbracket \neg(\verb|y.0| > 0) \rrbracket$ \\
+$\verb|bb|(\verb|y.0|)$ 
+  & $\rightarrow$ 
+  & $\verb|bb1|(\verb|y.0| - 1)$
 \end{tabular}
+\end{exampleblock}
 \end{frame}
 
-\begin{frame}{11}
-\begin{columns}
-\begin{column}{0.5\textwidth}
-First column
-\end{column}
-\begin{column}{0.5\textwidth}
-Second column
-\end{column}
-\end{columns}
+\section{Encoding Bitvector Arithmetic}
+
+\begin{frame}{Overview of the Encoding}
+The bitvector $b_{n-1}\cdots b_0$ is represented by its \emph{signed}
+(two's complement) integer 
+\begin{center}
+$-b_{n-1}\cdot 2^{n-1} + \Sigma^{n-2}_{i=0}b_i\cdot 2^i \;\;\in \{
+  -2^{n-1},\ldots,2^{n-1}-1\}$.
+\end{center}
+
+The semantics of the bitvector operations and the wrap-around behavior
+of bitvector arithmetic is handled by two phases:
+\begin{enumerate}
+\item The conversion of \emph{comparison}, \emph{arithmetical},
+  \emph{bitwise} and \emph{extension/truncation} instructions is
+  adapted.  In particular, signed and unsigned operations are
+  distinguished.
+\item The wrap-around behavior of the arithmetical instructions is
+  modeled in order to ensure that they are within the appropriate
+  ranges.
+\end{enumerate}
 \end{frame}
 
+\begin{frame}{Phase 1}
+Phase 1 is performed during the generation of the transition
+system/\texttt{int}-based TRS. The conversion of instructions is
+adapted in order to correspond to their semantics on bitvectors.
+
+\medskip
+The comparison instructions:
+\begin{figure}
+  \includegraphics[width=\textwidth]{ins1.png}
+\end{figure}
+
+For example,
+\footnotesize
+\begin{eqnarray}
+ugt(x,y) & = & (x \ge 0 \land y \ge 0 \land x > y) \nonumber\\
+& & \lor\; (x \ge 0 \land y < 0) \nonumber\\
+& & \lor\; (x < 0 \land y < 0 \land x > y) \nonumber
+\end{eqnarray}
+\end{frame}
+
+\begin{frame}{Phase 1 (cont'd)}
+\begin{figure}
+  \includegraphics[width=\textwidth]{ins2.png}
+\end{figure}
+\end{frame}
+
+\begin{frame}[fragile]{Phase 1 (cont'd)}
+Some instructions are approximated by introducing new variables and
+constraints. 
+
+\medskip
+For example, the \verb|and| instruction, its constraint:
+\begin{eqnarray}
+and(x,y,n_i) & = & (x \ge 0 \land y \ge 0 \land n_i \ge 0 \land n_i \le x \land n_i \le y) \nonumber\\
+& & \lor\; (x \ge 0 \land y < 0 \land n_i \ge 0 \land n_i \le x) \nonumber\\
+& & \lor\; (x < 0 \land y \ge 0 \land n_i \ge 0 \land n_i \le y) \nonumber\\
+& & \lor\; (x < 0 \land y < 0 \land n_i < 0 \land n_i \le x \land n_i \le y) \nonumber
+\end{eqnarray}
+\end{frame}
+
+\begin{frame}{Phase 2}
+Phase 2 is performed after generating the \texttt{int}-based TRS. The
+wrap-around behavior of the arithmetical instructions is modeled by
+modifying the generated \texttt{int}-based TRS.
+
+For this, the wrap-around behavior is simulated by explicitly
+normalizing the resulting integers to be in the appropriate ranges.
+
+Each rewrite rule
+\begin{center}
+$\rho : f(x_1,\ldots,x_n) \rightarrow g(p_1,\ldots,p_m) ~ \llbracket \varphi \rrbracket$
+\end{center}
+should be replaced by:
+\begin{figure}
+  \includegraphics[width=0.6\textwidth]{rules.png}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}[fragile]{Phase 2 (cont'd)}
+For example, the rule 
+\begin{center}
+$\verb|bb|(\verb|i.0|) \rightarrow \verb|bb1|(\verb|i.0|) + 1)$
+\end{center}
+is replaced by
+\begin{block}{}
+\begin{tabular}{rcl}
+$\verb|bb|(\verb|i.0|)$ & $\rightarrow$ 
+  & $\verb|bb1|^\#(\verb|i.0| + 1) ~ \llbracket inrange(\verb|i.0|) \rrbracket$ \\
+$\verb|bb1|^\#(\verb|i.0|)$ & $\rightarrow$ 
+  & $\verb|bb1|^\#(\verb|i.0| + 2^{32}) ~ \llbracket \verb|i.0| < intmin(32) \rrbracket$ \\
+$\verb|bb1|^\#(\verb|i.0|)$ & $\rightarrow$ 
+  & $\verb|bb1|^\#(\verb|i.0| - 2^{32}) ~ \llbracket \verb|i.0| > intmax(32) \rrbracket$ \\
+$\verb|bb1|^\#(\verb|i.0|)$ & $\rightarrow$ 
+  & $\verb|bb1|(\verb|i.0|) ~ \llbracket inrange(\verb|i.0|) \rrbracket$ \\
+\end{tabular}
+\end{block}
+\end{frame}
+
+\section{Conclusion}
+
+\begin{frame}{Conclusion}
+\begin{itemize}
+\item The approach is \emph{sound}.
+\begin{itemize}
+\item The instructions are \emph{soundly} approximated.
+\item The wrap-around behavior is correctly modeled.
+\end{itemize}
+\item The implementation is powerful than the related approach in
+  [CKR+10], with a comparable average time.
+\item The approach can be combined with other existing techniques for
+  analyzing termination of transition systems/\texttt{int}-based TRSs.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\begin{center}
+\LARGE Thank you!
+\end{center}
+\end{frame}
 
 \end{document}

@@ -15,3 +15,8 @@
 *.bbl
 *.log
 *.blg
+*.nav
+*.out
+*.snm
+*.toc
+*.vrb

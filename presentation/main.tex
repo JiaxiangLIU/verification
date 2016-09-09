@@ -80,8 +80,9 @@ termination of bitvector arithmetic programs.
 
 \begin{itemize}
 
-\begin{columns}
-  \begin{column}{4.5cm}
+  \begin{columns}
+
+    \begin{column}{4.5cm}
 \item Terminating wrt bitvector arithmetic, but non-terminating wrt
   integer arithmetic.
 
@@ -93,9 +94,8 @@ void f(int i) {
 }
 \end{verbatim}
 \end{exampleblock}
-    
-\end{column}
-
+  \end{column}
+ 
 \begin{column}{4.5cm}
 \item Terminating wrt integer arithmetic, but non-terminating wrt
   bitvector arithmetic.
@@ -110,6 +110,7 @@ void g(int i, int j) {
 \end{exampleblock}
 
 \end{column}
+
 \end{columns}
 
 \end{itemize}
@@ -137,7 +138,7 @@ Main differences:
 
 \begin{block}{Bird's-eye view of \texttt{KITTeL}'s approach}
 \begin{figure}
-  \includegraphics[width=\textwidth]{view.png}
+  \includegraphics[width=\textwidth]{figs/view.png}
 \end{figure}
 \end{block}
 
@@ -147,7 +148,7 @@ Main differences:
 From C code to LLVM-IR code, and then \emph{basic block graph}:
 \begin{exampleblock}{Example 1}
 \begin{figure}
-  \includegraphics[width=\textwidth]{CtoLLVM.png}
+  \includegraphics[width=\textwidth]{figs/CtoLLVM.png}
 \end{figure}
 \end{exampleblock}
 \end{frame}
@@ -156,7 +157,7 @@ From C code to LLVM-IR code, and then \emph{basic block graph}:
 The corresponding transition system of Example~1:
 \begin{exampleblock}{Example 1}
 \begin{figure}
-  \includegraphics[width=\textwidth]{LLVMtoTS.png}
+  \includegraphics[width=\textwidth]{figs/LLVMtoTS.png}
 \end{figure}
 \end{exampleblock}
 \end{frame}
@@ -164,7 +165,7 @@ The corresponding transition system of Example~1:
 \begin{frame}[fragile]{From Transition Systems to TRSs}
 \begin{itemize}
 \item A transition system can be represented in the form of an
-  \texttt{int}-based TRS.
+  \textcolor{red}{\texttt{int}-based TRS}.
 \item Each transition $s_1 \rightarrow^\lambda s_2$ gives rise to a
   rewrite rule
 \begin{center}
@@ -196,15 +197,14 @@ $\verb|bb|(\verb|x|, \verb|y|, \verb|y.0|, \verb|r.0|, \verb|%1|, \verb|%2|)$
 The number of arguments, hence the TRS, can be further reduced by
 standard compiler techniques:
 \begin{itemize}
-\item \emph{Backward slicing} removes all variables that are not
+\item<2-> \textcolor{red}{Backward slicing} removes all variables that are not
   relevant for the control flow of the program. (\verb|x|, \verb|r.0|,
   \verb|%1|, and \verb|%2| in Example~1)
-\item \emph{Liveness analysis} removes variables before they are
+\item<3-> \textcolor{red}{Liveness analysis} removes variables before they are
   defined or after they are no longer needed. (\verb|y.0| in
   \verb|entry| and \verb|return|; \verb|y| in all function symbols but
   \verb|entry|)
 \end{itemize}
-
 \begin{exampleblock}{Reduced TRS of Example 1}
 \footnotesize
 \begin{tabular}{rcl}
@@ -229,21 +229,25 @@ $\verb|bb|(\verb|y.0|)$
 \section{Encoding Bitvector Arithmetic}
 
 \begin{frame}{Overview of the Encoding}
+\uncover<2->{
 The bitvector $b_{n-1}\cdots b_0$ is represented by its \emph{signed}
 (two's complement) integer 
 \begin{center}
 $-b_{n-1}\cdot 2^{n-1} + \Sigma^{n-2}_{i=0}b_i\cdot 2^i \;\;\in \{
   -2^{n-1},\ldots,2^{n-1}-1\}$.
 \end{center}
+}
 
+\uncover<3->{
 The semantics of the bitvector operations and the wrap-around behavior
 of bitvector arithmetic is handled by two phases:
+}
 \begin{enumerate}
-\item The conversion of \emph{comparison}, \emph{arithmetical},
-  \emph{bitwise} and \emph{extension/truncation} instructions is
+\item<4-> The conversion of \textcolor{red}{comparison}, \textcolor{red}{arithmetical},
+  \textcolor{red}{bitwise} and \textcolor{red}{extension/truncation instructions} is
   adapted.  In particular, signed and unsigned operations are
   distinguished.
-\item The wrap-around behavior of the arithmetical instructions is
+\item<5-> The \textcolor{red}{wrap-around behavior} of the arithmetical instructions is
   modeled in order to ensure that they are within the appropriate
   ranges.
 \end{enumerate}
@@ -255,11 +259,14 @@ system/\texttt{int}-based TRS. The conversion of instructions is
 adapted in order to correspond to their semantics on bitvectors.
 
 \medskip
+\uncover<2->{
 The comparison instructions:
 \begin{figure}
-  \includegraphics[width=\textwidth]{ins1.png}
+  \includegraphics[width=\textwidth]{figs/ins1.png}
 \end{figure}
+}
 
+\uncover<3->{
 For example,
 \footnotesize
 \begin{eqnarray}
@@ -267,11 +274,12 @@ ugt(x,y) & = & (x \ge 0 \land y \ge 0 \land x > y) \nonumber\\
 & & \lor\; (x \ge 0 \land y < 0) \nonumber\\
 & & \lor\; (x < 0 \land y < 0 \land x > y) \nonumber
 \end{eqnarray}
+}
 \end{frame}
 
 \begin{frame}{Phase 1 (cont'd)}
 \begin{figure}
-  \includegraphics[width=\textwidth]{ins2.png}
+  \includegraphics[width=\textwidth]{figs/ins2.png}
 \end{figure}
 \end{frame}
 
@@ -294,17 +302,22 @@ Phase 2 is performed after generating the \texttt{int}-based TRS. The
 wrap-around behavior of the arithmetical instructions is modeled by
 modifying the generated \texttt{int}-based TRS.
 
+\uncover<2->{
 For this, the wrap-around behavior is simulated by explicitly
 normalizing the resulting integers to be in the appropriate ranges.
+}
 
+\uncover<3->{
 Each rewrite rule
 \begin{center}
 $\rho : f(x_1,\ldots,x_n) \rightarrow g(p_1,\ldots,p_m) ~ \llbracket \varphi \rrbracket$
-\end{center}
+\end{center}}
+\uncover<4->{
 should be replaced by:
 \begin{figure}
-  \includegraphics[width=0.6\textwidth]{rules.png}
+  \includegraphics[width=0.6\textwidth]{figs/rules.png}
 \end{figure}
+}
 
 \end{frame}
 
@@ -331,8 +344,8 @@ $\verb|bb1|^\#(\verb|i.0|)$ & $\rightarrow$
 \section{Conclusion}
 
 \begin{frame}{Conclusion}
-\begin{itemize}
-\item The approach is \emph{sound}.
+\begin{itemize}[<+->]
+\item The approach is \textcolor{red}{sound}.
 \begin{itemize}
 \item The instructions are \emph{soundly} approximated.
 \item The wrap-around behavior is correctly modeled.

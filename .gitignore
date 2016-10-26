@@ -20,3 +20,9 @@
 *.snm
 *.toc
 *.vrb
+*.dpth
+*.md5
+*.pdf
+*.auxlock
+\#*\#
+.\#*

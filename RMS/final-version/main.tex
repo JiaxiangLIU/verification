@@ -127,7 +127,9 @@ deadlines. \emph{Rate-monotonic scheduling} (\emph{RMS}) is a
 \emph{fixed} priority scheduling algorithm for preemptive hard
 real-time environments proposed by Liu and
 Layland~\cite{DBLP:journals/jacm/LiuL73}, which assigns priorities to
-jobs according to the periods of the corresponding tasks: the smaller
+jobs according to the periods of
+the
+corresponding tasks: the smaller
 period, the higher priority. RMS is proven to be the \emph{optimal}
 fixed priority scheduling algorithm~\cite{DBLP:journals/jacm/LiuL73},
 in the sense that any set of tasks, which is schedulable under
@@ -224,7 +226,7 @@ blocking).
 (A4) All overhead, such as task switching time, is ignored.
 
 A simple example showing this algorithm is depicted in
-Figure~\ref{sf:rmsalg}. However in this paper, we consider an
+Fig.~\ref{f:example}(a). However in this paper, we consider an
 implementation instead of the RMS algorithm itself, thus the model
 would be more complicated than this standard, ideal
 setting. Assumption~(A1) will be modified because of the interrupt
@@ -449,150 +451,18 @@ from~(A1). Note that (A3) says that jobs are ready to run at their
 initiation times, however, no one can start running at exactly its
 initiation time, because scheduling takes time. Under these
 assumptions, an example showing the execution of tasks scheduled by
-the implementation is depicted in Figure~\ref{sf:rmsimp}. Note that
+the implementation is depicted in Fig.~\ref{f:example}(b). Note that
 the second job instance of $\tau_1$ is initiated at time $11$ instead
 of $10$, because switching is performed and the interrupt mask bit is
 set at time $10$, exemplifying differences between (A1') and (A1).
 
 \begin{figure}[!t]
 \centering
-\subfloat[RMS Algorithm]{
-  \begin{tikzpicture}[font=\small,scale=1.25,
-    % styles
-    system task/.style={fill=gray!70,draw=gray},
-    periodic task/.style={fill=gray!70!black,draw=gray!50!black},
-    task line/.style={gray!30,very thin},
-    time line/.style={gray!50,very thin,dashed},
-    short line/.style={gray!50,very thin,dashed},
-    init/.style={{Triangle[fill=white,scale=1.1]}-},
-    complete/.style={{Triangle[scale=1.1]}-}]
-
-  % legend
-  \begin{scope}[xshift=-2cm]  
-    \draw [fill=gray!25,draw=gray!50,dashed] (1.5,2.3) rectangle +(4,-1);
-    \draw (1.5,2.3) node [below right] {LEGEND};
-    \draw [init] (2,1.85) -- +(0,-0.01);
-    \draw (2.1,2) node [below right] {: Initiation of Tasks};
-    \draw [complete] (2,1.42) -- +(0,0.1);
-    \draw (2.1,1.7) node [below right] {: Completion of Tasks};
-  \end{scope}
-  
-    % grid
-    \foreach \x in {0.3,0.7}
-      \draw[task line] (0,\x) -- (5.2,\x);
-
-    % axes
-    \draw[->,thick] (0,0) node [below] {$0$} -- (5.3,0) node [above] {time};
-    \draw[thin] (0,0) -- (0,1);
-
-    % time indicator
-    \draw [time line] (0.75,0.7) -- (0.75,0);
-    \draw (0.75,0) node [below] {$3$} -- +(0,2pt);
-    \draw [time line] (1.25,0.3) -- (1.25,0);
-    \draw (1.25,0) node [below] {$5$} -- +(0,2pt);
-    \draw [time line] (2.5,0.7) -- (2.5,0);
-    \draw (2.5,0) node [below] {$10$} -- +(0,2pt);
-    \draw [time line] (3.25,0.7) -- (3.25,0);
-    \draw (3.25,0) node [below] {$13$} -- +(0,2pt);
-
-    \draw [time line] (5,0.7) -- (5,0);
-    \draw (5,0) node [below] {$20$} -- +(0,2pt);
-    
-    % tasks
-    \draw [periodic task] (0,0.7) rectangle +(0.75,0.14);
-    \draw [periodic task] (0.75,0.3) rectangle +(0.5,0.14);
-    \draw [periodic task] (2.5,0.7) rectangle +(0.75,0.14);
-
-    % text
-    \draw (0,0.75) node [left] {$\tau_1$};
-    \draw (0,0.35) node [left] {$\tau_2$};
-    \path (0,0.75) node [left,text opacity=0] {scheduling};
-    \path (0,0.35) node [left,text opacity=0] {switching};    
-
-    % initiation of tasks
-    \foreach \x in {0,2.5,5}
-      \draw [init] (\x,0.7) -- +(0,-0.01);
-    \foreach \x in {0,5}
-      \draw [init] (\x,0.3) -- +(0,-0.01);  
-
-    % completion of tasks
-    \draw [complete] (0.75,0.84) -- +(0,0.01);
-    \draw [complete] (3.25,0.84) -- +(0,0.01);
-    \draw [complete] (1.25,0.44) -- +(0,0.01);
-  \end{tikzpicture}
-\label{sf:rmsalg}}\\
-\subfloat[RMS Implementation]{
-  \begin{tikzpicture}[font=\small,scale=1.25,
-    % styles
-    system task/.style={fill=gray!70,draw=gray},
-    periodic task/.style={fill=gray!70!black,draw=gray!50!black},
-    task line/.style={gray!30,very thin},
-    time line/.style={gray!50,very thin,dashed},
-    short line/.style={gray!50,very thin,dashed},
-    init/.style={{Triangle[fill=white,scale=1.1]}-},
-    complete/.style={{Triangle[scale=1.1]}-}]
-
-    % grid
-    \foreach \x in {0.3,0.7,1.1,1.5}
-      \draw[task line] (0,\x) -- (5.2,\x);
-
-    % axes
-    \draw[->,thick] (0,0) node [below] {$0$} -- (5.3,0) node [above] {time};
-    \draw[thin] (0,0) -- (0,1.8);
-
-    % time indicator
-    \draw [time line] (0.5,1.5) -- (0.5,0);
-    \draw (0.5,0) node [below] {$2$} -- +(0,2pt);
-    \draw [time line] (1.25,1.5) -- (1.25,0);
-    \draw (1.25,0) node [below] {$5$} -- +(0,2pt);
-    \draw [time line] (1.75,1.1) -- (1.75,0);
-    \draw (1.75,0) node [below] {$7$} -- +(0,2pt);
-    \draw [time line] (2.25,1.1) -- (2.25,0);
-    \draw (2.25,0) node [below] {$9$} -- +(0,2pt);
-    \draw [time line] (2.75,1.5) -- (2.75,0);
-    \draw (2.75,0) node [below] {$11$} -- +(0,2pt);
-    \draw [time line] (3.25,1.5) -- (3.25,0);
-    \draw (3.25,0) node [below] {$13$} -- +(0,2pt);
-    \draw [time line] (4,1.5) -- (4,0);
-    \draw (4,0) node [below] {$16$} -- +(0,2pt);
-    \draw [time line] (4.5,0.3) -- (4.5,0);
-    \draw (4.5,0) -- +(0,2pt);
-    \draw (4.5,0) node [below] {$18$};
-    \draw [time line] (5,1.5) -- (5,0);
-    \draw (5,0) node [below] {$20$} -- +(0,2pt);
-    
-    % tasks
-    \draw [system task] (0,0.7) rectangle +(0.5,0.14);
-    \draw [periodic task] (0.5,1.5) rectangle +(0.75,0.14);
-    \draw [system task] (1.25,0.3) rectangle +(0.5,0.14);
-    \draw [periodic task] (1.75,1.1) rectangle +(0.5,0.14);
-    \draw [system task] (2.25,0.3) rectangle +(0.5,0.14);
-    \draw [system task] (2.75,0.7) rectangle +(0.5,0.14);
-    \draw [periodic task] (3.25,1.5) rectangle +(0.75,0.14);
-    \draw [system task] (4,0.3) rectangle +(0.5,0.14);
-
-    % text
-    \draw (0,1.55) node [left] {$\tau_1$};
-    \draw (0,1.15) node [left] {$\tau_2$};
-    \draw (0,0.75) node [left] {scheduling};
-    \draw (0,0.35) node [left] {switching};    
-
-    % initiation of tasks
-    \foreach \x in {0,2.75,5}
-      \draw [init] (\x,1.5) -- +(0,-0.01);
-    \foreach \x in {0,5}
-      \draw [init] (\x,1.1) -- +(0,-0.01);  
-
-    % completion of tasks
-    \draw [complete] (1.25,1.64) -- +(0,0.01);
-    \draw [complete] (2.25,1.24) -- +(0,0.01);
-    \draw [complete] (4,1.64) -- +(0,0.01);
-  \end{tikzpicture}
-\label{sf:rmsimp}}
+\includegraphics{rms.pdf}
 \caption{A set of $2$ periodic tasks scheduled under RMS algorithm and
   the implementation, respectively. $T=T_1=10$, $T_2=20$, $C_1=3$,
-  $C_2=2$. In Figure~\ref{sf:rmsimp}, we assume both scheduling time
-  and switching time are $2$.}
+  $C_2=2$. In~(b), we assume both scheduling time and switching time
+  are $2$.}
 \label{f:example}
 \end{figure}
 
@@ -1752,10 +1622,11 @@ comments and suggestions.
 
 \begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{J_Liu.jpg}}]%
 {Jiaxiang Liu} received his B.S. degree from the School of Software,
-Tsinghua University, China, in 2010. He is now a Ph.D. candidate in
-the Department of Computer Science and Technology, Tsinghua
-University. His research interests include formal methods, rewrite
-systems and embedded systems.
+Tsinghua University, China, in 2010. He is now a co-supervised
+Ph.D. candidate between the Department of Computer Science and
+Technology, Tsinghua University, China and LIX, \'Ecole Polytechnique,
+France. His research interests include formal methods, rewrite systems
+and embedded systems.
 \end{IEEEbiography}
 
 \begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{M_Zhou.jpg}}]%

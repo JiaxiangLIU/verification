@@ -5,7 +5,6 @@
 \usepackage{picinpar}
 \usepackage{amsmath}
 \usepackage{stfloats}
-%%\usepackage{dblfloatfix}
 \usepackage{url}
 \usepackage{flushend}
 \usepackage[latin1]{inputenc}
@@ -27,7 +26,8 @@
 %% \interdisplaylinepenalty=2500
 \usepackage{algpseudocode}
 %% \usepackage{array}
-\usepackage[caption=false,font=footnotesize]{subfig}
+%%\usepackage{dblfloatfix}
+%%\usepackage[caption=false,font=footnotesize]{subfig}
 
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta}
@@ -76,7 +76,7 @@
 
     M. Zhou is with the School of Software, Tsinghua University,
     Beijing 100084, China (corresponding author; phone:
-    +86-xxx-xxxx-xxxx; fax: xxx-xxxx-xxx; e-mail: zhoumin@gmail.com).
+    +86-10-6277-3275; fax: +86-10-6278-3549; e-mail: zhoumin03@gmail.com).
 
     X. Song is with the Department of Electrical \& Computer
     Engineering, Portland State University, Portland, OR 97207-0751,
@@ -228,10 +228,11 @@ blocking).
 A simple example showing this algorithm is depicted in
 Fig.~\ref{f:example}(a). However in this paper, we consider an
 implementation instead of the RMS algorithm itself, thus the model
-would be more complicated than this standard, ideal
-setting. Assumption~(A1) will be modified because of the interrupt
-mask mechanism, while (A4) is relaxed to obtain a more realistic
-analysis model.
+would be more complicated than this standard, ideal setting.
+%% Assumption
+(A1) will be modified because of the interrupt mask
+mechanism, while (A4) is relaxed to obtain a more realistic analysis
+model.
 
 \subsection{Real-Time Maude}
 Real-Time Maude~\cite{DBLP:journals/lisp/OlveczkyM07} is an extension
@@ -242,8 +243,8 @@ specification and analysis of real-time systems.
 
 \subsubsection{Specification}
 Real-Time Maude models systems as \emph{modules}. A module specifies a
-\emph{real-time rewrite theory} ${\cal R} = (\Sigma, E\cup A ,
-\mathit{IR}, \mathit{TR})$, where:
+\emph{real-time rewrite theory} $\mathcal{R} = (\Sigma,
+\mathit{E}\cup\mathit{A} , \mathit{IR}, \mathit{TR})$, where:
 \begin{itemize}
 \item $\Sigma$ is an algebraic \emph{signature}, that is, a set of
   declarations of \emph{sorts}, \emph{subsorts} and \emph{function
@@ -251,12 +252,13 @@ Real-Time Maude models systems as \emph{modules}. A module specifies a
   case underscores ``\verb|_|'' indicate the positions of parameters.
   \emph{Terms} are expressions built from function symbols and
   variables.
-\item $(\Sigma, E\cup A)$ is a \emph{membership equational logic
-  theory}, with $E$ a set of \emph{conditional equations} and
-  \emph{memberships} on $\Sigma$, and $A$ a set of equational axioms
-  such as associativity, commutativity and identity.  $(\Sigma, E\cup
-  A)$ models the system's ``static'' states as terms of some sort, and
-  is equipped with a built-in specification of a sort \verb|Time|.
+\item $(\Sigma, \mathit{E}\cup\mathit{A})$ is a \emph{membership
+  equational logic theory}, with $\mathit{E}$ a set of
+  \emph{conditional equations} and \emph{memberships} on $\Sigma$, and
+  $\mathit{A}$ a set of equational axioms such as associativity,
+  commutativity and identity.  $(\Sigma, \mathit{E}\cup\mathit{A})$
+  models the system's ``static'' states as terms of some sort, and is
+  equipped with a built-in specification of a sort \verb|Time|.
 \item $\mathit{IR}$ is a set of \emph{labeled conditional rewrite
   rules} specifying the system's local transitions. Each rule has the
   form $[l]~:~t\rightarrow t'\mbox{ \textbf{if}
@@ -265,16 +267,15 @@ Real-Time Maude models systems as \emph{modules}. A module specifies a
   a rule specifies an \emph{instantaneous transition}, without
   consuming time, from an instance of $t$ to the corresponding
   instance of $t'$, \emph{provided} the conditions hold.
-\item $\mathit{TR}$ is a set of (\emph{labeled}) \emph{tick rules} of
+\item $\mathit{TR}$ is a set of \emph{(labeled) tick rules} of
   the form $[l]~:~\{s\}\rightarrow\{s'\} \mbox{\textbf{ in time}
   }r\mbox{ \textbf{if} }cond$ that specify \emph{timed
     transitions}. Each tick rule advances time by $r$ time units from
   the \emph{entire} state modeled by term $s$ to the destination state
   $s'$.
 \end{itemize}
-
-$\mathit{IR}$ and $\mathit{TR}$ together model the ``dynamic''
-behaviors of the system.
+$\mathit{IR}$ and $\mathit{TR}$ together model the system's ``dynamic''
+behaviors.
 
 In rewriting logic, rewrite rules are applied non-deterministically,
 that is, when several rules can be applied on a given term $t$, any of

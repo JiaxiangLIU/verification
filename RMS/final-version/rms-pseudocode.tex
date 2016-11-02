@@ -1,0 +1,42 @@
+\documentclass[preview,varwidth=11.5cm]{standalone}
+\usepackage{algpseudocode}
+
+\begin{document}
+\hrule\vspace{2pt}
+\begin{algorithmic}[1]%\small
+  \Function{$schedule$}{$ $}{}
+  \State \Call{$int\_o\!f\!\!f$}{$ $}; \Comment{to disable interrupts} \label{l:1stline}
+  \State \Call{$updateStatus$}{$taskList$}; \label{l:updatestatus}
+  \State $timer = timer + 1$; \label{l:timer} \label{l:inc}
+  \State $p = taskList$;
+  \While{$p$} \label{l:startrun1st}
+    \If{$p\rightarrow status == \textit{INTERRUPT}$}
+      \State \Return; \label{l:return}
+    \ElsIf{$p\rightarrow status == \textit{READY}$}      
+      \State $p\rightarrow status = \textit{RUNNING}$;
+      \State \Call{$int\_on$}{$ $}; \Comment{to enable interrupts} \label{l:endrun1st}
+      \State $p\rightarrow function()$; \Comment{to execute the task} \label{l:function}
+      \State \Call{$int\_o\!f\!\!f$}{$ $};
+      \State $p\rightarrow status = \textit{DORMANT}$;
+    \EndIf
+    \State $p = p\rightarrow next$;
+  \EndWhile
+  \EndFunction
+  \Function{$updateStatus$}{$p$}
+  \While{$p$}
+    \If{$p\rightarrow status == \textit{RUNNING}$} \label{l:startupdate}
+      \State $p\rightarrow status = \textit{INTERRUPT}$;
+    \EndIf
+    \If{$timer~\%~(p\rightarrow period) == 0$} \Comment{task should be initiated}
+    \If{$p\rightarrow status == \textit{DORMANT}$}\Comment{previous job finishes} 
+        \State $p\rightarrow status = \textit{READY}$;
+      \Else \Comment{\textit{READY} or \textit{INTERRUPT}}
+  \State \Call{$reportTaskError$}{$p$}; \Comment{task misses its deadline}
+      \EndIf
+    \EndIf \label{l:endupdate}
+    \State $p = p\rightarrow next$;
+  \EndWhile
+  \EndFunction
+\end{algorithmic}
+\hrule
+\end{document}

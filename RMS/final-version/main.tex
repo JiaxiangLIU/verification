@@ -298,7 +298,7 @@ attributes and rules of its superclasses.
 Real-Time Maude provides many useful commands and tools to analyze a
 given model. For example, \verb|rewrite| allows to execute the model,
 symbolically; given an initial state, \verb|search| is used to search
-reachable states satisfying the desired properties; the Maude's
+reachable states satisfying desired properties; the Maude's
 \emph{Inductive Theorem Prover} (ITP) can be applied to interactively
 prove properties written in \emph{membership equational logic}.
 
@@ -307,16 +307,18 @@ In this paper, we only consider Real-Time Maude's \emph{Linear
 \emph{each} behavior satisfies a temporal logic formula. \emph{State
   propositions} are defined as terms of sort \verb|Prop|. Their
 semantics is defined by conditional equations of the form $\texttt{ceq
-} statePattern \texttt{ |= } prop \texttt{ = } b \texttt{ if } cond$,
-with $b$ a term of sort \verb|Bool|, stating that $prop$ evaluates to
-$b$ in states which are instances of $statePattern$ provided the
-condition $cond$ holds. These equations together define $prop$ to hold
-in all states $s$ that make $s \texttt{ |= } prop$ evaluate to
+} \mathit{statePattern} \texttt{ |= } \mathit{prop} \texttt{ = } b \texttt{ if } cond$,
+with $b$ a term of sort \verb|Bool|, stating that $\mathit{prop}$ evaluates to
+$b$ in states which are instances of $\mathit{statePattern}$ provided the
+condition $cond$ holds. These equations together define $\mathit{prop}$ to hold
+in all states $s$ that make $s \texttt{ |= } \mathit{prop}$ evaluate to
 \verb|true|. A temporal logic \emph{formula} is constructed by state
 propositions and temporal logic operators such as \verb|~|(negation),
 \verb|\/|(disjunction), \verb|[]|(``always''),
 \verb|U|(``until''). Real-Time Maude supports both \emph{timed} and
 \emph{untimed LTL model checking}. The untimed model checking command
+%% \indent
+%% $\texttt{(mc } s \texttt{ |=u } \Phi \texttt{ .)}$\\
 \begin{alltt}
   (mc \(s\) |=u \(\Phi\) .)
 \end{alltt}
@@ -331,97 +333,64 @@ The implementation written in C is from an industrial avionic control
 system.  Interrupts would be triggered by, and only by, the clock
 every $T$, which we call \emph{interrupt cycle}. When an interrupt
 request occurs, if the system is interruptible, i.e. the interrupt
-mask bit is cleared, the handler function $schedule()$ will be
-invoked; otherwise $schedule()$ will be pending until the interrupt
-mask bit becomes cleared.  The pseudocode of $schedule()$ is shown in
-Figure~\ref{a:schedule}, where $taskList$ is the list of periodic
-tasks to be scheduled. We assume that the list is in descending order
-of priority, and both variables $taskList$ and $timer$ are global. In
-this implementation, there is only one kind of interrupt, the period
-$T_i$ of each task is a multiple of $T$, and the tasks are
-independent, meeting assumption~(A3).
+mask bit is cleared, the handler function $\mathit{schedule()}$ will
+be invoked; otherwise $\mathit{schedule()}$ will be pending until the
+interrupt mask bit becomes cleared.  The pseudocode of
+$\mathit{schedule()}$ is shown in Fig.~\ref{f:schedule}, where
+$\mathit{taskList}$ is the list of periodic tasks to be scheduled. We
+assume that the list is in descending order of priority, and both
+variables $\mathit{taskList}$ and $\mathit{timer}$ are global. In this
+implementation, there is only one kind of interrupt, the period $T_i$
+of each task is a multiple of $T$, and the tasks are independent,
+meeting assumption~(A3).
 
 \begin{figure}[!t]
-\hrule\vspace{1mm}
-  \begin{algorithmic}[1]\small
-\Function{$schedule$}{$ $}{}
-  \State \Call{$int\_o\!f\!\!f$}{$ $}; \Comment{to disable interrupts} \label{l:1stline}
-  \State \Call{$updateStatus$}{$taskList$}; \label{l:updatestatus}
-  \State $timer = timer + 1$; \label{l:timer} \label{l:inc}
-  \State $p = taskList$;
-  \While{$p$} \label{l:startrun1st}
-    \If{$p\rightarrow status == \textit{INTERRUPT}$}
-      \State \Return; \label{l:return}
-    \ElsIf{$p\rightarrow status == \textit{READY}$}      
-      \State $p\rightarrow status = \textit{RUNNING}$;
-      \State \Call{$int\_on$}{$ $}; \Comment{to enable interrupts} \label{l:endrun1st}
-      \State $p\rightarrow function()$; \Comment{to execute the task} \label{l:function}
-      \State \Call{$int\_o\!f\!\!f$}{$ $};
-      \State $p\rightarrow status = \textit{DORMANT}$;
-    \EndIf
-    \State $p = p\rightarrow next$;
-  \EndWhile
-\EndFunction
-\Function{$updateStatus$}{$p$}
-  \While{$p$}
-    \If{$p\rightarrow status == \textit{RUNNING}$} \label{l:startupdate}
-      \State $p\rightarrow status = \textit{INTERRUPT}$;
-    \EndIf
-    \If{$timer~\%~(p\rightarrow period) == 0$} \Comment{the task should be initiated}
-      \If{$p\rightarrow status == \textit{DORMANT}$} \Comment{the previous job finishes} 
-        \State $p\rightarrow status = \textit{READY}$;
-      \Else \Comment{the status is \textit{READY} or \textit{INTERRUPT}}
-  \State \Call{$reportTaskError$}{$p$}; \Comment{task misses its deadline}
-      \EndIf
-    \EndIf \label{l:endupdate}
-    \State $p = p\rightarrow next$;
-  \EndWhile
-\EndFunction
-  \end{algorithmic}
-\hrule
-  \caption{The C-Like Pseudo-code of $schedule()$}
-  \label{a:schedule}
+\centering
+\includegraphics[width=8.8cm]{rms-pseudocode.pdf}
+\caption{The C-Like Pseudo-code of $schedule()$}
+\label{f:schedule}
 \end{figure}
 
-In Figure~\ref{a:schedule}, the handler function $schedule()$ first
-updates status of all tasks in $taskList$ via function
-$updateStatus()$. This updating actually initiates tasks that should
-be scheduled in the current interrupt cycle. Then $schedule()$
-traverses the list to execute the ready tasks one by one, or to do a
-return when encountering an interrupted\footnote{Note that the status
-  \textit{INTERRUPT} indicates the task is interrupted for the moment,
-  or was interrupted before but its execution is not complete yet.}
-task. As for the function $updateStatus()$, it updates each task in
-two steps: firstly, if the task is running, it becomes interrupted;
-secondly for the task at its initiation time, if its previous job is
-complete, it would be set ready, otherwise it misses its deadline,
-producing an error. Notice that $schedule()$ is invoked only when the
+In Fig.~\ref{f:schedule}, the handler function $\mathit{schedule()}$
+first updates status of all tasks in $\mathit{taskList}$ via function
+$\mathit{updateStatus()}$. This updating actually initiates tasks that
+should be scheduled in the current interrupt cycle. Then
+$\mathit{schedule()}$ traverses the list to execute the ready tasks
+one by one, or to do a return when encountering an
+interrupted\footnote{Note that the status \textit{INTERRUPT} indicates
+  the task is interrupted currently, or was interrupted before but its
+  execution is not complete yet.}  task. As for the function
+$\mathit{updateStatus()}$, it updates each task in two steps: firstly,
+if the task is running, it becomes interrupted; secondly for the task
+at its initiation time, if its previous job is complete, it would be
+set ready, otherwise it misses its deadline, producing an
+error. Notice that $\mathit{schedule()}$ is invoked only when the
 interrupt request is handled, not when the interrupt is disabled (the
 interrupt mask bit is set). Due to the interrupt mask bit, its
 execution cannot be interrupted when it is updating status of tasks or
 searching the next task to execute, however, it can be interrupted
-while executing some task (Line~\ref{l:function}). This allows the
-execution of $schedule()$ to be nested.
+while executing some task (Line~12). This allows the execution of
+$\mathit{schedule()}$ to be nested.
 
 For simplicity, in the rest of this paper, we use \emph{scheduling} to
 refer to the stage, from the moment when a pending interrupt request
 is detected, to the moment when the first should-be-run periodic task
-starts executing, i.e. Line~\ref{l:return} or~\ref{l:function} in
-Figure~\ref{a:schedule}. Therefore, \emph{scheduling time} mainly
-consists of three parts: (i) the time for switching context from the
-running task, possibly none, to $schedule()$ when an interrupt request
-is handled, (ii) the time spent by $schedule()$ searching and setting
-the \emph{first} should-be-run periodic task
-(Lines~\ref{l:1stline}-\ref{l:endrun1st} in Figure~\ref{a:schedule}),
-and (iii) the time for switching context from $schedule()$ to that
-task. \emph{Switching} refers to the stage, from the moment when a
-periodic task completes its execution, to the moment when the next
+starts executing, i.e. Line~8 or~12 in
+Fig.~\ref{f:schedule}. Therefore, \emph{scheduling time} mainly
+consists of three parts: (i)~the time for switching context from the
+running task, possibly none, to $\mathit{schedule()}$ when an
+interrupt request is handled, (ii)~the time spent by
+$\mathit{schedule()}$ searching and setting the \emph{first}
+should-be-run periodic task (Lines~2--11 in Fig.~\ref{f:schedule}),
+and (iii)~the time for switching context from $\mathit{schedule()}$ to
+that task. \emph{Switching} refers to the stage, from the moment when
+a periodic task completes its execution, to the moment when the next
 should-be-run periodic task starts executing. \emph{Switching time}
-thus also consists of three parts: (i) the time for switching context
-from the complete task back to $schedule()$, (ii) the time spent by
-$schedule()$ searching and setting the \emph{next} should-be-run
-periodic task, and (iii) the time for switching context from
-$schedule()$ to that task.
+thus also consists of three parts: (i)~the time for switching context
+from the complete task back to $\mathit{schedule()}$, (ii)~the time
+spent by $\mathit{schedule()}$ searching and setting the \emph{next}
+should-be-run periodic task, and (iii)~the time for switching context
+from $\mathit{schedule()}$ to that task.
 
 
 \section{Formal Modeling of the Implementation}
@@ -514,13 +483,13 @@ requirement of a task.
 At last, to make our model checkable by untimed model checking, it is
 reasonable to reset the global variable $timer$ when it reaches an
 upper bound while increasing (see Line~\ref{l:timer} in
-Figure~\ref{a:schedule}) in the model. Then $timer$ is of sort
+Figure~\ref{f:schedule}) in the model. Then $timer$ is of sort
 \verb|Timer| and the upper bound would be the least common multiple of
 the periods of all tasks.}
 
 The global variable $timer$ is reset when it reaches an upper bound
 while increasing, which is not shown in detail in
-Figure~\ref{a:schedule} but is reasonable. The upper bound is the
+Figure~\ref{f:schedule} but is reasonable. The upper bound is the
 least common multiple of the periods of all tasks. A sort \verb|Timer|
 is defined to model the $timer$.
 \hide{
@@ -679,7 +648,7 @@ Section~\ref{ss:inthandling}.
 \subsection{Task Initiation}
 \label{ss:init}
 Periodic tasks are initiated sequentially by the function
-$updateStatus()$ in Figure~\ref{a:schedule}, which is treated as an
+$updateStatus()$ in Figure~\ref{f:schedule}, which is treated as an
 instantaneous action in our model. It is modeled by a recursive
 function \verb|updateStatus_with_|:
 \begin{verbatim}
@@ -693,7 +662,7 @@ function \verb|updateStatus_with_|:
 which applies function \verb|update_with_| on individual task
 sequentially to update the status
 (Lines~\ref{l:startupdate}-\ref{l:endupdate} in
-Figure~\ref{a:schedule}):
+Figure~\ref{f:schedule}):
 \begin{verbatim}
   op update_with_ : Object Timer ~> Object .
   ceq update < O : PTask | period : T, 
@@ -719,7 +688,7 @@ not complete, hence it misses its deadline, producing an
 initiated, its \verb|status| changes only if it is \verb|RUNNING|.
 
 We can see that \verb|updateStatus_with_| behaves the same as
-$updateStatus()$ in Figure~\ref{a:schedule}.
+$updateStatus()$ in Figure~\ref{f:schedule}.
 
 \subsection{Interrupt Handling and Task Scheduling}
 \label{ss:inthandling}
@@ -754,7 +723,7 @@ scheduling as a system task of sort \verb|SysTask|. Modeling timed
 behaviors of tasks is explained in Section~\ref{ss:timedbehavior}.
 The other two parts together define its functionality. The second part
 corresponds to Lines~\ref{l:updatestatus}-\ref{l:inc} in
-Figure~\ref{a:schedule}. It updates the status of $taskList$ and
+Figure~\ref{f:schedule}. It updates the status of $taskList$ and
 increases $timer$ by $1$. This part is modeled by function
 \verb|_.startScheduling| which applies instantaneously at the
 beginning of scheduling, as shown in rule \verb|interrupt-handle|:
@@ -778,7 +747,7 @@ at the end of scheduling:
 where \verb|finish_in_| resets the counter of task \verb|scheduling|,
 and \verb|_.run1stTask| models
 Lines~\ref{l:startrun1st}-\ref{l:endrun1st} in
-Figure~\ref{a:schedule}, searching the task with highest priority
+Figure~\ref{f:schedule}, searching the task with highest priority
 that has status \verb|INTERRUPT| or \verb|READY| then performing an
 \emph{interrupt return} or executing it, respectively.
 

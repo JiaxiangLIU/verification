@@ -172,7 +172,7 @@ to their incompleteness. Extensive effort to apply formal methods,
 such as model checking and theorem proving, has been made to analyze
 safety-critical systems for the past few
 years~\cite{DBLP:journals/tie/MiyawakiMSYV05,DBLP:journals/iandc/MeseguerR13,DBLP:journals/cacm/Leroy09,DBLP:conf/sosp/KleinEHACDEEKNSTW09}. However,
-as far as we know, few~\cite{DBLP:conf/iceccs/CuiDT14,TianD2011}
+as far as we know, few~\cite{TianD2011,DBLP:conf/iceccs/CuiDT14}
 attempt to analyze the RMS algorithm, while no work for
 implementations of RMS is found.
 
@@ -413,18 +413,18 @@ initiation times and can be preempted instantly.
 overhead is ignored.
 
 These assumptions make our model different from the standard one. For
-instance, with assumption~(A1'), an interrupt request that occurs
-during switching will be pending, such that jobs of task $\tau_i$
-cannot initiate at $kT_i$. They should wait until switching finishes
-and the interrupt mask bit is cleared, which is different
-from~(A1). Note that (A3) says that jobs are ready to run at their
-initiation times, however, no one can start running at exactly its
-initiation time, because scheduling takes time. Under these
-assumptions, an example showing the execution of tasks scheduled by
-the implementation is depicted in Fig.~\ref{f:example}(b). Note that
-the second job instance of $\tau_1$ is initiated at time $11$ instead
-of $10$, because switching is performed and the interrupt mask bit is
-set at time $10$, exemplifying differences between (A1') and (A1).
+instance, with~(A1'), an interrupt request that occurs during
+switching will be pending, such that jobs of task $\tau_i$ cannot
+initiate at $kT_i$. They should wait until switching finishes and the
+interrupt mask bit is cleared, which is different from~(A1). (A3) says
+that jobs are ready to run at their initiation times, however, no one
+can start running at exactly its initiation time, because scheduling
+takes time. Under these assumptions, an example showing the execution
+of tasks scheduled by the implementation is depicted in
+Fig.~\ref{f:example}(b). Note that the second job instance of $\tau_1$
+is initiated at time $11$ instead of $10$, because switching is
+performed and the interrupt mask bit is set at time $10$, exemplifying
+differences between (A1') and (A1).
 
 \begin{figure}[!t]
 \centering
@@ -436,17 +436,17 @@ set at time $10$, exemplifying differences between (A1') and (A1).
 \label{f:example}
 \end{figure}
 
-In this section, we introduce first how we model the states--the
-static aspect--of the system using terms of given sorts, or called
-data types, then how we specify the essential behaviors--the dynamic
-aspect--using rewrite rules. In particular, modeling of
-\emph{instantaneous behaviors} would be explained in
-Sections~\ref{ss:ir}, \ref{ss:init} and~\ref{ss:inthandling}, followed
-by \emph{timed behaviors} in Section~\ref{ss:timedbehavior}.
+In this section, we introduce first how we model states -- the static
+aspect -- of the system using terms of given sorts, or called data
+types, then how we specify essential behaviors -- the dynamic aspect
+-- using rewrite rules. In particular, modeling of \emph{instantaneous
+  behaviors} would be explained in Sections~\ref{ss:ir}, \ref{ss:init}
+and~\ref{ss:inthandling}, followed by \emph{timed behaviors} in
+Section~\ref{ss:timedbehavior}.
 
 \subsection{Basic Data Types}
 In our model, tasks are identified by their indexes of sort \verb|Nat|
-in the $taskList$. We define a sort \verb|MaybeNat| wrapping
+in $\mathit{taskList}$. We define a sort \verb|MaybeNat| wrapping
 \verb|Nat|s to refer to some task, with \emph{constructor} \verb|some|
 followed by a \verb|Nat| $n$ indicating the task indexed $n$, and
 \verb|none| for no task:
@@ -460,12 +460,6 @@ symbol to be a constructor.
 A sort \verb|Stack| is introduced to model the stack of the system,
 storing the tasks that are being interrupted, and equipped with
 operations \verb|push|, \verb|pop| and \verb|peek| on it.
-\hide{
-\begin{verbatim}
-  op bottom : -> Stack [ctor] .
-  op _#_ : Nat Stack -> Stack [ctor] .
-\end{verbatim}
-}
 
 We also need
 %a sort \verb|Interval| to denote computation requirements of tasks, and 
@@ -473,37 +467,20 @@ a sort \verb|Counter| to record the execution of tasks.  We call
 \emph{execution time} the time how long a task has been executing
 for. A \verb|Counter| records the execution time and the computation
 requirement of a task.
-\hide{
-\begin{verbatim}
-  op [_/_] : Time Time -> Counter [ctor] .
-\end{verbatim}
-}
 
-\hide{
-At last, to make our model checkable by untimed model checking, it is
-reasonable to reset the global variable $timer$ when it reaches an
-upper bound while increasing (see Line~\ref{l:timer} in
-Figure~\ref{f:schedule}) in the model. Then $timer$ is of sort
-\verb|Timer| and the upper bound would be the least common multiple of
-the periods of all tasks.}
-
-The global variable $timer$ is reset when it reaches an upper bound
-while increasing, which is not shown in detail in
-Figure~\ref{f:schedule} but is reasonable. The upper bound is the
-least common multiple of the periods of all tasks. A sort \verb|Timer|
-is defined to model the $timer$.
-\hide{
-\begin{verbatim}
-  op [_/_] : Nat NzNat -> Timer [ctor] .
-\end{verbatim}
-}
+The global variable $\mathit{timer}$ is reset when it reaches an upper
+bound while increasing, which is not shown in detail in
+Fig.~\ref{f:schedule} but is reasonable. The upper bound is the least
+common multiple of periods of all tasks. A sort \verb|Timer| is
+defined to model $\mathit{timer}$.
 
 \subsection{Modeling the System States}
 The system can be considered as consisting of several parts: the tasks
 which are scheduled, the scheduler itself, the hardware including
 registers and stacks, and the interrupt source. The scheduler,
-i.e. the function $schedule()$, can be described by a single variable
-$timer$. We present the models of the other parts one by one.
+i.e.\ the function $\mathit{schedule()}$, can be described by a single
+variable $\mathit{timer}$. We present the models of the other parts
+one by one.
 
 \subsubsection{Tasks}
 Each task is abstracted from its functionality as a \verb|Counter|.
@@ -520,7 +497,6 @@ deadline.
 A periodic task, which needs to be scheduled, is an object instance of
 the subclass \verb|PTask| of \verb|Task| with additional attributes
 \verb|priority|, \verb|period| and \verb|status|:
-%  class PTask | priority : Nat, period : NzNat, 
 \begin{verbatim}
   class PTask | priority : Nat, period : Nat, 
                 status : Status .
@@ -529,70 +505,41 @@ the subclass \verb|PTask| of \verb|Task| with additional attributes
 where \verb|Status| is a sort with four constant constructors
 \verb|RUNNING|, \verb|INTERRUPT|, \verb|READY| and \verb|DORMANT|,
 same as in the implementation.
-\hide{
-\begin{verbatim}
-  ops RUNNING INTERRUPT READY DORMANT 
-        : -> Status [ctor] .
-\end{verbatim}
-} 
 
-The list of periodic tasks, the variable $taskList$ in the
+The list of periodic tasks, the variable $\mathit{taskList}$ in the
 implementation, is modeled as an instance of sort \verb|TaskList|,
-which is a list of \verb|PTask|s and/or \verb|error|s.
-\hide{
-\begin{verbatim}
-  op null : -> TaskList [ctor] .
-  op _::_ : Object TaskList 
-              ~> TaskList [ctor] .
-  mb (< O:Oid : PTask |> :: L:TaskList) 
-       : TaskList .
-  mb (error :: L:TaskList) : TaskList .
-\end{verbatim}
-}
-Periodic tasks are identified by their indexes in the list.
+which is a list of \verb|PTask|s and/or \verb|error|s.  Periodic tasks
+are identified by their indexes in the list.
 
 On the other hand, a system task is an object instance of the subclass
-\verb|SysTask| of \verb|Task| with no extra attributes:
+\verb|SysTask| of \verb|Task| with no extra attributes.
+\hide{
 \begin{verbatim}
   class SysTask | .  
   subclass SysTask < Task .
 \end{verbatim}
+}
 Different from periodic tasks, system tasks are organized in a
 multiset of sort \verb|SysTasks|, and identified by their \verb|Oid|s.
-%We abstract here from the detailed definitions thanks to the
-%similarity.
 
 \subsubsection{Hardware}
-Our model considers two parts of hardware related to the interrupt
-handling mechanism: the registers and the stack.
+Our model considers two parts of hardware related to interrupt
+handling: the registers and the stack.
 
-The set of registers is modeled as an object instance of the class
+The set of registers is modeled as an object instance of class
 \verb|Regs|, with attributes \verb|pc| denoting the program counter,
 \verb|mask| for the interrupt mask bit and \verb|ir| for the interrupt
-request bit, respectively:
+request bit:
 \begin{verbatim}
   class Regs | pc : TaskID, 
                mask : Bool, ir : Bool .
 \end{verbatim}
 where the sort \verb|TaskID| contains subsorts \verb|MaybeNat| and
-\verb|Oid|, referring to some task.
-\hide{
-\begin{verbatim}
-  subsorts MaybeNat Oid < TaskID .
-\end{verbatim}
-}
-Some operations, such as \verb|getPc| and \verb|setMask|, are defined
-on the class \verb|Regs|.
+\verb|Oid|, referring to some task. Some operations, such as
+\verb|getPc| and \verb|setMask|, are defined on the class \verb|Regs|.
 
 Then the hardware is described by the sort \verb|Hardware| consisting
 of an instance of \verb|Regs| and a term of sort \verb|Stack|.  
-\hide{
-\begin{verbatim}
-  op [_;_] : Object Stack ~> Hardware [ctor] .
-  mb ([ < O:Oid : Regs |> ; S:Stack ]) 
-       : Hardware .
-\end{verbatim}
-}
 
 \subsubsection{Interrupt Source}
 The interrupt source is modeled as an object of class \verb|IntSrc|,
@@ -606,8 +553,8 @@ time advances:
 \subsubsection{System}
 The entire system in our model is a composition of the parts
 introduced above, of a sort \verb|System|\footnote{Following the Maude
-  convention, variables would be written in capital letters. Some
-  variable declarations are not shown for simplicity.}:
+  convention, variables would be written in capital letters. Variable
+  declarations are not shown for simplicity.}:
 \begin{verbatim}
   op _____ : TaskList Timer SysTasks 
              Hardware Object ~> System [ctor] .
@@ -634,35 +581,21 @@ following instantaneous conditional rule applied on \verb|System|:
 where the function \verb|_.timeout| examines whether the attribute
 \verb|val| equals \verb|zero|, and \verb|_.intReq| sets the \verb|ir|
 bit indicating there exists an interrupt request to be handled.
-\hide{
-\begin{verbatim}
-  op _.intReq : Hardware -> Hardware .
-  eq [ REGS ; S ].intReq 
-       = [ (REGS).setIr ; S ] .
-\end{verbatim}
-}
-
 Then the request will wait to be handled, which is explained in
 Section~\ref{ss:inthandling}.
 
 \subsection{Task Initiation}
 \label{ss:init}
-Periodic tasks are initiated sequentially by the function
-$updateStatus()$ in Figure~\ref{f:schedule}, which is treated as an
-instantaneous action in our model. It is modeled by a recursive
-function \verb|updateStatus_with_|:
+Periodic tasks are initiated sequentially by $\mathit{updateStatus()}$
+in Fig.~\ref{f:schedule}, which is treated as an instantaneous action
+in our model. It is modeled by function \verb|updateStatus_with_|:
 \begin{verbatim}
   op updateStatus_with_ : TaskList Timer 
                             -> TaskList . 
 \end{verbatim}
-%  eq updateStatus null with TIMER = null .
-%  eq updateStatus (TASK :: L) with TIMER
-%     = (update TASK with TIMER) 
-%       :: (updateStatus L with TIMER) .
 which applies function \verb|update_with_| on individual task
-sequentially to update the status
-(Lines~\ref{l:startupdate}-\ref{l:endupdate} in
-Figure~\ref{f:schedule}):
+sequentially to update the status (Lines~21--30 in
+Fig.~\ref{f:schedule}):
 \begin{verbatim}
   op update_with_ : Object Timer ~> Object .
   ceq update < O : PTask | period : T, 
@@ -678,8 +611,8 @@ Figure~\ref{f:schedule}):
        then < O : PTask | status : INTERRUPT >
        else < O : PTask |> fi [otherwise] .
 \end{verbatim}
-with \verb|TIMER| the current value of the global variable $timer$.
-Given a task, if \verb|TIMER|($timer$) can be divided by its period
+with \verb|TIMER| the current value of the global variable $\mathit{timer}$.
+Given a task, if \verb|TIMER|($\mathit{timer}$) can be divided by its period
 \verb|T|, this task should be initiated.  In the case where the task
 should be initiated, it is set \verb|READY| if its \verb|status| is
 \verb|DORMANT|; otherwise that means the previous job of this task is
@@ -688,7 +621,7 @@ not complete, hence it misses its deadline, producing an
 initiated, its \verb|status| changes only if it is \verb|RUNNING|.
 
 We can see that \verb|updateStatus_with_| behaves the same as
-$updateStatus()$ in Figure~\ref{f:schedule}.
+$\mathit{updateStatus()}$ in Fig.~\ref{f:schedule}.
 
 \subsection{Interrupt Handling and Task Scheduling}
 \label{ss:inthandling}
@@ -697,7 +630,7 @@ by the system. It requires the bit \verb|mask| to be cleared. Once the
 request is detected, it is handled in two steps: the interrupt
 handling mechanism of the hardware (such as clearing \verb|ir|,
 pushing context into stack and so on), and to invoke the function
-$schedule()$. This behavior is modeled by the following instantaneous
+$\mathit{schedule()}$. This behavior is modeled by the following instantaneous
 rewrite rule:
 \begin{verbatim}
   crl [interrupt-handle] :
@@ -708,11 +641,11 @@ rewrite rule:
 where \verb|_.existInt| checks whether \verb|mask| is cleared
 \emph{and} \verb|ir| is set. The function \verb|_.interrupt| models
 the interrupt handling mechanism performed by the hardware and does
-four things: (i) clearing the bit \verb|ir|, which means the request
-has been handled; (ii) pushing the current \verb|pc| into the stack,
-storing the interrupted context; (iii) assigning \verb|scheduling| of
+four things: (i)~clearing the bit \verb|ir|, which means the request
+has been handled; (ii)~pushing the current \verb|pc| into the stack,
+storing the interrupted context; (iii)~assigning \verb|scheduling| of
 sort \verb|Oid| to \verb|pc|, which indicates that the system is
-scheduling; and (iv) setting the bit \verb|mask|, to mask coming
+scheduling; and (iv)~setting the bit \verb|mask|, to mask coming
 interrupt requests.
 
 Unlike periodic tasks, even though the scheduling stage is modeled by
@@ -722,19 +655,18 @@ part contains its timed behaviors. This part is modeled by regarding
 scheduling as a system task of sort \verb|SysTask|. Modeling timed
 behaviors of tasks is explained in Section~\ref{ss:timedbehavior}.
 The other two parts together define its functionality. The second part
-corresponds to Lines~\ref{l:updatestatus}-\ref{l:inc} in
-Figure~\ref{f:schedule}. It updates the status of $taskList$ and
-increases $timer$ by $1$. This part is modeled by function
-\verb|_.startScheduling| which applies instantaneously at the
-beginning of scheduling, as shown in rule \verb|interrupt-handle|:
+corresponds to Lines~3--4 in Fig.~\ref{f:schedule}. It updates the
+status of $\mathit{taskList}$ and increases $\mathit{timer}$ by
+$1$. This part is modeled by function \verb|_.startScheduling| which
+applies instantaneously at the beginning of scheduling, as shown in
+rule \verb|interrupt-handle|:
 \begin{verbatim}
   op _.startScheduling : System -> System .
   eq (L T STS HW ISRC).startScheduling 
      = ((updateStatus L with T) 
         inc(T) STS HW ISRC) .
 \end{verbatim}
-The third part corresponds to
-Lines~\ref{l:startrun1st}-\ref{l:endrun1st}, searching the first
+The third part corresponds to Lines~6--11, searching the first
 should-be-run periodic task and setting it to execute. It is modeled
 by function \verb|_.finishScheduling|, which applies instantaneously
 at the end of scheduling:
@@ -745,11 +677,10 @@ at the end of scheduling:
         HW ISRC).run1stTask .
 \end{verbatim}
 where \verb|finish_in_| resets the counter of task \verb|scheduling|,
-and \verb|_.run1stTask| models
-Lines~\ref{l:startrun1st}-\ref{l:endrun1st} in
-Figure~\ref{f:schedule}, searching the task with highest priority
-that has status \verb|INTERRUPT| or \verb|READY| then performing an
-\emph{interrupt return} or executing it, respectively.
+and \verb|_.run1stTask| models Lines~6--11,
+searching the task with highest priority that has status
+\verb|INTERRUPT| or \verb|READY| then performing an \emph{interrupt
+  return} or executing it, respectively.
 
 When the execution time of the system task \verb|scheduling| reaches
 its computation requirement, scheduling is finished. We model this
@@ -765,15 +696,6 @@ instantaneous action with the following rule:
 where function \verb|_.running| returns the current \verb|pc| value of
 the system, and \verb|_isComplete?in_| checks whether the execution
 time of the task reaches its computation requirement.  
-\hide{
-\begin{verbatim}
-  op _mayFinish?in_ : Oid SysTasks ~> Bool .
-  eq O mayFinish?in [ < O : SysTask | cnt : C > REST ] 
-       = C mayFinish? .
-  op _mayFinish? : Counter -> Bool .
-  eq [ R / [ MIN , MAX ] ] mayFinish?
-       = if R lt MIN then false else true fi .
-\end{verbatim}}
 
 Similar to scheduling, the switching stage is also divided into timed
 behaviors of \verb|switching| and its functionality. \verb|switching|
@@ -781,28 +703,13 @@ starts when the running periodic task is complete, and finishes when
 itself is so. Two similar instantaneous rules \verb|switching-start|
 and \verb|switching-finish| are defined to model the functionality of
 switching. 
-\hide{
-\begin{verbatim}
-  crl [task-finish] :
-    (L T STS HW ISRC) 
-    => (SYSTEM).startSwitching
-    if SYSTEM := (L T STS HW ISRC)
-       /\ some N := (SYSTEM).running
-       /\ some N isComplete?in L .
-  crl [switching-finish] :
-    (L T STS HW ISRC) 
-    => (SYSTEM).finishSwitching
-    if SYSTEM := (L T STS HW ISRC)
-       /\ (SYSTEM).running == switching
-       /\ switching isComplete?in STS .
-\end{verbatim}
-}
+
 
 \subsection{Timed Behaviors of the System}
 \label{ss:timedbehavior}
 Timed behaviors of the system consist of two parts: the execution of
 tasks and the execution of the interrupt source. Both are modeled
-together by the following single \emph{standard} tick
+together by the  single \emph{standard} tick
 rule\footnote{The keyword \texttt{nonexec} should be given to allow
   the Real-Time Maude engine to apply the rule with some
   strategies.}~\cite{DBLP:journals/entcs/OlveczkyM07a}:
@@ -811,39 +718,39 @@ rule\footnote{The keyword \texttt{nonexec} should be given to allow
     {SYSTEM} => {delta(SYSTEM, R)} in time R 
     if R le mte(SYSTEM) [nonexec] .
 \end{verbatim}
-where \verb|delta| defines the effects of time elapse on the system,
-and \verb|mte| denotes the \emph{m}aximum amount of \emph{t}ime
-allowed to \emph{e}lapse from the current state until an instantaneous
-transition \emph{must} be performed. In fact, the core to model timed
-behaviors is to define functions \verb|delta| and \verb|mte|. Notice
-that the variable \verb|R| is \emph{continuous} with respect to the
-specific time domain\footnote{Real-Time Maude contains built-in
-  modules to define the time domain to be natural numbers and rational
-  numbers, specifying \emph{discrete} time domains and \emph{dense}
-  time domains, respectively.}  that we choose to instantiate our
-model on, which is different from timed automata that discretize dense
-time by defining ``clock region''.
+where \verb|delta| defines effects of time elapse on the system, and
+\verb|mte| denotes the \emph{m}aximum amount of \emph{t}ime allowed to
+\emph{e}lapse from the current state until an instantaneous action
+\emph{must} happen. In fact, the key to modeling timed behaviors is to
+define \verb|delta| and \verb|mte|. Note that the variable \verb|R| is
+\emph{continuous} with respect to the specific time
+domain\footnote{Real-Time Maude contains built-in modules to define
+  the time domain to be natural numbers and rational numbers,
+  specifying \emph{discrete} time domains and \emph{dense} time
+  domains, respectively.}  that we choose to instantiate our model on,
+which is different from timed automata that discretize dense time by
+defining ``clock region''.
 
-Time affects the system by advancing both the running task whose $ID$
-is loaded at \verb|pc| and the interrupt source simultaneously.  While
-time elapses, \verb|cnt| of the former increases and \verb|val| of the
-latter decreases, respectively:
+Time affects the system by advancing both the running task, whose
+$\mathit{ID}$ is loaded at \verb|pc|, and the interrupt source
+simultaneously.  While time elapses, \verb|cnt| of the former
+increases and \verb|val| of the latter decreases, respectively:
 \begin{verbatim}
   ceq delta((L T STS HW ISRC), R)
       = (deltaTask(ID, L, R) 
          T STS HW (deltaIS(ISRC, R)))
       if ID := (HW).getPc /\ ID :: MaybeNat .
 \end{verbatim}
-where the last condition states that \verb|ID| is of sort
+where the last condition indicates that \verb|ID| is of sort
 \verb|MaybeNat|. Due to similarity, we omit details for the case where
 \verb|ID| is of sort \verb|Oid| and \verb|deltaTask| applies on
 \verb|STS| instead of \verb|L|.
 
-\verb|mte|, the maximum amount of time allowed to elapse, depends on
-when the next instantaneous action must perform. Therefore, it is
-decided by three arguments: the remaining time to complete the running
-task, the remaining time to request the next interrupt, and whether or
-not there exists an interrupt request detected for the moment:
+\verb|mte| depends on when the next instantaneous transition must
+perform. Therefore, it is decided by three arguments: the remaining
+time to complete the running task, the remaining time to request the
+next interrupt, and whether or not there exists an interrupt request
+detected for the moment:
 \begin{verbatim}
   ceq mte(L T STS HW ISRC)
       = minimum(mteTask(ID, L),
@@ -852,14 +759,8 @@ not there exists an interrupt request detected for the moment:
 \end{verbatim}
 where \verb|mteIr| returns \verb|zero| if there exists an interrupt
 request detected in the system, or \verb|INF| which represents
-\emph{infinity} otherwise. Again we do not show the case where
-\verb|ID| is of sort \verb|Oid|, which is very similar. 
-\hide{
-We should
-point out that \verb|mteTask| computes the remaining time to reach the
-maximum of the computation requirement of the task, since that is the
-time at which a \verb|task-finish| transition \emph{must} happen.
-}
+\emph{infinity} otherwise. The case where \verb|ID| is of sort
+\verb|Oid| is similar.
 
 
 \section{Formal Verification}
@@ -867,11 +768,11 @@ time at which a \verb|task-finish| transition \emph{must} happen.
 In this section, we analyze our model of the RMS implementation within
 different realistic scenarios.  Notice that from any (reasonable)
 given initial state, the number of reachable states is finite, but may
-be unknown, thanks to the upper bound given to $timer$, which provides
-the potential for applying the untimed model checker.
+be unknown, thanks to the upper bound given to $\mathit{timer}$, which
+provides the potential for applying the untimed model checker.
 
 \subsection{Properties}
-We consider two properties in this paper: schedulability and
+We take two properties into account in this paper: schedulability and
 correctness. By schedulability, we examine whether a given task set is
 schedulable by the implementation. By correctness, we verify whether
 the implementation schedules periodic tasks exactly with respect to
@@ -879,8 +780,8 @@ the RMS algorithm.
 
 To verify the schedulability of a given set of periodic tasks, we
 define an atomic proposition \verb|taskTimeout| to hold if there
-exists an \verb|error| in $taskList$ of the current state, that is,
-some task misses its deadline:
+exists an \verb|error| in $\mathit{taskList}$ of the current state,
+that is, some task misses its deadline:
 \begin{verbatim}
   op taskTimeout : -> Prop [ctor] .
   eq {L T STS HW ISRC} |= taskTimeout 
@@ -930,11 +831,7 @@ We use the following setting for our verification, which is from the
 statistics provided by our industrial partner:
 \begin{itemize}
 \item The interrupt cycle $T$ is $5ms$.
-\item The scheduling time is $38{\mu}s$ and the switching time is
-  $20{\mu}s$.  
-\hide{\item The scheduling time ranges from $5{\mu}s$
-  to $9{\mu}s$, and the switching time ranges from $2{\mu}s$ to
-  $4{\mu}s$.}
+\item The scheduling time is $38{\mu}s$, switching time is $20{\mu}s$.
 \item The initial state is with empty stack, empty \verb|pc|, cleared 
 \verb|mask| and cleared \verb|ir|.
 \end{itemize}
@@ -943,172 +840,25 @@ We have analyzed our model in ten different scenarios, including both
 realistic ones provided by our industrial partner and experimental
 ones designed by ourselves, four of them are described below:
 \begin{itemize}
-\item Scenario~(i) with two tasks $\tau_1$ and $\tau_2$: $T_1=5ms$,
-  $C_1=3ms$, $T_2=25ms$ and $C_2=7ms$.
-\item Scenario~(ii) with two tasks $\tau_1$ and $\tau_2$: $T_1=5ms$,
-  $C_1=2ms$, $T_2=25ms$ and $C_2=2.3ms$.
-\item Scenario~(iii) with three tasks $\tau_1$, $\tau_2$ and $\tau_3$:
-  $T_1=5ms$, $C_1=2.7ms$, $T_2=10ms$, $C_2=2ms$, $T_3=25ms$ and
+\item Scenario~(i) with 2 tasks $\tau_1$ and $\tau_2$: $T_1=5ms$,
+  $C_1=3ms$, $T_2=25ms$, $C_2=7ms$.
+\item Scenario~(ii) with 2 tasks $\tau_1$ and $\tau_2$: $T_1=5ms$,
+  $C_1=2ms$, $T_2=25ms$, $C_2=2.3ms$.
+\item Scenario~(iii) with 3 tasks $\tau_1$, $\tau_2$, $\tau_3$:
+  $T_1=5ms$, $C_1=2.7ms$, $T_2=10ms$, $C_2=2ms$, $T_3=25ms$,
   $C_3=3ms$.
-\item Scenario~(iv) with three tasks $\tau_1$, $\tau_2$ and $\tau_3$:
-  $T_1=5ms$, $C_1=2.5ms$, $T_2=10ms$, $C_2=1.5ms$, $T_3=15ms$ and
-$C_3=4.5ms$.
+\item Scenario~(iv) with 3 tasks $\tau_1$, $\tau_2$, $\tau_3$:
+  $T_1\!=\!5ms$, $C_1\!=\!2.5ms$, $T_2\!=\!10ms$, $C_2\!=\!1.5ms$,
+  $T_3\!=\!15ms$, $C_3\!=\!4.5ms$.
 \end{itemize}
-Note that thanks to the powerful expressiveness of Real-Time Maude, we
+Note that thanks to the expressiveness of Real-Time Maude, we
 only need to define an initial state of sort \verb|System| to specify
 a given task set. No necessity to modify the model is needed.
-
-\hide{
-\begin{itemize}
-\item Scenario (i) with two tasks: one having period $5ms$ and
-  computation requirement $[2.4ms, 3ms]$, and the other having period
-  $25ms$ and computation requirement $[6.1ms, 7ms]$.
-\item Scenario (ii) with two tasks: one having period $5ms$ and
-  computation requirement $[1.8ms, 2ms]$, and the other having period
-  $25ms$ and computation requirement $[2.1ms, 2.3ms]$.
-\item Scenario (iii) with three tasks: the first having period $5ms$
-  and computation requirement $[2.5ms, 2.7ms]$, the second having
-  period $10ms$ and computation requirement $[1.5ms, 2ms]$, and the
-  third having period $25ms$ and computation requirement $[2.6ms,
-    3ms]$.
-\item Scenario (iv) with three tasks: the first having period $5ms$
-  and computation requirement $[2.2ms, 2.5ms]$, the second having
-  period $10ms$ and computation requirement $[1.4ms, 1.5ms]$, and the
-  third having period $15ms$ and computation requirement $[4.3ms,
-    4.5ms]$.
-\end{itemize}
-}
 
 
 \begin{figure*}[!t]
 \centering
-\begin{tikzpicture}[font=\small,
-    % styles
-    system task/.style={fill=gray!70,draw=gray},
-    periodic task/.style={fill=gray!70!black,draw=gray!50!black},
-    task line/.style={gray!30,very thin},
-    time line/.style={gray!50,very thin,dashed},
-    short line/.style={gray!50,very thin,dashed},
-    init/.style={{Triangle[fill=white,scale=1.3]}-},
-    complete/.style={{Triangle[scale=1.3]}-}]
-
-  % grid
-  \foreach \x in {0.5,1.2,...,3.3}
-    \draw[task line] (0,\x) -- (15.7,\x);
-
-  % time indicator
-  \draw (0,0) node [below] {$0$};
-  \draw[time line] (0.5,3.3) -- (0.5,0);
-  \draw (0.5,-0.35) node [below] {$38$} [short line] -- +(0,0.35);
-  \draw (0.5,-3pt) -- (0.5,3pt);
-  \draw[time line] (2.5,3.3) -- (2.5,0);
-  \draw (2.3,0) node [below] {$2538$};
-  \draw (2.5,0) -- (2.5,3pt);
-  \draw[time line] (2.75,2.6) -- (2.75,0);
-  \draw (2.75,-0.35) node [below] {$2558$} [short line] -- +(0,0.35);
-  \draw (2.75,-3pt) -- (2.75,3pt);
-  \draw[time line] (4,2.6) -- (4,0);
-  \draw (3.8,0) node [below] {$4058$};
-  \draw (4,0) -- (4,3pt);
-  \draw[time line] (4.25,1.9) -- (4.25,0);
-  \draw (4.25,-0.35) node [below] {$4078$} [short line] -- +(0,0.35);
-  \draw (4.25,-3pt) -- (4.25,3pt);
-
-  \draw[time line] (5,3.3) -- (5,0);
-  \draw (5,0) node [below] {$5000$};
-  \draw (5,0) -- (5,3pt);
-  \draw[time line] (5.5,3.3) -- (5.5,0);
-  \draw (5.5,-0.35) node [below] {$5038$} [short line] -- +(0,0.35);
-  \draw (5.5,-3pt) -- (5.5,3pt);
-  \draw[time line] (7.5,3.3) -- (7.5,0);
-  \draw (7.3,0) node [below] {$7538$};
-  \draw (7.5,0) -- (7.5,3pt);
-  \draw[time line] (7.75,1.9) -- (7.75,0);
-  \draw (7.75,-0.35) node [below] {$7558$} [short line] -- +(0,0.35);
-  \draw (7.75,-3pt) -- (7.75,3pt);
-
-  \draw[time line] (10,3.3) -- (10,0);
-  \draw (9.9,0) node [below] {$10000$};
-  \draw (10,0) -- (10,3pt);
-  \draw[time line] (10.5,3.3) -- (10.5,0);
-  \draw (10.5,-0.35) node [below] {$10038$} [short line] -- +(0,0.35);
-  \draw (10.5,-3pt) -- (10.5,3pt);
-  \draw[time line] (12.5,3.3) -- (12.5,0);
-  \draw (12.2,0) node [below] {$12538$};
-  \draw (12.5,0) -- (12.5,3pt);
-  \draw[time line] (12.75,2.6) -- (12.75,0);
-  \draw (12.75,-0.35) node [below] {$12558$} [short line] -- +(0,0.35);
-  \draw (12.75,-3pt) -- (12.75,3pt);
-  \draw[time line] (14,2.6) -- (14,0);
-  \draw (13.7,0) node [below] {$14058$};
-  \draw (14,0) -- (14,3pt);
-  \draw[time line] (14.25,1.9) -- (14.25,0);
-  \draw (14.25,-0.35) node [below] {$14078$} [short line] -- +(0,0.35);
-  \draw (14.25,-3pt) -- (14.25,3pt);
-  \draw[time line] (15,1.9) -- (15,0);
-  \draw (15,0) node [below] {$15000$};
-  \draw (15,0) -- (15,3pt);
-
-  % axes
-  \draw[->,thick] (0,0) -- (15.7,0) node [above] {time(${\mu}s$)};
-  \draw[thin] (0,0) -- (0,3.8);
-
-  % tips of tasks
-  \draw (0,0.6) node [left] {switching};
-  \draw (0,1.3) node [left] {scheduling};
-  \draw (0,2) node [left] {$\tau_3$};
-  \draw (0,2.7) node [left] {$\tau_2$};
-  \draw (0,3.4) node [left] {$\tau_1$};
-
-  % tasks
-  \filldraw[system task] (0,1.2) rectangle +(0.5,0.2);
-  \filldraw[periodic task] (0.5,3.3) rectangle +(2,0.2);
-  \filldraw[system task] (2.5,0.5) rectangle +(0.25,0.2);
-  \filldraw[periodic task] (2.75,2.6) rectangle +(1.25,0.2);
-  \filldraw[system task] (4,0.5) rectangle +(0.25,0.2);
-  \filldraw[periodic task] (4.25,1.9) rectangle +(0.75,0.2);
-  
-  \filldraw[system task] (5,1.2) rectangle +(0.5,0.2);
-  \filldraw[periodic task] (5.5,3.3) rectangle +(2,0.2);
-  \filldraw[system task] (7.5,0.5) rectangle +(0.25,0.2);
-  \filldraw[periodic task] (7.75,1.9) rectangle +(2.25,0.2);
-  
-  \filldraw[system task] (10,1.2) rectangle +(0.5,0.2);
-  \filldraw[periodic task] (10.5,3.3) rectangle +(2,0.2);
-  \filldraw[system task] (12.5,0.5) rectangle +(0.25,0.2);
-  \filldraw[periodic task] (12.75,2.6) rectangle +(1.25,0.2);
-  \filldraw[system task] (14,0.5) rectangle +(0.25,0.2);
-  \filldraw[periodic task] (14.25,1.9) rectangle +(0.75,0.2);
-
-  % initiation of tasks
-  \foreach \x in {0,5,10}
-    \draw [init] (\x,3.3) -- +(0,-0.1);
-  \foreach \x in {0,10}
-    \draw [init] (\x,2.6) -- +(0,-0.1);  
-  \foreach \x in {0,15}
-    \draw [init] (\x,1.9) -- +(0,-0.1); 
-
-  % completion of tasks
-  \draw [complete] (2.5,3.5) -- +(0,0.1);
-  \draw [complete] (4,2.8) -- +(0,0.1);
-  \draw [complete] (7.5,3.5) -- +(0,0.1);
-  \draw [complete] (12.5,3.5) -- +(0,0.1);
-  \draw [complete] (14,2.8) -- +(0,0.1);
-
-  % text
-  \draw[{Stealth}-,thick] (15,2.2) -- +(0,1.5)
-    node [above] {\emph{Misses Deadline!}};
-
-  % legend
-  \begin{scope}[xshift = -1.2cm]  
-    \draw [fill=gray!25,draw=gray!50,dashed] (1.5,4) rectangle +(8,1);
-    \draw (1.5,4.5) node [above right] {LEGEND};
-    \draw [init] (2,4.4) -- +(0,-0.1);
-    \draw (2.2,4.55) node [below right] {: Initiation of Tasks};
-    \draw [complete] (6,4.2) -- +(0,0.1);
-    \draw (6.2,4.55) node [below right] {: Completion of Tasks};
-  \end{scope}
-\end{tikzpicture}
+\includegraphics{ce.pdf}
 \caption{A counterexample of schedulability in Scenario~(iv). The first
   job instance of $\tau_3$ misses its deadline at time $15ms$, which
   is the initiation time for the second job instance of $\tau_3$.}
@@ -1117,29 +867,30 @@ a given task set. No necessity to modify the model is needed.
 
 Instantiating our model on dense time domain and choosing the
 \emph{maximal time sampling strategy}, the results of the model
-checking show that the correctness property holds in all scenarios. As
-to the schedulability property, it holds in Scenarios~(i-iii), but
+checking show that correctness property holds in all scenarios. 
+%% As to the 
+Schedulability property holds in Scenarios~(i--iii), but
 fails in Scenario~(iv).  One counterexample of the schedulability
 within Scenario~(iv), returned by the model checking command, is
-pictured in Figure~\ref{f:counterexample}, where the third task
-$\tau_3$ misses its deadline at the time $15ms$.
+pictured in Fig.~\ref{f:counterexample}, where
+$\tau_3$ misses its deadline at time $15ms$.
 
 The results above have demonstrated that our approach is capable of
-handling realistic industrial systems. However to further exam the
+handling realistic industrial systems. However, to further exam the
 efficiency of our approach, we also apply our method to larger test
 scenarios. Test scenarios are generated randomly. We verify the
 schedulability of them under the above setting on an Intel Core 2 Quad
-Q9550, 2.83GHz, 4-cores machine with 8GB RAM running 64-bit Ubuntu
+Q9550, 2.83GHz, 4-core machine with 8GB RAM running 64-bit Ubuntu
 15.04. Among the 50 generated test scenarios with 5 tasks, we find
 that the execution time of the model checking command for each
 scenario varies from about $300ms$ up to a timeout, which is set to
 $90$ minutes. This is because the efficiency of model checking depends
 on the scale of the state space. And the scale is further positively
-correlated with $mn$, where $m$ is the upper bound of $timer$ and $n$
-is the number of periodic tasks. By the generated test scenarios, it
-turns out that the model checking command for schedulability in our
-model is able to handle scenarios, where $mn$ is up to about $10^6$,
-in an acceptable period of time say $90$ minutes.
+correlated with $mn$, where $m$ is the upper bound of $\mathit{timer}$
+and $n$ is the number of periodic tasks. By the generated test
+scenarios, it turns out that the model checking command for
+schedulability in our model is able to handle scenarios, where $mn$ is
+up to about $10^6$, in an acceptable period of time say $90$ minutes.
 
 
 \subsection{Evaluation}
@@ -1152,7 +903,7 @@ using such a method is a real counterexample of the question, and
 such a method implies no counterexample exists for the question in
 analysis. The soundness of our results is trivial to check, simply by
 examining the counterexamples found. For instance, the counterexample
-shown in Figure~\ref{f:counterexample} is a real counterexample,
+shown in Fig.~\ref{f:counterexample} is a real counterexample,
 implying that the result for schedulability of Scenario~(iv) is
 sound. But this is not the case for completeness, since we choose
 instantiating our model on dense time domain to make it more real but
@@ -1182,13 +933,13 @@ Therefore, we achieve the following theorem, showing that the results
 in Section~\ref{ss:results} are complete.
 \begin{theorem}
 \label{t:main}
-Our approach using untimed model checking to verify the schedulability
-and the correctness of our model is complete.
+Our approach using untimed model checking to verify schedulability
+and correctness of our model is complete.
 \end{theorem}
 \begin{IEEEproof}
 By showing that our model is time-robust and that the two defined
-atomic propositions--\verb|taskTimeout| and \verb|correct|--are
-tick-invariant, then using Theorem~\ref{t:completeness}. For a more
+atomic propositions -- \verb|taskTimeout| and \verb|correct| -- are
+tick-invariant, then applying Theorem~\ref{t:completeness}. For a more
 detailed proof, see the Appendix.
 \end{IEEEproof}
 
@@ -1209,7 +960,7 @@ necessary and sufficient conditions for schedulability were derived
 independently in~\cite{DBLP:journals/rts/SpruntSL89}
 and~\cite{audsley1993deadline}, requiring more sophisticated analysis
 on the task set. Nevertheless, all these results take no overhead into
-account, being not as realistic as ours. Katcher et al. did consider
+account, being not as realistic as ours. Katcher et al.\ did consider
 overhead in their schedulability analysis, under several models based
 on different kinds of popular
 implementations~\cite{DBLP:journals/tse/KatcherAS93}.  However, our
@@ -1222,13 +973,13 @@ design, by changing either the priorities or even the scheduling
 algorithm. The second is that, when a fresh scheduling strategy is
 applied, our analysis can be adjusted only by modifying the model,
 while theoretical approaches may need thorough analyses and reasoning.
-The last one is that, considering overhead and details of hardware do
+The last one is that, considering overhead and details of hardware does
 introduce some kind of non-determinism into the model. For example, in
 our model, if the running task is complete \emph{right} at the time
 when an interrupt request occurs, two different behaviors are
-possible: (i) the system performs task switching, during which the
+possible: (i)~the system performs task switching, during which the
 interrupt request is masked, hence the scheduling and initiation of
-tasks may be delayed; (ii) the system answers the interrupt request
+tasks may be delayed; (ii)~the system answers the interrupt request
 immediately, the switching being delayed. Tackling such
 non-determinism via theoretical analyses seems more complicated than
 our automatic approach.
@@ -1276,17 +1027,11 @@ We have formally modeled a realistic implementation of RMS using
 Real-Time Maude, a modeling language based on rewriting logic. By
 taking into account the overhead of scheduling and switching, and by
 modeling some mechanism of the hardware, our model contains sufficient
-details to be analyzed for the behaviors of the real target
-system. Two important properties--schedulability and correctness--are
-verified by model checking on our model, within several key
+details to be analyzed for behaviors of the real target
+system. Two important properties -- schedulability and correctness --
+are verified by model checking on our model, within several key
 scenarios. We demonstrate the soundness and completeness of our
 results.
-
-
-%% \begin{figure}[!t]\centering
-%% 	\includegraphics[width=8.5cm]{FIG1.eps}
-%% 	\caption{Magnetization as a function of applied field. Note that ``Fig.'' is abbreviated. There is a period after the figure number, followed by two spaces. It is good practice to explain the significance of the figure in the caption.}\label{FIG_1}
-%% \end{figure}
 
 
 \appendix[Proof of Theorem~\ref{t:main}]
@@ -1333,7 +1078,7 @@ operation defined on sort \verb|Time|;
 
 \item
 [(iv)] \verb|mte(|$\sigma(l)$\verb|)|$= 0$ for each ground instance
-$\sigma(l)$ of each left-hand side of an instantaneous rewrite rule.
+$\sigma(l)$ of each left-hand side $l$ of an instantaneous rewrite rule.
 \end{enumerate}
 \end{lemma}
 
@@ -1341,31 +1086,32 @@ Each one-step rewrite can be categorized and then tick-invariance can
 be defined:
 \begin{definition}[\cite{DBLP:journals/entcs/OlveczkyM07a}]
 A one-step rewrite $t\lrps{r}{1}t'$ using a tick rule and having
-duration $r$ is:\\
-- a \emph{maximal tick step}, written $t\lrps{r}{max}t'$, if there is
-no time value $r'>r$ such that $t\lrps{r'}{1}t''$ for some $t''$; \\
-- an \emph{$\infty$ tick step}, written $t\lrps{r}{\infty}t'$, if
-for each time value $r'>0$, there is a tick rewrite step
-$t\lrps{r'}{1}t''$; and \\
-- a \emph{non-maximal tick step} if there is a maximal tick step
-$t\lrps{r'}{max}t''$ for $r'>r$.
+duration $r$ is:
+\begin{itemize}
+\item[--] a \emph{maximal tick step}, written $t\lrps{r}{max}t'$, if
+  there is no time value $r'>r$ such that $t\lrps{r'}{1}t''$ for some
+  $t''$;
+\item[--] an \emph{$\infty$ tick step}, written $t\lrps{r}{\infty}t'$,
+  if for each time value $r'>0$, there is a tick rewrite step
+  $t\lrps{r'}{1}t''$; and
+\item[--] a \emph{non-maximal tick step} if there is a maximal tick
+  step $t\lrps{r'}{max}t''$ for $r'>r$.
+\end{itemize}
 \end{definition}
 \begin{definition}[\cite{DBLP:journals/entcs/OlveczkyM07a}]
-  A time-robust specification $\cal R$ is \emph{tick-invariant} with
-  respect to a set $P$ of propositions if and only if it is the case
-  that $t\simeq_P t'$ holds for each non-maximal or $\infty$ tick step
-  $t\lrps{r}{}t'$.
+  A time-robust specification $\mathcal{R}$ is \emph{tick-invariant} with
+  respect to a set $P$ of propositions if and only if $t\simeq_P t'$
+  holds for each non-maximal or $\infty$ tick step $t\lrps{r}{}t'$.
 \end{definition}
 
 The following lemma is needed to prove the tick-invariance of our
 defined propositions:
 \begin{lemma}[\cite{DBLP:journals/entcs/OlveczkyM07a}]
 \label{l:tickinv}
-Let $\cal R$ be a time-robust object-oriented specification with a
+Let $\mathcal{R}$ be a time-robust object-oriented specification with a
 standard tick rule, and let the infinity element \verb|INF| be the
 only element in the time domain which is not a normal time value.
-%and let the time domain be \emph{linear}. 
-Then $\cal R$ is tick-invariant with respect to a set $P$ of atomic
+Then $\mathcal{R}$ is tick-invariant with respect to a set $P$ of atomic
 propositions if \verb|{|$t$\verb|}| $\simeq_P$
 \verb|{delta(|$t$\verb|,|$r$\verb|)}| for all $t,r$ with $r<$
 \verb|mte(|$t$\verb|)|.
@@ -1383,20 +1129,20 @@ propositions if \verb|{|$t$\verb|}| $\simeq_P$
 Several auxiliary lemmas are proved:
 \begin{lemma}
 \label{l:auxtask}
-Given $ID$ of sort \verb|MaybeNat| and $L$ of sort \verb|TaskList|,
-\verb|mteTask(|$ID$\verb|,deltaTask(|$ID$\verb|,|$L$\verb|,|$r$\verb|))|
-$=$ \verb|mteTask(|$ID$\verb|,|$L$\verb|)| \verb|monus| $r$ for all
-$r\le$ \verb|mteTask(|$ID$\verb|,|$L$\verb|)|.
+Given $\mathit{ID}$ of sort \verb|MaybeNat| and $L$ of sort
+\verb|TaskList|, $\mteTask{\mathit{ID}}{\deltaTask{\mathit{ID}}{L}{r}}
+= \mteTask{\mathit{ID}}{L}\; \verb|monus|\;r$ for all
+$r\le\mteTask{\mathit{ID}}{L}$.
 \end{lemma}
 \begin{IEEEproof}
-If $ID=$ \verb|none|, the case is trivial. By definition,
-\verb|mteTask(none,deltaTask(none,|$L$\verb|,|$r$\verb|))| $=$
-\verb|mteTask(none,|$L$\verb|)| $=$ \verb|INF| $=$
-\verb|mteTask(none,|$L$\verb|)| \verb|monus| $r$. Otherwise, $ID=$
-\verb|some| $N$ with $N$ of sort \verb|Nat|. Assume that the
-\verb|cnt| of the $N$th task in $L$ is
+If $\mathit{ID}=\verb|none|$, the case is trivial. By definition,
+$\mteTask{\texttt{none}}{\deltaTask{\texttt{none}}{L}{r}} =
+\mteTask{\texttt{none}}{L} = \verb|INF| =
+\mteTask{\texttt{none}}{L}\\ \verb|monus|\; r$. Otherwise,
+$\mathit{ID}= \verb|some|~N$ with $N$ of sort \verb|Nat|. Assume that
+the \verb|cnt| of the $N$th task in $L$ is
 \verb|[|$r_e$\verb|/|$C$\verb|]|. Then by definition,
-\verb|deltaTask(|$ID$\verb|,|$L$\verb|,|$r$\verb|)| $= L'$, where the
+$\deltaTask{\mathit{ID}}{L}{r}=L'$, where the
 $N$th task in $L'$ has \verb|cnt| value being
 \verb|[|$(r_e+r)$\verb|/|$C$\verb|]|. Hence,
 \begin{IEEEeqnarray*}{Cl}
@@ -1407,35 +1153,37 @@ $N$th task in $L'$ has \verb|cnt| value being
 = & C~\verb|monus|~(r_e+r) 
 = (C~\verb|monus|~r_e)~\verb|monus|~r 
 \\
-= & \mteTask{ID}{L}~\verb|monus|~r~. 
+= & \mteTask{ID}{L}~\verb|monus|~r\;. \hfill\IEEEQEDhere
 \end{IEEEeqnarray*}
 \end{IEEEproof}
 \begin{lemma}
 \label{l:auxis}
-Given $ISRC$ of class \verb|IntSrc| representing an reasonable state
-of interrupt source in our model, \mteIS{\deltaIS{$ISRC$}{$r$}} $=$
-\mteIS{$ISRC$} \verb|monus| $r$ for all $r\le$ \mteIS{$ISRC$}.
+Given $\mathit{ISRC}$ of class \verb|IntSrc| representing an
+reasonable state of interrupt source in our model,
+$\mteIS{\deltaIS{\mathit{ISRC}}{r}} = \mteIS{\mathit{ISRC}}\;
+\verb|monus|\\ r$ for all $r\le\mteIS{\mathit{ISRC}}$.
 \end{lemma}
 \begin{IEEEproof}
-A reasonable $ISRC$ must be of the form \IntSrc{$O$}{$v$}{$T$} with
-$v\le T$. Thus by definition, 
+A reasonable $\mathit{ISRC}$ must be of the form
+\IntSrc{$O$}{$v$}{$T$} with $v\le T$. Thus,
 \begin{IEEEeqnarray*}{Cl}
-  & \mteIS{\deltaIS{ISRC}{r}}
+  & \mteIS{\deltaIS{\mathit{ISRC}}{r}}
 \\  
 = & \mteIS{\IntSrc{O}{(v~\texttt{monus}~r)}{T}}
 \\
-= & v~\verb|monus|~r
-= \mteIS{ISRC}~\verb|monus|~r~.
+= & v~\texttt{monus}~r
+= \mteIS{\mathit{ISRC}}~\texttt{monus}~r\;. \hfill\IEEEQEDhere
 \end{IEEEeqnarray*}
 \end{IEEEproof}
 \begin{lemma}
 \label{l:auxhw}
-Given $HW$ of sort \verb|Hardware|, for all $r\le$ \mteIr{$HW$},
-\mteIr{$HW$} $=$ \mteIr{$HW$} \verb|monus| $r$.
+Given $\mathit{HW}$ of sort \verb|Hardware|, for all
+$r\le\mteIr{\mathit{HW}}$, $\mteIr{\mathit{HW}} =
+\mteIr{\mathit{HW}}\; \verb|monus|\; r$.
 \end{lemma}
 \begin{IEEEproof}
   It concludes by discussing on whether there exists an interrupt
-  request detected in $HW$.
+  request detected in $\mathit{HW}$.
 \end{IEEEproof}
 
 Now we can present the detailed proof of Theorem~\ref{t:main}:
@@ -1447,13 +1195,13 @@ domain \verb|POSRAT-TIME-DOMAIN-WITH-INF|, our model has \verb|INF| as
 the only element which is not a normal time value. As presented in
 Section~\ref{ss:timedbehavior}, only a single standard tick rule is
 defined. Hence our model is time-robust by
-Lemma~\ref{l:timerobustness} provided conditions (i-iv) hold.
+Lemma~\ref{l:timerobustness} provided conditions (i--iv) hold.
 
 Condition~(i). We must prove \verb|mte(delta(|$s$\verb|,|$r$\verb|))|
 $=$ \verb|mte(|$s$\verb|)| \verb|monus| $r$ for all $r\le$
 \verb|mte(|$s$\verb|)|, with $s$ being a system state of sort
 \verb|System|. Let $s$ be of the form
-$(\mathit{L}~\mathit{T}~\mathit{STS}~\mathit{HW}~\mathit{ISRC})$ and
+$(L~T~\mathit{STS}~\mathit{HW}~\mathit{ISRC})$ and
 $\mathit{ID}=\verb|(|\mathit{HW}\verb|).getPc|$. We only consider the
 case $\mathit{ID}$\verb|::MaybeNat| in detail, while the other case
 $\mathit{ID}$\verb|::Oid| is similar. By definitions of \verb|mte| and
@@ -1461,79 +1209,79 @@ $\mathit{ID}$\verb|::Oid| is similar. By definitions of \verb|mte| and
 \begin{IEEEeqnarray*}{Cl}
   & \mteS{\deltaS{s}{r}}
 \\  
-= & \mteS{\deltaTask{ID}{L}{r}
+= & \mteS{\deltaTask{\mathit{ID}}{L}{r}
 \\
-  & \;\;\;\;\;\;\;\;\;T~STS~HW~\deltaIS{ISRC}{r}}
+  & \;\;\;\;\;\;\;\;\;T~\mathit{STS}~\mathit{HW}~\deltaIS{\mathit{ISRC}}{r}}
 \\
-= & \verb|minimum(|\mteTask{ID}{\deltaTask{ID}{L}{r}}\verb|,|
+= & \verb|minimum(|\mteTask{\mathit{ID}}{\deltaTask{\mathit{ID}}{L}{r}}\verb|,|
 \\
-  & \verb|        |\mteIS{\deltaIS{ISRC}{r}}\verb|,|
+  & \verb|        |\mteIS{\deltaIS{\mathit{ISRC}}{r}}\verb|,|
 \\
-  & \verb|        |\mteIr{HW}\verb|)|~.
+  & \verb|        |\mteIr{\mathit{HW}}\verb|)|\;.
 \end{IEEEeqnarray*}
 By Lemmas~\ref{l:auxtask},~\ref{l:auxis} and~\ref{l:auxhw}, it can be
 further reduced:
 \begin{IEEEeqnarray*}{Cl}
   & \mteS{\deltaS{s}{r}}
 \\  
-= & \verb|minimum(|\mteTask{ID}{L}~\verb|monus|~r~\verb|,|
+= & \verb|minimum(|\mteTask{\mathit{ID}}{L}~\verb|monus|~r~\verb|,|
 \\
-  & \verb|        |\mteIS{ISRC}~\verb|monus|~r~\verb|,|
+  & \verb|        |\mteIS{\mathit{ISRC}}~\verb|monus|~r~\verb|,|
 \\
-  & \verb|        |\mteIr{HW}~\verb|monus|~r~\verb|)|
+  & \verb|        |\mteIr{\mathit{HW}}~\verb|monus|~r~\verb|)|
 \\
-= & \verb|minimum(|\mteTask{ID}{L}\verb|,|
+= & \verb|minimum(|\mteTask{\mathit{ID}}{L}\verb|,|
 \\
-  & \verb|        |\mteIS{ISRC}\verb|,|
+  & \verb|        |\mteIS{\mathit{ISRC}}\verb|,|
 \\
-  & \verb|        |\mteIr{HW}\verb|)|~\verb|monus|~r
+  & \verb|        |\mteIr{\mathit{HW}}\verb|)|~\verb|monus|~r
 \\
-= & \mteS{s}~\verb|monus|~r~.
+= & \mteS{s}~\verb|monus|~r\;.
 \end{IEEEeqnarray*}
 
 Condition~(ii) follows from the fact that $r+0=r$ and
-$r$~\verb|monus|~$0=r$ for all $r$.
+$r~\verb|monus|~0=r$ for all $r$.
 
-Condition~(iii). We must prove \deltaS{\deltaS{$s$}{$r$}}{$r'$} $=$
-\deltaS{$s$}{$r+r'$} for all $r+r'\le$ \mteS{$s$}, with $s$ being a
-system state of sort \verb|System|. Using the same notations as in~(i),
-we only consider the case $\mathit{ID}$\verb|::MaybeNat| in detail. 
-By definition, the left side of the equation
+Condition~(iii). We must prove $\deltaS{\deltaS{s}{r}}{r'}\\ =
+\deltaS{s}{r+r'}$ for all $r+r'\le\mteS{s}$, with $s$ being a system
+state of sort \verb|System|. Using the same notations as in~(i), we
+only consider the case $\mathit{ID}$\verb|::MaybeNat| in detail. By
+definition, the left side of the equation
 \begin{IEEEeqnarray*}{Cl}
   & \deltaS{\deltaS{s}{r}}{r'}
 \\  
-= & \verb|(|\deltaTask{ID}{\deltaTask{ID}{L}{r}}{r'}
+= & \verb|(|\deltaTask{\mathit{ID}}{\deltaTask{\mathit{ID}}{L}{r}}{r'}
 \\
-  & \verb| |~T~STS~HW~\deltaIS{\deltaIS{ISRC}{r}}{r'}\verb|)|~\mbox{,}
+  & \verb| |~T~\mathit{STS}~\mathit{HW}~\deltaIS{\deltaIS{\mathit{ISRC}}{r}}{r'}\verb|)|~\mbox{,}
 \end{IEEEeqnarray*}
 and the right side of the equation
 \begin{IEEEeqnarray*}{Cl}
   & \deltaS{s}{r+r'}
 \\  
-= & \verb|(|\deltaTask{ID}{L}{r+r'}
+= & \verb|(|\deltaTask{\mathit{ID}}{L}{r+r'}
 \\
-  & \verb| |~T~STS~HW~\deltaIS{ISRC}{r+r'}\verb|)|~\mbox{.}
+  & \verb| |~T~\mathit{STS}~\mathit{HW}~\deltaIS{\mathit{ISRC}}{r+r'}\verb|)|~\mbox{.}
 \end{IEEEeqnarray*}
-\deltaTask{$ID$}{\deltaTask{$ID$}{$L$}{$r$}}{$r'$} $=$
-\deltaTask{$ID$}{$L$}{$r+r'$} holds by the associativity of $+$, while
-\deltaIS{\deltaIS{$ISRC$}{$r$}}{$r'$} $=$ \deltaIS{$ISRC$}{$r+r'$}
-holds since $(v$ \verb|monus| $r)$ \verb|monus| $r'$ $=$ $v$
-\verb|monus| $(r+r')$ with $v$ of sort \verb|Time|. Thus
-condition~(iii) holds.
+$\deltaTask{\mathit{ID}}{\deltaTask{\mathit{ID}}{L}{r}}{r'}
+=\deltaTask{\mathit{ID}}{L}{r+r'}$ holds by the associativity of $+$,
+while
+$\deltaIS{\deltaIS{\mathit{ISRC}}{r}}{r'}\!=\!\deltaIS{\mathit{ISRC}}{r+r'}$
+holds since $(v\; \verb|monus|\; r)\; \verb|monus|\; r'\\ = v\;
+\verb|monus|\; (r+r')$ with $v$ of sort \verb|Time|. Thus (iii) holds.
 
 Condition~(iv). We show that \verb|mte| of each instance of the
 left-hand side of any instantaneous rule is $0$. For example,
-considering the (conditional) rule \verb|interrupt-request|, with its
-condition \verb|(|$ISRC$\verb|).timeout|, we know that the \verb|val|
-of $ISRC$ equals $0$. Therefore,
+considering the rule \verb|interrupt-request|, with its
+condition \verb|(|$\mathit{ISRC}$\verb|).timeout|, we know that \verb|val|
+of $\mathit{ISRC}$ equals $0$. Therefore,
 \begin{IEEEeqnarray*}{Cl}
-  & \mteS{L~T~STS~HW~ISRC}
+  & \mteS{L~T~\mathit{STS}~\mathit{HW}~\mathit{ISRC}}
 \\  
-= & \verb|minimum(|\mteTask{ID}{L}\verb|,|
+= & \verb|minimum(|\mteTask{\mathit{ID}}{L}\verb|,|
 \\
-  & \verb|        |\mteIS{ISRC}\verb|,| \mteIr{HW}\verb|)|
+  & \verb|        |\mteIS{\mathit{ISRC}}\verb|,| \mteIr{\mathit{HW}}\verb|)|
 \\
-= & \verb|minimum(|\mteTask{ID}{L}\verb|,|~0~\verb|,| \mteIr{HW}\verb|)|
+= & \verb|minimum(|\mteTask{\mathit{ID}}{L}\verb|,|~0~\verb|,| \mteIr{\mathit{HW}}\verb|)|
 \\
 = & 0~\mbox{.}
 \end{IEEEeqnarray*}
@@ -1541,51 +1289,42 @@ The other rules can be similarly proved with their conditions. Hence
 our model is time-robust by Lemma~\ref{l:timerobustness}.
 
 Finally we prove the tick-invariance of the propositions used to
-analyze our model, i.e. \verb|taskTimeout| and \verb|correct|. By
+analyze our model, i.e.\ \verb|taskTimeout| and \verb|correct|. By
 Lemma~\ref{l:tickinv}, we must prove
 $\verb|{|s\verb|}|\simeq_P\verb|{|\deltaS{s}{r}\verb|}|$ with $s$ of
 sort \verb|System| and $r<\mteS{s}$, that is, applying a tick rule
 advancing $r$ time units will not change the value of each
-proposition. Let $s$ be
-$(\mathit{L}~\mathit{T}~\mathit{STS}~\mathit{HW}~\mathit{ISRC})$ and
-$\verb|(|\mathit{HW}\verb|).getPc|=\mathit{ID}$.
+proposition. Let $s$ be $(L~T~\mathit{STS}~\mathit{HW}~\mathit{ISRC})$
+and $\verb|(|\mathit{HW}\verb|).getPc|=\mathit{ID}$.
 \begin{itemize}
-\item \verb|taskTimeout| holds if and only if $L$ contains an
-  \verb|error|. Since \verb|delta| does not produce or eliminate
+\item \verb|taskTimeout| holds if and only if $L$ contains
+  \verb|error|s. Since \verb|delta| does not produce or eliminate
   \verb|error| in $L$, \verb|taskTimeout| holds in $s$ if and only if
   \verb|taskTimeout| holds in $\deltaS{s}{r}$ for any $r<\mteS{s}$,
-  which means that our model is tick-invariant with respect to
+  implying our model is tick-invariant with respect to
   \verb|taskTimeout|.
-\hide{ 
-In our model, an \verb|error| cannot be eliminated by any operations,
-hence, if \verb|taskTimeout| holds in $s$, it must hold in
-$\deltaS{s}{r}$. On the other hand, \verb|error| can pop up only when
-operation \verb|update_with_| is applied, i.e., only when the
-instantaneous rule \verb|interrupt-handle| applies. If
-\verb|taskTimeout| does not hold in $s$, it will not hold either in
-$\deltaS{s}{r}$ for any $r<\mteS{s}$, since instantaneous rules cannot
-apply in $\deltaS{s}{r'}$ for any $r'<\mteS{s}$ by time-robustness.}
-\item The value of \verb|correct| depends on $ID$ and the status of
-  each task in $L$. Similarly, \verb|delta| does not change $ID$ or
-  the status of any task in $L$, hence \verb|correct| holds in $s$ if
-  and only if \verb|correct| holds in $\deltaS{s}{r}$ for any
-  $r<\mteS{s}$. It concludes the tick-invariance of \verb|correct|.
+\item The value of \verb|correct| depends on $\mathit{ID}$ and
+  status of each task in $L$. Similarly, \verb|delta| does not change
+  $\mathit{ID}$ or status of any task in $L$, hence \verb|correct|
+  holds in $s$ if and only if \verb|correct| holds in $\deltaS{s}{r}$
+  for any $r<\mteS{s}$. It concludes the tick-invariance of
+  \verb|correct|.
 \end{itemize}
 
 Therefore, by Theorem~\ref{t:completeness}, our approach using untimed
-model checking to verify the schedulability and the correctness is
-complete.
+model checking to verify schedulability and correctness is complete.
 \end{IEEEproof}
 
 
 \section*{Acknowledgment}
-The authors would like to thank the reviewers for their invaluable
-comments and suggestions.
+The authors would like to thank the reviewers and editors for their
+invaluable comments and suggestions.
 
 %% References
 
 \bibliographystyle{Bibliography/IEEEtranTIE}
-\bibliography{Bibliography/IEEEabrv,Bibliography/main}\ %IEEEabrv instead of IEEEfull
+\bibliography{Bibliography/IEEEabrv,Bibliography/main}\ 
+%IEEEabrv instead of IEEEfull
 
 
 %% Biographies

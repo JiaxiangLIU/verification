@@ -3,7 +3,8 @@
 \usepackage{graphicx}
 \usepackage[noadjust]{cite}
 \usepackage{picinpar}
-\usepackage{amsmath}
+\usepackage[cmex10]{amsmath}
+\interdisplaylinepenalty=2500
 \usepackage{stfloats}
 \usepackage{url}
 \usepackage{flushend}
@@ -24,13 +25,13 @@
 %% My packages
 %% \usepackage[cmex10]{amsmath}
 %% \interdisplaylinepenalty=2500
-\usepackage{algpseudocode}
+%% \usepackage{algpseudocode}
 %% \usepackage{array}
 %%\usepackage{dblfloatfix}
 %%\usepackage[caption=false,font=footnotesize]{subfig}
 
-\usepackage{tikz}
-\usetikzlibrary{arrows.meta}
+%% \usepackage{tikz}
+%% \usetikzlibrary{arrows.meta}
 %% \usepackage{mathabx}
 
 
@@ -60,31 +61,38 @@
   Ming~Gu,
   and Jiaguang~Sun
 
-  \thanks{
-    Manuscript received November 8, 2015; revised March 30, 2016 and
-    July 13, 2016; accepted October 20, 2016. This work was supported
-    in part by NSFC Program (No. 91218302, No. 61527812), National
-    Science and Technology Major Project (No. 2016ZX01038101), MIIT
-    IT funds (Research and application of TCN key technologies) of
-    China, and The National Key Technology R\&D Program
-    (No. 2015BAG14B01-02).
+  \thanks{ 
+    Manuscript received November 8, 2015; revised March 30,
+    2016 and July 13, 2016; accepted October 20, 2016. This work was
+    supported in part by NSFC Program (No.\ 91218302, No.\ 61527812,
+    No.\ 91218302), National Science and Technology Major Project
+    (No.\ 2016ZX01038101), MIIT IT funds (Research and application of
+    TCN key technologies) of China, and The National Key Technology
+    R\&D Program (No.\ 2015BAG14B01-02).
 
-    J. Liu is with the Department of Computer Science \& Technology,
-    Tsinghua University, Beijing 100084, China, and also with LIX,
-    \'Ecole Polytechnique, Palaiseau 91120, France (e-mail:
+    J.\ Liu is with the Department of Computer Science \& Technology,
+    Tsinghua University, Beijing, China 
+    \hide{, and also with LIX,
+    \'Ecole Polytechnique, Palaiseau 91120, France} (e-mail:
     jiaxiang.liu@hotmail.com).
 
-    M. Zhou is with the School of Software, Tsinghua University,
+    M.\ Zhou is with the School of Software, Tsinghua University,
     Beijing 100084, China (corresponding author; phone:
-    +86-10-6277-3275; fax: +86-10-6278-3549; e-mail: zhoumin03@gmail.com).
+    +86-10-6277-3275; fax: +86-10-6278-3549; e-mail:
+    zhoumin03@gmail.com).
 
-    X. Song is with the Department of Electrical \& Computer
+    X.\ Song is with the Department of Electrical \& Computer
     Engineering, Portland State University, Portland, OR 97207-0751,
     USA.
 
-    M. Gu and J. Sun are with the School of Software, Tsinghua
-    University, Beijing 100084, China.
-  }
+    M.\ Gu and J.\ Sun are with the School of Software, Tsinghua
+    University, Beijing 100084, China.  
+
+    J.\ Liu, M.\ Zhou, M.\ Gu and J.\ Sun are also with Key Laboratory
+    for Information System Security, Ministry of Education, China, and
+    Tsinghua National Laboratory for Information Science and
+    Technology, China.  
+  }  
 }
 
 \maketitle
@@ -1330,18 +1338,17 @@ invaluable comments and suggestions.
 %% Biographies
 
 \begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{J_Liu.jpg}}]%
-{Jiaxiang Liu} received his B.S. degree from the School of Software,
-Tsinghua University, China, in 2010. He is now a co-supervised
-Ph.D. candidate between the Department of Computer Science and
-Technology, Tsinghua University, China and LIX, \'Ecole Polytechnique,
-France. His research interests include formal methods, rewrite systems
-and embedded systems.
+{Jiaxiang Liu} received his B.S.\ degree in computer software from
+Tsinghua University, China in 2010. He is now a Ph.D.\ candidate in
+the Department of Computer Science and Technology, Tsinghua
+University, China. His research interests include formal methods,
+rewrite systems and embedded systems.
 \end{IEEEbiography}
 
 \begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{M_Zhou.jpg}}]%
-{Min Zhou} received his B.S. degree from the Department of
-Mathematical Science and Ph.D. degree from the Department of Computer
-Science and Technology, Tsinghua University, China, in 2007 and 2014,
+{Min Zhou} received his B.S.\ degree from the Department of
+Mathematical Science and Ph.D.\ degree from the Department of Computer
+Science and Technology, Tsinghua University, China in 2007 and 2014,
 respectively. He is now a lecturer at the School of Software, Tsinghua
 University. His research interests include model checking, program
 analysis and testing.
@@ -1349,7 +1356,7 @@ analysis and testing.
 
 %% \vspace{-2cm}
 \begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{X_Song.jpg}}]%
-{Xiaoyu Song} () received the Ph.D. degree from the University of
+{Xiaoyu Song} () received the Ph.D.\ degree from the University of
 Pisa, Italy, in 1991. From 1992 to 1998, he was on the faculty at the
 University of Montreal, Canada. He joined the Department of Electrical
 and Computer Engineering at Portland State University in 1998, where
@@ -1362,19 +1369,19 @@ emerging technologies.
 
 \begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{M_Gu.jpg}}]%
 {Ming Gu} is a professor at the School of Software, Tsinghua
-University and vice-director of Ministry of Education Key Laboratory
-of Information Security, China. Her research interests include
-software formal methods, software trustworthiness and middleware
-technology.
+University, China. She is also vice-director of Key Laboratory for
+Information System Security, Ministry of Education, China. Her
+research interests include software formal methods, software
+trustworthiness and middleware technology.
 \end{IEEEbiography}
 
 \begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{J_Sun.jpg}}]%
 {Jiaguang Sun} is a professor and dean of the School of Information
 Science and Technology in Tsinghua University, China. He is also a
 member of the Chinese Academy of Engineering, director of Ministry of
-Education Key Laboratory of Information Security, and director of
-Tsinghua National Laboratory for Information Science and Technology,
-China. His research interests include computer graphics,
+Education Key Laboratory for Information System Security, and director
+of Tsinghua National Laboratory for Information Science and
+Technology, China. His research interests include computer graphics,
 computer-aided design, formal verification of software, software
 engineering, and system architecture.
 \end{IEEEbiography}

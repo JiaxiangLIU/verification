@@ -3,8 +3,7 @@
 \usepackage{graphicx}
 \usepackage[noadjust]{cite}
 \usepackage{picinpar}
-\usepackage[cmex10]{amsmath}
-\interdisplaylinepenalty=2500
+\usepackage{amsmath}
 \usepackage{stfloats}
 \usepackage{url}
 \usepackage{flushend}
@@ -22,21 +21,6 @@
 \usepackage{epstopdf}
 \usepackage{pbox}
 
-%% My packages
-%% \usepackage[cmex10]{amsmath}
-%% \interdisplaylinepenalty=2500
-%% \usepackage{algpseudocode}
-%% \usepackage{array}
-%%\usepackage{dblfloatfix}
-%%\usepackage[caption=false,font=footnotesize]{subfig}
-
-%% \usepackage{tikz}
-%% \usetikzlibrary{arrows.meta}
-%% \usepackage{mathabx}
-
-
-\newcommand{\hide}[1]{\ignorespaces}
-\newcommand{\jx}[1]{{\bf Jiaxiang: }#1{ \bf End}}
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}[theorem]{Lemma}
 \newtheorem{definition}[theorem]{Definition}
@@ -44,7 +28,6 @@
 % Define the fontsize in environment {verbatim}
 \makeatletter
 \def\verbatim{\small\@verbatim \frenchspacing\@vobeyspaces \@xverbatim}
-%\def\verbatim@font{\small\ttfamily}
 \makeatother
 
 \usepackage{microtype}
@@ -57,7 +40,7 @@
   \vskip 1em
   Jiaxiang~Liu,
   Min~Zhou,
-  Xiaoyu~Song, \emph{Senior Member}, \emph{IEEE},
+  Xiaoyu~Song,
   Ming~Gu,
   and Jiaguang~Sun
 
@@ -71,9 +54,7 @@
     R\&D Program (No.\ 2015BAG14B01-02).
 
     J.\ Liu is with the Department of Computer Science \& Technology,
-    Tsinghua University, Beijing, China 
-    \hide{, and also with LIX,
-    \'Ecole Polytechnique, Palaiseau 91120, France} (e-mail:
+    Tsinghua University, Beijing, China (e-mail:
     jiaxiang.liu@hotmail.com).
 
     M.\ Zhou is with the School of Software, Tsinghua University,
@@ -135,9 +116,7 @@ deadlines. \emph{Rate-monotonic scheduling} (\emph{RMS}) is a
 \emph{fixed} priority scheduling algorithm for preemptive hard
 real-time environments proposed by Liu and
 Layland~\cite{DBLP:journals/jacm/LiuL73}, which assigns priorities to
-jobs according to the periods of
-the
-corresponding tasks: the smaller
+jobs according to the periods of the corresponding tasks: the smaller
 period, the higher priority. RMS is proven to be the \emph{optimal}
 fixed priority scheduling algorithm~\cite{DBLP:journals/jacm/LiuL73},
 in the sense that any set of tasks, which is schedulable under
@@ -148,12 +127,11 @@ and easiness to implement.
 
 Liu and Layland~\cite{DBLP:journals/jacm/LiuL73} gave a sufficient
 condition for the schedulability of a set of $n$ tasks scheduled by
-RMS: $\displaystyle\Sigma^n_{i=1}C_i/T_i \le n(2^{1/n}-1)$, where
-$C_i$ and $T_i$ are the \emph{computation (time) requirement} and the
-period of task $\tau_i$, respectively. Two main directions on RMS have
-been explored since then. One is to relax the assumptions on the
-original RMS model, making it applicable on more systems.  For
-instance,
+RMS: $\Sigma^n_{i=1}C_i/T_i \le n(2^{1/n}-1)$, where $C_i$ and $T_i$
+are the \emph{computation (time) requirement} and the period of task
+$\tau_i$, respectively. Two main directions on RMS have been explored
+since then. One is to relax the assumptions on the original RMS model,
+making it applicable on more systems.  For instance,
 \cite{DBLP:conf/rtss/LehoczkySS87,DBLP:journals/rts/SpruntSL89,DBLP:conf/rtss/LehoczkyR92,DBLP:journals/tc/StrosniderLS95}
 allow aperiodic tasks in the scheduling,
 \cite{DBLP:journals/pe/LeungW82,audsley1993deadline} generalize RMS to
@@ -190,8 +168,8 @@ model a realistic implementation of RMS that serves as a simplified
 operating system within an avionic control system, and then verify
 several desired properties. Based on a realistic implementation, our
 model extends the standard RMS model proposed
-in~\cite{DBLP:journals/jacm/LiuL73}, by considering overhead and other
-details of the hardware platform.
+in~\cite{DBLP:journals/jacm/LiuL73}, by taking into account overhead
+and other details of the hardware platform.
 
 The rest of this paper is organized as
 follows. Section~\ref{s:background} gives some background of both the
@@ -217,7 +195,7 @@ be initiated at time $0$ simultaneously.  Deadlines consist of
 runnability constraints only: the deadline of a job corresponding to
 $\tau_i$ is the initiation time of the next job corresponding to
 $\tau_i$.  The RMS algorithm chooses the labeling such that $T_1\le
-T_2\le \ldots \le T_n$. Consequently, $\tau_i$ receives priority $i$,
+T_2\le \ldots \le T_n$. Consequently, $\tau_i$ is given priority $i$,
 assuming smaller numbers have higher priorities. The following
 assumptions are made:
 
@@ -236,11 +214,9 @@ blocking).
 A simple example showing this algorithm is depicted in
 Fig.~\ref{f:example}(a). However in this paper, we consider an
 implementation instead of the RMS algorithm itself, thus the model
-would be more complicated than this standard, ideal setting.
-%% Assumption
-(A1) will be modified because of the interrupt mask
-mechanism, while (A4) is relaxed to obtain a more realistic analysis
-model.
+would be more complicated than this standard, ideal setting.  (A1)
+will be modified because of the interrupt mask mechanism, while (A4)
+is relaxed to obtain a more realistic analysis model.
 
 \subsection{Real-Time Maude}
 Real-Time Maude~\cite{DBLP:journals/lisp/OlveczkyM07} is an extension
@@ -315,18 +291,17 @@ In this paper, we only consider Real-Time Maude's \emph{Linear
 \emph{each} behavior satisfies a temporal logic formula. \emph{State
   propositions} are defined as terms of sort \verb|Prop|. Their
 semantics is defined by conditional equations of the form $\texttt{ceq
-} \mathit{statePattern} \texttt{ |= } \mathit{prop} \texttt{ = } b \texttt{ if } cond$,
-with $b$ a term of sort \verb|Bool|, stating that $\mathit{prop}$ evaluates to
-$b$ in states which are instances of $\mathit{statePattern}$ provided the
-condition $cond$ holds. These equations together define $\mathit{prop}$ to hold
-in all states $s$ that make $s \texttt{ |= } \mathit{prop}$ evaluate to
-\verb|true|. A temporal logic \emph{formula} is constructed by state
-propositions and temporal logic operators such as \verb|~|(negation),
+} \mathit{statePattern} \texttt{ |= } \mathit{prop} \texttt{ = } b
+\texttt{ if } cond$, with $b$ a term of sort \verb|Bool|, stating that
+$\mathit{prop}$ evaluates to $b$ in states which are instances of
+$\mathit{statePattern}$ provided the condition $cond$ holds. These
+equations together define $\mathit{prop}$ to hold in all states $s$
+that make $s \texttt{ |= } \mathit{prop}$ evaluate to \verb|true|. A
+temporal logic \emph{formula} is constructed by state propositions and
+temporal logic operators such as \verb|~|(negation),
 \verb|\/|(disjunction), \verb|[]|(``always''),
 \verb|U|(``until''). Real-Time Maude supports both \emph{timed} and
 \emph{untimed LTL model checking}. The untimed model checking command
-%% \indent
-%% $\texttt{(mc } s \texttt{ |=u } \Phi \texttt{ .)}$\\
 \begin{alltt}
   (mc \(s\) |=u \(\Phi\) .)
 \end{alltt}
@@ -354,8 +329,8 @@ meeting assumption~(A3).
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=8.8cm]{rms-pseudocode.pdf}
-\caption{The C-Like Pseudo-code of $schedule()$}
+\includegraphics[width=8.8cm]{FIG1_15-TIE-3480.pdf}
+\caption{The C-Like Pseudocode of $schedule()$}
 \label{f:schedule}
 \end{figure}
 
@@ -436,7 +411,7 @@ differences between (A1') and (A1).
 
 \begin{figure}[!t]
 \centering
-\includegraphics{rms.pdf}
+\includegraphics{FIG2_15-TIE-3480.pdf}
 \caption{A set of $2$ periodic tasks scheduled under RMS algorithm and
   the implementation, respectively. $T=T_1=10$, $T_2=20$, $C_1=3$,
   $C_2=2$. In~(b), we assume both scheduling time and switching time
@@ -469,12 +444,10 @@ A sort \verb|Stack| is introduced to model the stack of the system,
 storing the tasks that are being interrupted, and equipped with
 operations \verb|push|, \verb|pop| and \verb|peek| on it.
 
-We also need
-%a sort \verb|Interval| to denote computation requirements of tasks, and 
-a sort \verb|Counter| to record the execution of tasks.  We call
-\emph{execution time} the time how long a task has been executing
-for. A \verb|Counter| records the execution time and the computation
-requirement of a task.
+We also need a sort \verb|Counter| to record the execution of tasks.
+We call \emph{execution time} the time how long a task has been
+executing for. A \verb|Counter| records the execution time and the
+computation requirement of a task.
 
 The global variable $\mathit{timer}$ is reset when it reaches an upper
 bound while increasing, which is not shown in detail in
@@ -520,15 +493,9 @@ which is a list of \verb|PTask|s and/or \verb|error|s.  Periodic tasks
 are identified by their indexes in the list.
 
 On the other hand, a system task is an object instance of the subclass
-\verb|SysTask| of \verb|Task| with no extra attributes.
-\hide{
-\begin{verbatim}
-  class SysTask | .  
-  subclass SysTask < Task .
-\end{verbatim}
-}
-Different from periodic tasks, system tasks are organized in a
-multiset of sort \verb|SysTasks|, and identified by their \verb|Oid|s.
+\verb|SysTask| of \verb|Task| with no extra attributes.  Different
+from periodic tasks, system tasks are organized in a multiset of sort
+\verb|SysTasks|, and identified by their \verb|Oid|s.
 
 \subsubsection{Hardware}
 Our model considers two parts of hardware related to interrupt
@@ -638,8 +605,8 @@ by the system. It requires the bit \verb|mask| to be cleared. Once the
 request is detected, it is handled in two steps: the interrupt
 handling mechanism of the hardware (such as clearing \verb|ir|,
 pushing context into stack and so on), and to invoke the function
-$\mathit{schedule()}$. This behavior is modeled by the following instantaneous
-rewrite rule:
+$\mathit{schedule()}$. This behavior is modeled by the following
+instantaneous rewrite rule:
 \begin{verbatim}
   crl [interrupt-handle] :
     SYSTEM 
@@ -695,8 +662,7 @@ its computation requirement, scheduling is finished. We model this
 instantaneous action with the following rule:
 \begin{verbatim}
   crl [scheduling-finish] :
-    (L T STS HW ISRC) 
-    => (SYSTEM).finishScheduling
+    SYSTEM => (SYSTEM).finishScheduling
     if SYSTEM := (L T STS HW ISRC) 
        /\ (SYSTEM).running == scheduling 
        /\ scheduling isComplete?in STS .
@@ -856,8 +822,8 @@ ones designed by ourselves, four of them are described below:
   $T_1=5ms$, $C_1=2.7ms$, $T_2=10ms$, $C_2=2ms$, $T_3=25ms$,
   $C_3=3ms$.
 \item Scenario~(iv) with 3 tasks $\tau_1$, $\tau_2$, $\tau_3$:
-  $T_1\!=\!5ms$, $C_1\!=\!2.5ms$, $T_2\!=\!10ms$, $C_2\!=\!1.5ms$,
-  $T_3\!=\!15ms$, $C_3\!=\!4.5ms$.
+  $T_1=5ms$, $C_1=2.5ms$, $T_2=10ms$, $C_2=1.5ms$,
+  $T_3=15ms$, $C_3=4.5ms$.
 \end{itemize}
 Note that thanks to the expressiveness of Real-Time Maude, we
 only need to define an initial state of sort \verb|System| to specify
@@ -866,7 +832,7 @@ a given task set. No necessity to modify the model is needed.
 
 \begin{figure*}[!t]
 \centering
-\includegraphics{ce.pdf}
+\includegraphics{FIG3_15-TIE-3480.pdf}
 \caption{A counterexample of schedulability in Scenario~(iv). The first
   job instance of $\tau_3$ misses its deadline at time $15ms$, which
   is the initiation time for the second job instance of $\tau_3$.}
@@ -875,13 +841,12 @@ a given task set. No necessity to modify the model is needed.
 
 Instantiating our model on dense time domain and choosing the
 \emph{maximal time sampling strategy}, the results of the model
-checking show that correctness property holds in all scenarios. 
-%% As to the 
-Schedulability property holds in Scenarios~(i--iii), but
-fails in Scenario~(iv).  One counterexample of the schedulability
-within Scenario~(iv), returned by the model checking command, is
-pictured in Fig.~\ref{f:counterexample}, where
-$\tau_3$ misses its deadline at time $15ms$.
+checking show that correctness property holds in all scenarios.
+Schedulability property holds in Scenarios~(i--iii), but fails in
+Scenario~(iv).  One counterexample of the schedulability within
+Scenario~(iv), returned by the model checking command, is pictured in
+Fig.~\ref{f:counterexample}, where $\tau_3$ misses its deadline at
+time $15ms$.
 
 The results above have demonstrated that our approach is capable of
 handling realistic industrial systems. However, to further exam the
@@ -930,11 +895,12 @@ for a set of ``good'' LTL formulae constructed by
   background.}~\cite{DBLP:journals/entcs/OlveczkyM07a}:
 \begin{theorem}[\cite{DBLP:journals/entcs/OlveczkyM07a}]
 \label{t:completeness}
-Given a time-robust real-time rewrite theory $\cal R$, a set $AP$ of
-tick-invariant atomic propositions, an LTL formula $\Phi$ (excluding
-the \emph{next} operator $\bigcirc$) whose atomic propositions are
-contained in $AP$. The untimed temporal logic model checking verifying
-$\Phi$ is \emph{complete} under the maximal time sampling strategy.
+Given a time-robust real-time rewrite theory $\mathcal{R}$, a set $AP$
+of tick-invariant atomic propositions, an LTL formula $\Phi$
+(excluding the \emph{next} operator $\bigcirc$) whose atomic
+propositions are contained in $AP$. The untimed temporal logic model
+checking verifying $\Phi$ is \emph{complete} under the maximal time
+sampling strategy.
 \end{theorem}
 
 Therefore, we achieve the following theorem, showing that the results
@@ -960,31 +926,30 @@ work in three directions.
 Considering schedulability test, Liu and
 Layland~\cite{DBLP:journals/jacm/LiuL73} gave the famous sufficient
 condition that a set of periodic tasks is schedulable with respect to
-RMS if $\displaystyle \Sigma^n_{i=1} C_i/T_i \le n(2^{1/n}-1)$
-holds. Then a more sufficient condition, known as \emph{Hyperbolic
-  Bound}, which has the same complexity as Liu and Layland's, was
-proposed in~\cite{DBLP:journals/tc/BiniBB03}. On the other hand,
-necessary and sufficient conditions for schedulability were derived
-independently in~\cite{DBLP:journals/rts/SpruntSL89}
-and~\cite{audsley1993deadline}, requiring more sophisticated analysis
-on the task set. Nevertheless, all these results take no overhead into
-account, being not as realistic as ours. Katcher et al.\ did consider
-overhead in their schedulability analysis, under several models based
-on different kinds of popular
-implementations~\cite{DBLP:journals/tse/KatcherAS93}.  However, our
-target implementation is not in their scope. Furthermore, compared
-with those theoretical analyses, our approach based on formal modeling
-and verification has three advantages. One is that if our
+RMS if $\Sigma^n_{i=1} C_i/T_i \le n(2^{1/n}-1)$ holds. Then a more
+sufficient condition, known as \emph{Hyperbolic Bound}, which has the
+same complexity as Liu and Layland's, was proposed
+in~\cite{DBLP:journals/tc/BiniBB03}. On the other hand, necessary and
+sufficient conditions for schedulability were derived independently
+in~\cite{DBLP:journals/rts/SpruntSL89} and~\cite{audsley1993deadline},
+requiring more sophisticated analysis on the task set. Nevertheless,
+all these results take no overhead into account, being not as
+realistic as ours. Katcher et al.\ did consider overhead in their
+schedulability analysis, under several models based on different kinds
+of popular implementations~\cite{DBLP:journals/tse/KatcherAS93}.
+However, our target implementation is not in their scope. Furthermore,
+compared with those theoretical analyses, our approach based on formal
+modeling and verification has three advantages. One is that if our
 schedulability test answers ``no'', it returns at the same time a real
 counterexample, which is able to guide our engineer to adjust the
 design, by changing either the priorities or even the scheduling
 algorithm. The second is that, when a fresh scheduling strategy is
 applied, our analysis can be adjusted only by modifying the model,
 while theoretical approaches may need thorough analyses and reasoning.
-The last one is that, considering overhead and details of hardware does
-introduce some kind of non-determinism into the model. For example, in
-our model, if the running task is complete \emph{right} at the time
-when an interrupt request occurs, two different behaviors are
+The last one is that, considering overhead and details of hardware
+does introduce some kind of non-determinism into the model. For
+example, in our model, if the running task is complete \emph{right} at
+the time when an interrupt request occurs, two different behaviors are
 possible: (i)~the system performs task switching, during which the
 interrupt request is masked, hence the scheduling and initiation of
 tasks may be delayed; (ii)~the system answers the interrupt request
@@ -1063,11 +1028,10 @@ of time-robustness, but instead give the following lemma to prove
 time-robustness:
 \begin{lemma}[\cite{DBLP:journals/entcs/OlveczkyM07a}]
 \label{l:timerobustness}
-Let $\cal R$ be an object-oriented specification with a standard tick
-rule, and let the infinity element \verb|INF| be the only element in
-the time domain which is not a normal time value.
-%and let the time domain be \emph{linear}.
-Then $\cal R$ is time-robust if the following conditions are satisfied
+Let $\mathcal{R}$ be an object-oriented specification with a standard
+tick rule, and let the infinity element \verb|INF| be the only element
+in the time domain which is not a normal time value.  Then
+$\mathcal{R}$ is time-robust if the following conditions are satisfied
 for all appropriate ground terms $t$ and $r,r'$:
 \begin{enumerate}
 \item
@@ -1086,7 +1050,8 @@ operation defined on sort \verb|Time|;
 
 \item
 [(iv)] \verb|mte(|$\sigma(l)$\verb|)|$= 0$ for each ground instance
-$\sigma(l)$ of each left-hand side $l$ of an instantaneous rewrite rule.
+$\sigma(l)$ of each left-hand side $l$ of an instantaneous rewrite
+rule.
 \end{enumerate}
 \end{lemma}
 
@@ -1154,16 +1119,17 @@ $\deltaTask{\mathit{ID}}{L}{r}=L'$, where the
 $N$th task in $L'$ has \verb|cnt| value being
 \verb|[|$(r_e+r)$\verb|/|$C$\verb|]|. Hence,
 \begin{IEEEeqnarray*}{Cl}
-  & \mteTask{ID}{\deltaTask{ID}{L}{r}}
+  & \mteTask{\mathit{ID}}{\deltaTask{\mathit{ID}}{L}{r}}
 \\  
-= & \mteTask{ID}{L'}
+= & \mteTask{\mathit{ID}}{L'}
 \\
 = & C~\verb|monus|~(r_e+r) 
 = (C~\verb|monus|~r_e)~\verb|monus|~r 
 \\
-= & \mteTask{ID}{L}~\verb|monus|~r\;. \hfill\IEEEQEDhere
+= & \mteTask{\mathit{ID}}{L}~\verb|monus|~r\;. \hfill\IEEEQEDhere
 \end{IEEEeqnarray*}
 \end{IEEEproof}
+
 \begin{lemma}
 \label{l:auxis}
 Given $\mathit{ISRC}$ of class \verb|IntSrc| representing an
@@ -1173,7 +1139,7 @@ $\mteIS{\deltaIS{\mathit{ISRC}}{r}} = \mteIS{\mathit{ISRC}}\;
 \end{lemma}
 \begin{IEEEproof}
 A reasonable $\mathit{ISRC}$ must be of the form
-\IntSrc{$O$}{$v$}{$T$} with $v\le T$. Thus,
+$\IntSrc{O}{v}{T}$ with $v\le T$. Thus,
 \begin{IEEEeqnarray*}{Cl}
   & \mteIS{\deltaIS{\mathit{ISRC}}{r}}
 \\  
@@ -1183,6 +1149,7 @@ A reasonable $\mathit{ISRC}$ must be of the form
 = \mteIS{\mathit{ISRC}}~\texttt{monus}~r\;. \hfill\IEEEQEDhere
 \end{IEEEeqnarray*}
 \end{IEEEproof}
+
 \begin{lemma}
 \label{l:auxhw}
 Given $\mathit{HW}$ of sort \verb|Hardware|, for all
@@ -1195,7 +1162,6 @@ $r\le\mteIr{\mathit{HW}}$, $\mteIr{\mathit{HW}} =
 \end{IEEEproof}
 
 Now we can present the detailed proof of Theorem~\ref{t:main}:
-\noindent
 \begin{IEEEproof}[Proof of Theorem~\ref{t:main}]
 We first prove the time-robustness of our model by
 Lemma~\ref{l:timerobustness}.  Instantiated on the built-in dense time
@@ -1271,8 +1237,8 @@ and the right side of the equation
   & \verb| |~T~\mathit{STS}~\mathit{HW}~\deltaIS{\mathit{ISRC}}{r+r'}\verb|)|~\mbox{.}
 \end{IEEEeqnarray*}
 $\deltaTask{\mathit{ID}}{\deltaTask{\mathit{ID}}{L}{r}}{r'}
-=\deltaTask{\mathit{ID}}{L}{r+r'}$ holds by the associativity of $+$,
-while
+=\deltaTask{\mathit{ID}}{L}{r+r'}$ holds thanks to the associativity
+of $+$, while
 $\deltaIS{\deltaIS{\mathit{ISRC}}{r}}{r'}\!=\!\deltaIS{\mathit{ISRC}}{r+r'}$
 holds since $(v\; \verb|monus|\; r)\; \verb|monus|\; r'\\ = v\;
 \verb|monus|\; (r+r')$ with $v$ of sort \verb|Time|. Thus (iii) holds.
@@ -1324,42 +1290,38 @@ model checking to verify schedulability and correctness is complete.
 \end{IEEEproof}
 
 
-%% \section*{Acknowledgment}
-%% The authors would like to thank the reviewers and editors for their
-%% invaluable comments and suggestions.
-
 %% References
 
 \bibliographystyle{Bibliography/IEEEtranTIE}
-\bibliography{Bibliography/IEEEabrv,Bibliography/main}\ 
-%IEEEabrv instead of IEEEfull
+\bibliography{Bibliography/IEEEabrv,Bibliography/BIB_15-TIE-3480}\
 
 
 %% Biographies
 
-\vspace{-5mm}
-\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{1.jpg}}]%
+\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{Jiaxiang_Liu.jpeg}}]%
 {Jiaxiang Liu} received his B.S.\ degree in software engineering from
-Tsinghua University, China in 2010. He is currently working toward the
-Ph.D.\ degree in computer science at Tsinghua University, China. 
+Tsinghua University, Beijing, China in 2010. Since 2010, he has been
+working toward the Ph.D.\ degree in computer science at the Department
+of Computer Science and Technology, Tsinghua University, Beijing,
+China.
 
 His research interests include formal methods, rewrite systems and
 embedded systems.
 \end{IEEEbiography}
 
 \vspace{-5mm}
-\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{M_Zhou1.jpg}}]%
-{Min Zhou} received his B.S.\ degree in mathematics and applied
-mathematics, and the Ph.D.\ degree in computer science from Tsinghua
-University, China in 2007 and 2014, respectively. 
+\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{Min_Zhou.jpeg}}]%
+{Min Zhou} received his B.S.\ degree in mathematics, and the
+Ph.D.\ degree in computer science from Tsinghua University, Beijing,
+China in 2007 and 2014, respectively.
 
-He is currently a lecturer at the School of Software, Tsinghua
-University, China. His research interests include model checking,
-program analysis and testing.
+He is currently working as a lecturer at the School of Software,
+Tsinghua University, Beijing, China. His research interests include
+model checking, program analysis and testing.
 \end{IEEEbiography}
 
 \vspace{-5mm}
-\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{X_Song1.jpg}}]%
+\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{Xiaoyu_Song.jpeg}}]%
 {Xiaoyu Song} received the Ph.D.\ degree from the University of Pisa,
 Italy, in 1991. From 1992 to 1998, he was on the faculty at the
 University of Montreal, Canada. He joined the Department of Electrical
@@ -1372,33 +1334,28 @@ emerging technologies.
 \end{IEEEbiography}
 
 \vspace{-5mm}
-\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{M_Gu1.jpg}}]%
+\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{Ming_Gu.jpeg}}]%
 {Ming Gu} received the B.S.\ degree in computer science from the
 National University of Defense Technology, China in 1984, and the
 M.S.\ degree in computer science from the Chinese Academy of Science,
 China in 1986.
  
 She is currently a professor at the School of Software, Tsinghua
-University, China. 
-%% She is also vice-director of Key Laboratory for
-%% Information System Security, Ministry of Education, China. 
-Her research interests include software formal methods, software
-trustworthiness and middleware technology.
+University, China.  Her research interests include software formal
+methods, software trustworthiness and middleware technology.
 \end{IEEEbiography}
 
 \vspace{-5mm}
-\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{J_Sun1.jpg}}]%
+\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{Jiaguang_Sun.jpeg}}]%
 {Jiaguang Sun} received the B.S.\ degree in automation science from
 Tsinghua University, China in 1970.  
 
-He is currently a professor and
-dean of the School of Information Science and Technology in Tsinghua
-University, China. He is also a member of the Chinese Academy of
-Engineering, and director of Tsinghua National Laboratory for
-Information Science and Technology, China. 
-His research interests
-include computer graphics, computer-aided design, formal verification
-of software, software engineering and system architecture.
+He is currently a professor and dean of the School of Information
+Science and Technology in Tsinghua University, China. He is also a
+member of the Chinese Academy of Engineering, and director of Tsinghua
+National Laboratory for Information Science and Technology, China.
+His research interests include computer graphics, computer-aided
+design, formal verification of software, software engineering and
+system architecture.
 \end{IEEEbiography}
-
 \end{document}

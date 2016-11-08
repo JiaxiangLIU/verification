@@ -1,3 +1,5 @@
+%% latex command to generate:
+%% pdflatex -shell-escape figures
 \documentclass[journal]{IEEEtranTIE}
 \usepackage{graphicx}
 \usepackage[noadjust]{cite}
@@ -44,14 +46,13 @@
 % Define the fontsize in environment {verbatim}
 \makeatletter
 \def\verbatim{\small\@verbatim \frenchspacing\@vobeyspaces \@xverbatim}
-%\def\verbatim@font{\small\ttfamily}
 \makeatother
 
 \usepackage{microtype}
 
 \begin{document}
 
-\tikzsetnextfilename{rms}
+\tikzsetnextfilename{FIG2_15-TIE-3480}
 \begin{tikzpicture}[font=\small,scale=1.25,
     % styles
     system task/.style={fill=gray!70,draw=gray},
@@ -187,7 +188,7 @@
   \end{scope}
 \end{tikzpicture}
 
-\tikzsetnextfilename{ce}
+\tikzsetnextfilename{FIG3_15-TIE-3480}
 \begin{tikzpicture}[font=\small,
     % styles
     system task/.style={fill=gray!70,draw=gray},

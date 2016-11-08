@@ -7,18 +7,18 @@
 (d) Keywords: Embedded systems, formal verification, modeling, real-time systems, rewriting logic, scheduling.
 
 (e) Corresponding author: 
-       full name: Min Zhou
-       complete address: Office 11-307, School of Software, Tsinghua University, Haidian District, Beijing 100084, China
-       email: zhoumin03@gmail.com
-       telephone number: +86-10-6277-3275
-       fax number: +86-10-6278-3549
+    full name: Min Zhou
+    complete address: Office 11-307, East Wing of the Main Building, Tsinghua University, Haidian District, Beijing 100084, China
+    email: zhoumin03@gmail.com
+    telephone number: +86-10-6277-3275
+    fax number: +86-10-6278-3549
          
 (f) Authors names and IEEE and IES memberships
-	Jiaxiang Liu	IES membership: no	
-	Min Zhou	IES membership: no
-	Xiaoyu Song	IES membership: no
-	Ming Gu 	IES membership: no
-	Jiaguang Sun	IES membership: no 		
+    Jiaxiang Liu:     not IEEE member	IES membership: no	
+    Min Zhou:	      not IEEE member	IES membership: no
+    Xiaoyu Song:      not IEEE member	IES membership: no
+    Ming Gu:	      not IEEE member 	IES membership: no
+    Jiaguang Sun:     not IEEE member	IES membership: no 		
        
 (g) Information about IEEE Copyright: included
 

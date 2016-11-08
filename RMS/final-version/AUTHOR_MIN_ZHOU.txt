@@ -1,0 +1,3 @@
+Min Zhou received his B.S. degree in mathematics, and the Ph.D. degree in computer science from Tsinghua University, Beijing, China in 2007 and 2014, respectively.
+
+He is currently working as a lecturer at the School of Software, Tsinghua University, Beijing, China. His research interests include model checking, program analysis and testing.

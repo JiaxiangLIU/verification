@@ -1,0 +1,3 @@
+Jiaxiang Liu received his B.S. degree in software engineering from Tsinghua University, Beijing, China in 2010. Since 2010, he has been working toward the Ph.D. degree in computer science at the Department of Computer Science and Technology, Tsinghua University, Beijing, China.
+
+His research interests include formal methods, rewrite systems and embedded systems.

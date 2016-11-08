@@ -1,0 +1,3 @@
+Ming Gu received the B.S. degree in computer science from the National University of Defense Technology, China in 1984, and the M.S. degree in computer science from the Chinese Academy of Science, China in 1986.
+ 
+She is currently a professor at the School of Software, Tsinghua University, China. Her research interests include software formal methods, software trustworthiness and middleware technology.

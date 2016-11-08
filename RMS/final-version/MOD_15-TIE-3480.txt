@@ -1,0 +1,2 @@
+(1) A few sentences are syntactically modified to shorten the manuscript a bit.
+(2) The old reference [20] is removed and replaced by a new one "Design and optimization of multiclocked embedded systems using formal techniques" from TIE, which is more appropriate and more up-to-date. 

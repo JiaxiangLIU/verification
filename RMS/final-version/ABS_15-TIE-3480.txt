@@ -1,0 +1,6 @@
+Title: Formal Modeling and Verification of a Rate-Monotonic Scheduling Implementation with Real-Time Maude
+
+Authors: Jiaxiang Liu, Min Zhou, Xiaoyu Song, Ming Gu, and Jiaguang Sun
+
+Abstract:
+Rate-monotonic scheduling (RMS) is one of the most important real-time scheduling used in industry. There are a large number of results about RMS, especially on its schedulability. However, the theoretical results do not contain enough details to be used directly for an industrial RMS implementation. On the other hand, the correctness of such an implementation is of the crucial importance. In this paper, we analyze a realistic RMS implementation by using Real-Time Maude, a formal modeling language and analysis tool based on rewriting logic. Overhead and some details of the hardware are taken into account in the model. We validate the schedulability and the correctness of the implementation within key scenarios. The soundness and the completeness of our approach are substantiated.

@@ -1,6 +1,7 @@
 (a) Document ID: 15-TIE-3480
 
-(b) Document title: Formal Modeling and Verification of a Rate-Monotonic Scheduling Implementation with Real-Time Maude
+(b) Document title: 
+    Formal Modeling and Verification of a Rate-Monotonic Scheduling Implementation with Real-Time Maude
 
 (c) Document subject: Embedded Systems (ES)
 
@@ -20,6 +21,7 @@
     Ming Gu:	      not IEEE member 	IES membership: no
     Jiaguang Sun:     not IEEE member	IES membership: no 		
        
-(g) Information about IEEE Copyright: included
+(g) Information about IEEE Copyright: 
+    Copyright form will be submitted electronically.
 
 (h) Do you want to print some of your figures in color? No.

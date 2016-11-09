@@ -1,5 +1,5 @@
-%\documentclass[onecolumn]{IEEEtranTIE}
-\documentclass[journal]{IEEEtranTIE}
+\documentclass[12pt,onecolumn]{IEEEtranTIE}
+%%\documentclass[journal]{IEEEtranTIE}
 \usepackage{graphicx}
 \usepackage[noadjust]{cite}
 \usepackage{picinpar}
@@ -290,7 +290,7 @@ In this paper, we only consider Real-Time Maude's \emph{Linear
   Temporal Logic (LTL) model checker}, which analyzes whether
 \emph{each} behavior satisfies a temporal logic formula. \emph{State
   propositions} are defined as terms of sort \verb|Prop|. Their
-semantics is defined by conditional equations of the form $\texttt{ceq
+semantics is defined by conditional equations of the form\\ $\texttt{ceq
 } \mathit{statePattern} \texttt{ |= } \mathit{prop} \texttt{ = } b
 \texttt{ if } cond$, with $b$ a term of sort \verb|Bool|, stating that
 $\mathit{prop}$ evaluates to $b$ in states which are instances of
@@ -1103,19 +1103,19 @@ Several auxiliary lemmas are proved:
 \begin{lemma}
 \label{l:auxtask}
 Given $\mathit{ID}$ of sort \verb|MaybeNat| and $L$ of sort
-\verb|TaskList|, $\mteTask{\mathit{ID}}{\deltaTask{\mathit{ID}}{L}{r}}
+\verb|TaskList|,\\ $\mteTask{\mathit{ID}}{\deltaTask{\mathit{ID}}{L}{r}}
 = \mteTask{\mathit{ID}}{L}\; \verb|monus|\;r$ for all
 $r\le\mteTask{\mathit{ID}}{L}$.
 \end{lemma}
 \begin{IEEEproof}
 If $\mathit{ID}=\verb|none|$, the case is trivial. By definition,
-$\mteTask{\texttt{none}}{\deltaTask{\texttt{none}}{L}{r}} =
+$\mteTask{\texttt{none}}{\deltaTask{\texttt{none}}{L}{r}}\\ =
 \mteTask{\texttt{none}}{L} = \verb|INF| =
-\mteTask{\texttt{none}}{L}\\ \verb|monus|\; r$. Otherwise,
+\mteTask{\texttt{none}}{L}\; \verb|monus|\; r$. Otherwise,
 $\mathit{ID}= \verb|some|~N$ with $N$ of sort \verb|Nat|. Assume that
 the \verb|cnt| of the $N$th task in $L$ is
 \verb|[|$r_e$\verb|/|$C$\verb|]|. Then by definition,
-$\deltaTask{\mathit{ID}}{L}{r}=L'$, where the
+$\deltaTask{\mathit{ID}}{L}{r}\\ = L'$, where the
 $N$th task in $L'$ has \verb|cnt| value being
 \verb|[|$(r_e+r)$\verb|/|$C$\verb|]|. Hence,
 \begin{IEEEeqnarray*}{Cl}
@@ -1135,7 +1135,7 @@ $N$th task in $L'$ has \verb|cnt| value being
 Given $\mathit{ISRC}$ of class \verb|IntSrc| representing an
 reasonable state of interrupt source in our model,
 $\mteIS{\deltaIS{\mathit{ISRC}}{r}} = \mteIS{\mathit{ISRC}}\;
-\verb|monus|\\ r$ for all $r\le\mteIS{\mathit{ISRC}}$.
+\verb|monus|\; r$ for all $r\le\mteIS{\mathit{ISRC}}$.
 \end{lemma}
 \begin{IEEEproof}
 A reasonable $\mathit{ISRC}$ must be of the form
@@ -1153,7 +1153,7 @@ $\IntSrc{O}{v}{T}$ with $v\le T$. Thus,
 \begin{lemma}
 \label{l:auxhw}
 Given $\mathit{HW}$ of sort \verb|Hardware|, for all
-$r\le\mteIr{\mathit{HW}}$, $\mteIr{\mathit{HW}} =
+$r\le\mteIr{\mathit{HW}}$,\\ $\mteIr{\mathit{HW}} =
 \mteIr{\mathit{HW}}\; \verb|monus|\; r$.
 \end{lemma}
 \begin{IEEEproof}
@@ -1216,7 +1216,7 @@ further reduced:
 Condition~(ii) follows from the fact that $r+0=r$ and
 $r~\verb|monus|~0=r$ for all $r$.
 
-Condition~(iii). We must prove $\deltaS{\deltaS{s}{r}}{r'}\\ =
+Condition~(iii). We must prove $\deltaS{\deltaS{s}{r}}{r'} =
 \deltaS{s}{r+r'}$ for all $r+r'\le\mteS{s}$, with $s$ being a system
 state of sort \verb|System|. Using the same notations as in~(i), we
 only consider the case $\mathit{ID}$\verb|::MaybeNat| in detail. By
@@ -1239,8 +1239,8 @@ and the right side of the equation
 $\deltaTask{\mathit{ID}}{\deltaTask{\mathit{ID}}{L}{r}}{r'}
 =\deltaTask{\mathit{ID}}{L}{r+r'}$ holds thanks to the associativity
 of $+$, while
-$\deltaIS{\deltaIS{\mathit{ISRC}}{r}}{r'}\!=\!\deltaIS{\mathit{ISRC}}{r+r'}$
-holds since $(v\; \verb|monus|\; r)\; \verb|monus|\; r'\\ = v\;
+$\deltaIS{\deltaIS{\mathit{ISRC}}{r}}{r'}=\deltaIS{\mathit{ISRC}}{r+r'}$
+holds since $(v\; \verb|monus|\; r)\; \verb|monus|\; r' = v\;
 \verb|monus|\; (r+r')$ with $v$ of sort \verb|Time|. Thus (iii) holds.
 
 Condition~(iv). We show that \verb|mte| of each instance of the
@@ -1526,7 +1526,6 @@ His research interests include formal methods, rewrite systems and
 embedded systems.
 \end{IEEEbiography}
 
-\vspace{-5mm}
 \begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{AUTHOR_MIN_ZHOU.jpeg}}]%
 {Min Zhou} received his B.S.\ degree in mathematics, and the
 Ph.D.\ degree in computer science from Tsinghua University, Beijing,
@@ -1537,7 +1536,6 @@ Tsinghua University, Beijing, China. His research interests include
 model checking, program analysis and testing.
 \end{IEEEbiography}
 
-\vspace{-5mm}
 \begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{AUTHOR_XIAOYU_SONG.jpeg}}]%
 {Xiaoyu Song} received the Ph.D.\ degree from the University of Pisa,
 Italy, in 1991. From 1992 to 1998, he was on the faculty at the
@@ -1550,7 +1548,6 @@ include formal methods, design automation, embedded systems and
 emerging technologies.
 \end{IEEEbiography}
 
-\vspace{-5mm}
 \begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{AUTHOR_MING_GU.jpeg}}]%
 {Ming Gu} received the B.S.\ degree in computer science from the
 National University of Defense Technology, China in 1984, and the
@@ -1562,7 +1559,6 @@ University, China.  Her research interests include software formal
 methods, software trustworthiness and middleware technology.
 \end{IEEEbiography}
 
-\vspace{-5mm}
 \begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{AUTHOR_JIAGUANG_SUN.jpeg}}]%
 {Jiaguang Sun} received the B.S.\ degree in automation science from
 Tsinghua University, China in 1970.  

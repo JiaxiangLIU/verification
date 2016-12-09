@@ -333,7 +333,7 @@
 
 \begin{document}
 
-\title{Responses to Reviews}
+\title{Review to the Article Proof}
 \date{}
 
 \maketitle
@@ -342,12 +342,12 @@
   \begin{tabular}{r l}
     \hline\hline
     & \\
-    Manuscript Number: & 15-TIE-3480.R1\\
-    Manuscript Title: & Formal Modeling and Verification of a \\
+    Article Number: & 15-TIE-3480\\
+    Article Title: & Formal Modeling and Verification of a \\
     & Rate-Monotonic Scheduling Implementation \\
     & with Real-Time Maude \\
     Submitted to: & Transactions on Industrial Electronics \\
-    Manuscript Type: & Regular paper \\
+    DOI: & 10.1109/TIE.2016.2633476 \\
     & \\
     \hline\hline
   \end{tabular}
@@ -356,6 +356,41 @@
 
 \newcommand{\by}{$\rightarrow$ }
 
+\section{Responses to the Queries}
+
+\bigskip
+Q1. Author: Please check whether the first footnote is ok as set.
+
+Response: The first footnote is OK.
+
+\bigskip
+Q2. Author: Please check whether the affiliations for all the authors
+are ok as set.
+
+Response: They are OK. 
+
+\bigskip
+Q3. Author: Please provide the subject in which ``Xiaoyu Song'' received
+his Ph.D. degree.
+
+Response: Xiaoyu Song received his Ph.D.\ degree in computer
+engineering.
+
+
+\section{List of Corrections}
+
+\medskip
+The positions, which need to be corrected, are highlighted in the file
+\verb|annotated_proof.pdf|. Here we list all the corrections
+corresponding to the highlighted positions in
+\verb|annotated_proof.pdf|. The file \verb|example.pdf| is typeset by
+the authors, and it may be useful for the corrections. (The
+corresponding positions are also highlighted.)
+
+\medskip
+Here are the detailed list of corrections:
+
+\medskip
 \begin{itemize}\setlength{\itemsep}{10pt}
 
 \item Page 1, line 3: ``With'' \by ``with''.
@@ -797,9 +832,13 @@ larger than the normal value, please correct them.
 
 \item Page 8, line 729: ``time robust'' \by ``time-robust''
 
-\item Page 8, lines 731--738. Please use ``(i)'' ``(ii)'' instead of
-  ``1)'' ``2)'' for the numbers, because they correspond to the
-  \emph{Proof of Theorem 2}.
+\item Page 8, lines 731--738. 
+
+Please use ``(i)'' ``(ii)'' instead of ``1)'' ``2)'' for the numbers,
+because they correspond to the \emph{Proof of Theorem 2}.
+
+On the other hand, the indentation of this list is much larger than
+others, please fix it.
 
 \item Page 8, line 731: ``\verb|mte(...)|$=$\verb|mte(...)|'' \by
   ``\verb|mte(delta(|$t$\verb|,|$r$\verb|))| $=$
@@ -820,6 +859,368 @@ larger than the normal value, please correct them.
   
 ``\verb|delta(delta(|$t$\verb|,|$r$\verb|),|$r'$\verb|)| $=$
 \verb|delta(|$t$\verb|,|$r+r'$\verb|)|''
+
+\item Page 8, line 736: ``$r+r'\le$\verb|mte(|$t$\verb|)|'' \by
+  ``$r+r'\le$ \verb|mte(|$t$\verb|)|''
+
+\item Page 8, line 737: ``\verb|mte(|$\sigma(l)$ \verb|)|'' \by
+  ``\verb|mte(|$\sigma(l)$\verb|)|''
+
+\item Page 8, line 739: ``tick invariance'' \by ``tick-invariance''
+
+\item Page 9, lines 743--748:
+
+If possible, we prefer an \verb|\itemize| (unnumbered) environment
+instead of an \verb|\enumerate| (numbered) enviroment here.
+
+\item Page 9, line 747: ``\emph{nonmaximal}'' \by
+  ``\emph{non-maximal}''
+
+\item Page 9, line 749: ``\emph{tick invariant}'' \by
+  ``\emph{tick-invariant}''
+
+\item Page 9, line 751: ``nonmaximal'' \by ``non-maximal''
+
+\item Page 9, line 752: ``tick invariance'' \by ``tick-invariance''
+
+\item Page 9, line 757: ``tick invariant'' \by ``tick-invariant''
+
+\item Page 9, line 758: ``$\{t\} \simeq_P
+  \{$\verb|delta(|$t$\verb|,|$r$\verb|)|$\}$'' \by
+  ``\verb|{|$t$\verb|}| $\simeq_P$
+  \verb|{delta(|$t$\verb|,|$r$\verb|)}|''. 
+
+The braces ``\verb|{}|'' should be put in \verb|\verb| mode.
+
+\item Page 9, line 759: ``$r<$\verb|mte(|$t$\verb|)|'' \by ``$r<$
+  \verb|mte(|$t$\verb|)|''
+
+\item Page 9, lines 761--771: ``$ID$'' \by ``$\mathit{ID}$''. Please
+  use the macro \verb|\mathit{}|.
+
+\item Page 9, line 763: ``monus'' \by ``\verb|monus|''. It should be
+  put in \verb|\verb| mode.
+
+\item Page 9, line 764: ``none'' \by ``\verb|none|''. It should be put
+  in \verb|\verb| mode.
+
+\item Page 9, lines 765--766: ``$=$\verb|mteTask(none,|$L$\verb|)|''
+  \by ``$=$ \verb|mteTask(none,|$L$\verb|)|''. 
+
+On one hand, ``$=$'' should be followed by a little space.
+
+On the other hand, ``\verb|mteTask(none,|$L$\verb|)|'' should not be
+broken into two lines.
+
+\item Page 9, line 766: ``INF'' \by ``\verb|INF|''. It should be put
+  in \verb|\verb| mode.
+
+\item Page 9, line 766: ``monus'' \by ``\verb|monus|''. It should be
+  put in \verb|\verb| mode.
+
+\item Page 9, line 767: ``some$N$'' \by ``\verb|some|
+  $N$''. ``\verb|some|'' should be put in \verb|\verb| mode.
+
+\item Page 9, lines between 770 and 771: ``monus'' \by ``\verb|monus|''. 
+
+``\verb|monus|'' should be put in \verb|\verb| mode and there should
+  be spaces before and after ``\verb|monus|''.
+
+\item Page 9, lines 771--777: ``$ISRC$'' \by
+  ``$\mathit{ISRC}$''. Please use the macro \verb|\mathit{}|.
+
+\item Page 9, lines between 774 and 777: ``monus'' \by ``\verb|monus|''. 
+
+``\verb|monus|'' should be put in \verb|\verb| mode and there should
+  be spaces before and after ``\verb|monus|''.
+
+\item Page 9, lines 775--776: ``$<O...>$'' \by
+  ``\verb|<|$O$\verb+:IntSrc|val:+$v$\verb|,cycle:|$T$\verb|>|''. 
+
+All things should be put in \verb|\verb| mode except ``$O$'' ``$v$''
+and ``$T$'', which should be in math mode.
+
+\item Page 9, lines 778--779. Please do not break the line 778.
+
+\item Page 9, line 779: ``monus'' \by ``\verb|monus|''.
+
+\item Page 9, line 783: ``time robustness'' \by ``time-robustness''
+
+\item Page 9, line 784: ``Lemma 3'' \by ``Lemma A.1''
+
+\item Page 9, line 788: ``Lemma 3'' \by ``Lemma A.1''
+
+\item Page 9, lines 790--791: ``\verb|mte(|$s$\verb|)|''. Please do
+  not break it into two lines.
+
+\item Page 9, line 791: ``$r\le$\verb|mte(|$s$\verb|)|'' \by ``$r\le$
+  \verb|mte(|$s$\verb|)|''
+
+\item Page 9, lines 792--793: ``$(LTSTSHW ISRC)$'' \by
+  ``$(L~T~\mathit{STS}~\mathit{HW}~\mathit{ISRC})$. 
+
+Please use the macro \verb|\mathit{}| for ``$\mathit{STS}$'' and
+``$\mathit{ISRC}$''. And please do not break this into two lines.
+
+\item Page 9, line 793: ``$ID$'' \by ``$\mathit{ID}$''. Please use the
+  macro \verb|\mathit{}|.
+
+\item Page 9, line 793: ``$(HW)$.getPc'' \by
+  ``\verb|(|$HW$\verb|).getPc|''. 
+
+All things should be put in \verb|\verb| mode except ``$HW$'', which
+should be in math mode.
+
+\item Page 9, line 794: ``$ID$'' \by ``$\mathit{ID}$''. Please use the
+  macro \verb|\mathit{}|.
+
+
+
+\newcommand{\mteTask}[2]{\texttt{mteTask(}#1\texttt{,}#2\texttt{)}}
+\newcommand{\deltaTask}[3]{\texttt{deltaTask(}#1\texttt{,}#2\texttt{,}#3\texttt{)}}
+\newcommand{\mteIS}[1]{\texttt{mteIS(}#1\texttt{)}}
+\newcommand{\deltaIS}[2]{\texttt{deltaIS(}#1\texttt{,}#2\texttt{)}}
+\newcommand{\IntSrc}[3]{\texttt{<}#1\texttt{:IntSrc|val:}#2\texttt{,cycle:}#3\texttt{>}}
+\newcommand{\mteIr}[1]{\texttt{mteIr(}#1\texttt{)}}
+\newcommand{\mteS}[1]{\texttt{mte(}#1\texttt{)}}
+\newcommand{\deltaS}[2]{\texttt{delta(}#1\texttt{,}#2\texttt{)}}
+
+
+\item Page 9, equations between lines 795 and 796: it should be 
+\begin{IEEEeqnarray*}{Cl}
+  & \mteS{\deltaS{s}{r}}
+\\  
+= & \mteS{\deltaTask{\mathit{ID}}{L}{r}
+\\
+  & \;\;\;\;\;\;\;\;\;T~\mathit{STS}~\mathit{HW}~\deltaIS{\mathit{ISRC}}{r}}
+\\
+= & \verb|minimum(|\mteTask{\mathit{ID}}{\deltaTask{\mathit{ID}}{L}{r}}\verb|,|
+\\
+  & \verb|        |\mteIS{\deltaIS{\mathit{ISRC}}{r}}\verb|,|
+\\
+  & \verb|        |\mteIr{\mathit{HW}}\verb|)|\;.
+\end{IEEEeqnarray*}
+
+Note: 
+
+-- All things should be put in \verb|\verb| mode except ``$s$''
+``$r$'' ``$\mathit{ID}$'' ``$L$'' ``$T$'' ``$\mathit{STS}$''
+``$\mathit{HW}$'' and ``$\mathit{ISRC}$'', which should be in math
+mode.
+
+-- Please use the macro \verb|\mathit{}| for ``$\mathit{ID}$''
+``$\mathit{STS}$'' and ``$\mathit{ISRC}$''.
+
+-- After the first ``$=$'', ``\verb|deltaTask|'' should be aligned with
+``$T$''.
+
+-- After the second ``$=$'', ``\verb|mteTask|'' ``\verb|mteIS|'' and
+``\verb|mteIr|'' should be aligned with each other.
+
+
+\item Page 9, line 796: ``Lemmas 7, 8, and 9'' \by ``Lemmas A.5, A.6,
+  and A.7''
+
+
+\item Page 9, equations between lines 796 and 797: it should be 
+\begin{IEEEeqnarray*}{Cl}
+  & \mteS{\deltaS{s}{r}}
+\\  
+= & \verb|minimum(|\mteTask{\mathit{ID}}{L}~\verb|monus|~r~\verb|,|
+\\
+  & \verb|        |\mteIS{\mathit{ISRC}}~\verb|monus|~r~\verb|,|
+\\
+  & \verb|        |\mteIr{\mathit{HW}}~\verb|monus|~r~\verb|)|
+\\
+= & \verb|minimum(|\mteTask{\mathit{ID}}{L}\verb|,|
+\\
+  & \verb|        |\mteIS{\mathit{ISRC}}\verb|,|
+\\
+  & \verb|        |\mteIr{\mathit{HW}}\verb|)|~\verb|monus|~r
+\\
+= & \mteS{s}~\verb|monus|~r\;.
+\end{IEEEeqnarray*}
+
+Note: 
+
+-- All things should be put in \verb|\verb| mode except ``$s$''
+``$r$'' ``$\mathit{ID}$'' ``$L$'' ``$\mathit{HW}$'' and
+``$\mathit{ISRC}$'', which should be in math mode.
+
+-- Please use the macro \verb|\mathit{}| for ``$\mathit{ID}$'' and
+``$\mathit{ISRC}$''.
+
+-- ``\verb|mteTask|'' ``\verb|mteIS|'' and ``\verb|mteIr|'' should be
+aligned with each other.
+
+-- There should be spaces before and after ``\verb|monus|''.
+
+
+\item Page 9, line 798: ``$r$monus$0$'' \by ``$r~\verb|monus|~0$''
+
+\item Page 9, line 802: ``$ID$'' \by ``$\mathit{ID}$''. Please use the
+  macro \verb|\mathit{}|.
+
+\item Page 9, equations between lines 803 and 804: it should be 
+\begin{IEEEeqnarray*}{Cl}
+  & \deltaS{\deltaS{s}{r}}{r'}
+\\  
+= & \verb|(|\deltaTask{\mathit{ID}}{\deltaTask{\mathit{ID}}{L}{r}}{r'}
+\\
+  & \verb| |~T~\mathit{STS}~\mathit{HW}~\deltaIS{\deltaIS{\mathit{ISRC}}{r}}{r'}\verb|)|~\mbox{,}
+\end{IEEEeqnarray*}
+
+Note: 
+
+-- All things should be put in \verb|\verb| mode except ``$s$''
+``$r$'' ``$r'$'' ``$\mathit{ID}$'' ``$L$'' ``$T$'' ``$\mathit{STS}$''
+``$\mathit{HW}$'' and ``$\mathit{ISRC}$'', which should be in math
+mode.
+
+-- Please use the macro \verb|\mathit{}| for ``$\mathit{ID}$''
+``$\mathit{STS}$'' and ``$\mathit{ISRC}$''.
+
+-- The last comma should be in text mode.
+
+
+\item Page 9, equations between lines 804 and 805: it should be 
+\begin{IEEEeqnarray*}{Cl}
+  & \deltaS{s}{r+r'}
+\\  
+= & \verb|(|\deltaTask{\mathit{ID}}{L}{r+r'}
+\\
+  & \verb| |~T~\mathit{STS}~\mathit{HW}~\deltaIS{\mathit{ISRC}}{r+r'}\verb|)|~\mbox{.}
+\end{IEEEeqnarray*}
+
+Note: 
+
+-- All things should be put in \verb|\verb| mode except ``$s$''
+``$r+r'$'' ``$\mathit{ID}$'' ``$L$'' ``$T$'' ``$\mathit{STS}$''
+``$\mathit{HW}$'' and ``$\mathit{ISRC}$'', which should be in math
+mode.
+
+-- Please use the macro \verb|\mathit{}| for ``$\mathit{ID}$''
+``$\mathit{STS}$'' and ``$\mathit{ISRC}$''.
+
+-- The last period should be in text mode.
+
+
+
+\item Page 9, line 805: ``$ID$'' \by ``$\mathit{ID}$''. Please use the
+  macro \verb|\mathit{}|.
+
+\item Page 9, lines 805--806:
+  ``$=$\verb|delta-Task|$(ID$\verb|,|$L$\verb|,|$r+r'$\verb|)|'' \by
+  ``$=\deltaTask{\mathit{ID}}{L}{r+r'}$''.
+
+All things should be put in \verb|\verb| mode except ``$=$''
+``$\mathit{ID}$'' ``$L$'' and ``$r+r'$'', which should be in math
+mode. Please use the macro \verb|\mathit{}| for
+``$\mathit{ID}$''. 
+
+\item Page 9, line 807: ``\verb|delta|$IS(...$\verb|)|'' \by
+  ``$\deltaIS{\deltaIS{\mathit{ISRC}}{r}}{r'}$''.
+
+All things should be put in \verb|\verb| mode except
+``$\mathit{ISRC}$'' ``$r$'' and ``$r'$'', which should be in math
+mode. Please use the macro \verb|\mathit{}| for ``$\mathit{ISRC}$''.
+
+\item Page 9, line 808: ``$ISRC$'' \by ``$\mathit{ISRC}$''. Please use
+  the macro \verb|\mathit{}|.
+
+\item Page 9, lines 808--809: ``monus'' \by ``\verb|monus|''.
+
+``\verb|monus|'' should be put in \verb|\verb| mode and there should
+  be spaces before and after ``\verb|monus|''.
+
+
+\item Page 10, line 813: ``$ISRC$'' \by ``$\mathit{ISRC}$''. Please use
+  the macro \verb|\mathit{}|.
+
+
+\item Page 10, equations between lines 814 and 815: it should be 
+\begin{IEEEeqnarray*}{Cl}
+  & \mteS{L~T~\mathit{STS}~\mathit{HW}~\mathit{ISRC}}
+\\  
+= & \verb|minimum(|\mteTask{\mathit{ID}}{L}\verb|,|
+\\
+  & \verb|        |\mteIS{\mathit{ISRC}}\verb|,| \mteIr{\mathit{HW}}\verb|)|
+\\
+= & \verb|minimum(|\mteTask{\mathit{ID}}{L}\verb|,|~0~\verb|,| \mteIr{\mathit{HW}}\verb|)|
+\\
+= & 0~\mbox{.}
+\end{IEEEeqnarray*}
+
+Note: 
+
+-- All things should be put in \verb|\verb| mode except ``$L$''
+``$T$'' ``$\mathit{STS}$'' ``$HW$'' ``$\mathit{ISRC}$''
+``$\mathit{ID}$'' and ``$0$'', which should be in math mode.
+
+-- Please use the macro \verb|\mathit{}| for ``$\mathit{STS}$''
+``$\mathit{ISRC}$'' and ``$\mathit{ID}$''.
+
+-- ``\verb|mteTask|'' and ``\verb|mteIS|'' should be aligned with each
+other.
+
+-- The last period should be in text mode.
+
+
+\item Page 10, line 816: ``Lemma 3'' \by ``Lemma A.1''
+
+\item Page 10, line 817: ``tick invariance'' \by ``tick-invariance''
+
+\item Page 10, lines 818--819: ``\verb|cor-rect|'' \by
+  ``\verb|correct|''.  Please do not break it into two parts.
+
+\item Page 10, line 819: ``Lemma 6'' \by ``Lemma A.4''
+
+\item Page 10, line 819:
+  ``$\mbox{s}\simeq_P\deltaS{\mbox{s}}{\mbox{r}}$'' \by
+  ``$\verb|{|s\verb|}|\simeq_P\verb|{|\deltaS{s}{r}\verb|}|$''. 
+
+All things should be put in \verb|\verb| mode except ``$s$''
+``$\simeq_P$'' and ``$r$''.
+
+\item Page 10, line 822: ``$(L T STS HW ISRC)$'' \by
+  ``$(L~T~\mathit{STS}~\mathit{HW}~\mathit{ISRC})$''. 
+
+Please use the macro \verb|\mathit{}| for ``$\mathit{STS}$'' and
+``$\mathit{ISRC}$''.
+
+
+\item Page 10, line 822: ``$(HW)$.getPc'' \by
+  ``\verb|(|$HW$\verb|).getPc|''.
+
+All things should be put in \verb|\verb| mode except ``$HW$'', which
+should be in math mode.
+
+
+\item Page 10, line 823: ``$ID$'' \by ``$\mathit{ID}$''. Please use
+  the macro \verb|\mathit{}|.
+
+\item Page 10, line 828: ``tick invariant'' \by ``tick-invariant''
+
+\item Page 10, lines 828--829: ``\verb|taskTime-out|'' \by
+  ``\verb|taskTimeout|''. 
+
+Please do not break it into two parts.
+
+\item Page 10, line 830: ``$ID$'' \by ``$\mathit{ID}$''. Please use
+  the macro \verb|\mathit{}|.
+
+\item Page 10, line 831: ``$ID$'' \by ``$\mathit{ID}$''. Please use
+  the macro \verb|\mathit{}|.
+
+\item Page 10, line 834: ``tick invariance'' \by ``tick-invariance''
+
+\item Page 10, line 910: ``German'' \by ``Chinese''
+
+\item Page 10, lines 915--916: ``real-time Maude'' \by ``Real-Time
+  Maude''
+
+\item Page 10, lines 923--924: ``real-time Maude'' \by ``Real-Time
+  Maude''
 
 \end{itemize}
 

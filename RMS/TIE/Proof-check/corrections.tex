@@ -1,4 +1,5 @@
-\documentclass[a4paper]{article}
+%\documentclass[a4paper]{article}
+\documentclass[12pt,onecolumn]{IEEEtranTIE}
 %
 % If IEEEtran.cls has not been installed into the LaTeX system files,
 % manually specify the path to it like:
@@ -321,10 +322,10 @@
 \newcommand{\COMMENT}{\medskip\noindent\textbf{COMMENT: }}
 
 % Define the fontsize in environment {verbatim}
-\makeatletter
-\def\verbatim{\small\@verbatim \frenchspacing\@vobeyspaces \@xverbatim}
-%\def\verbatim@font{\small\ttfamily}
-\makeatother
+%% \makeatletter
+%% \def\verbatim{\small\@verbatim \frenchspacing\@vobeyspaces \@xverbatim}
+%% %\def\verbatim@font{\small\ttfamily}
+%% \makeatother
 
 
 % correct bad hyphenation here
@@ -355,13 +356,470 @@
 
 \newcommand{\by}{$\rightarrow$ }
 
-\begin{itemize}
+\begin{itemize}\setlength{\itemsep}{10pt}
 
-\item Page 1, line 3: 
+\item Page 1, line 3: ``With'' \by ``with''.
 
-``With'' \by ``with''.  I guess the first letter of a preposition need
-  not be capitalized.
+We guess the first letter of a preposition need not be capitalized.
 
+\item Page 1, line 65: ``few attempt [23], [24]'' \by ``few [23], [24] attempt''
+
+\item Page 1, line 68: ``\emph{real-time Maude}'' \by ``\emph{Real-Time Maude}''.
+
+It is the name of the tool.
+
+\item Page 1, line 76: ``Section'' and ``II''. Please do not break
+  ``Section II'' into two lines.
+
+\item Page 2, line 78: ``real-time Maude'' \by ``Real-Time Maude''
+
+\item Page 2, line 80: ``real-time Maude'' \by ``Real-Time Maude''
+  
+\item Page 2, line 110: ``Real-time Maude'' \by ``Real-Time Maude''
+
+\item Page 2, line 113: ``Real-time Maude'' \by ``Real-Time Maude''
+
+\item Page 2, line 127: ``$IR$'' \by ``$\mathit{IR}$''. Please use the
+  macro \verb|\mathit{}|.
+
+\item Page 2, line 134: ``$TR$'' \by ``$\mathit{TR}$''. Please use the
+  macro \verb|\mathit{}|.
+
+\item Page 2, line 138: ``$IR$'' \by ``$\mathit{IR}$''. Please use the
+  macro \verb|\mathit{}|.  
+
+\item Page 2, line 138: ``$TR$'' \by ``$\mathit{TR}$''. Please use the
+  macro \verb|\mathit{}|.
+
+\item Page 2, line 139: ``nondeterministically'' \by
+  ``non-deterministically''.
+
+\item Page 2, line 141: ``nondeterministic'' \by
+  ``non-deterministic''.
+
+\item Page 2, line 142: ``real-time Maude'' \by ``Real-Time Maude''
+
+\item Page 2, line 143: ``Real-time Maude'' \by ``Real-Time Maude''
+
+\item Page 2, line 144: ``\verb|class ...|'' \by ``$\texttt{class
+}C\texttt{ |
+}att_1\texttt{:}s_1\texttt{,}\ldots\texttt{,}att_n\texttt{:}s_n$''.
+
+All things should be put in \verb|\verb| mode except ``$C$''
+``$att_1$'' ``$s_1$'' ``$\ldots$'' ``$att_n$'' and ``$s_n$'', which
+should be in math mode.
+
+\item Page 2, line 147: ``\verb|< ... >|'' \by ``$\texttt{< }
+  O\texttt{:} C \texttt{ | } att_1\texttt{:}val_1\texttt{,} \ldots
+  \texttt{,}att_n\texttt{:}val_n\texttt{ >}$''. 
+
+All things should be put in \verb|\verb| mode except ``$O$'' ``$C$''
+``$att_1$'' ``$val_1$'' ``$\ldots$'' ``$att_n$'' and ``$val_n$'',
+which should be in math mode.
+
+\item Page 2, line 152: ``Real-time Maude'' \by ``Real-Time Maude''
+
+\item Page 2, line 159: ``real-time Maude'' \by ``Real-Time Maude''
+
+\item Page 2, line 164: ``\verb|ceq ...|'' \by ``$\texttt{ceq }
+  \mathit{statePattern} \texttt{ |= } \mathit{prop} \texttt{ = } b
+  \texttt{ if } cond$''.
+
+All things should be put in \verb|\verb| mode except
+``$\mathit{statePattern}$'' ``$\mathit{prop}$'' ``$b$'' and
+``$cond$'', which should be in math mode. And ``$\mathit{statePattern}$''
+and ``$\mathit{prop}$'' are better to use the macro \verb|\mathit{}|.
+
+\item Page 2, line 165: ``$prop$'' \by ``$\mathit{prop}$''. Please use the
+  macro \verb|\mathit{}|.
+
+\item Page 2, line 166: ``$statePattern$'' \by
+  ``$\mathit{statePattern}$''. Please use the macro \verb|\mathit{}|.
+
+\item Page 2, line 167: ``$prop$'' \by ``$\mathit{prop}$''. Please use the
+  macro \verb|\mathit{}|.
+
+\item Page 2, line 168: ``$s~|= prop$'' \by ``$s \texttt{ |= }
+  \mathit{prop}$''.
+
+All things should be put in \verb|\verb| mode except ``$s$'' and
+``$\mathit{prop}$'', which should be in math mode. And please use the
+macro \verb|\mathit{}| for ``$\mathit{prop}$''.
+
+\item Page 2, line 170: ``(negation)'' \by ``\verb|~|(negation)''. The
+  tilde ``\verb|~|'' should be in \verb|\verb| mode.
+
+\item Page 2, line 170: ``$\backslash$\verb|/|'' \by ``\verb|\/|''. All
+  things should be put in \verb|\verb| mode.
+
+\item Page 2, line 171: ``Real-time Maude'' \by ``Real-Time Maude''
+
+\item Page 2, line between 172 and 173: ``(mc ... )'' \by
+  ``\verb|(mc |$s$\verb+ |=u +$\Phi$\verb| .)|''.
+
+All things should be put in \verb|\verb| mode except ``$s$'' and
+``$\Phi$'', which should be in math mode.
+
+\item Page 3, line 210--217:
+
+For the \verb|\enumerate| environment, is it possible to reduce the
+indentation right after the number, such that for each item, the first
+word of the first line is aligned with those of the other lines? For
+example, reduce the space between ``1)'' and ``the'' at line 210, such
+that this ``the'' is aligned with ``possibly'' at line 211 and ``is''
+at line 212.
+
+\item Page 3, line 218: ``Switching''.
+
+Please remove the indentation before ``Switching'', this is not a new
+paragraph.
+
+\item Page 3, line 222--227:
+
+For the \verb|\enumerate| environment, is it possible to reduce the
+indentation right after the number, such that for each item, the first
+word of the first line is aligned with those of the other lines? 
+
+\item Page 3, line 258: ``Sections IV-C''. Please do not break
+  ``Sections IV-C'' into two lines.
+
+\item Page 3, line 259: ``Section IV-F''. Please do not break
+  ``Section IV-F'' into two lines.
+
+\item Page 4, lines 293--294:
+
+Please make sure that this kind of code throughout the article is put
+in \verb|\verb| mode. (We are not sure whether it is true because
+``\verb+|+'' look a bit higher and ``\verb|>|'' look a bit wider than
+what they should be.)
+
+\item Page 4, lines 300--302: it should be
+\begin{verbatim}
+  class PTask | priority : Nat, 
+                period : Nat, 
+                status : Status .
+\end{verbatim}
+
+Please make sure that ``\verb|priority|'' ``\verb|period|'' and
+``\verb|status|'' are aligned with each other.
+
+\item Page 4, line 304: ``\verb|RUN-NING|'' \by ``\verb|RUNNING|''.
+
+Please use \verb|\verb| mode and do not break the word into two parts.
+
+\item Page 4, lines 320--321: it should be
+\begin{verbatim}
+  class Regs | pc : TaskID, 
+               mask : Bool, ir : Bool .
+\end{verbatim}
+
+Please make sure that ``\verb|pc|'' is aligned with ``\verb|mask|''.
+
+\item Page 4, lines 331--332: it should be
+\begin{verbatim}
+  class IntSrc | val : Time, 
+                 cycle : Time .
+\end{verbatim}
+
+Please make sure that ``\verb|val|'' is aligned with ``\verb|cycle|''.
+
+\item Page 4, lines 335--337: it should be
+\begin{verbatim}
+  op _____ : TaskList Timer SysTasks 
+             Hardware Object 
+             ~> System [ctor] .
+\end{verbatim}
+
+Please make sure that ``\verb|TaskList|'' ``\verb|Hardware|'' and
+``\verb|~>|'' are aligned with each other.
+
+
+\item Page 4, lines 338--339: it should be
+\begin{verbatim}
+  mb (L T STS HW < O : IntSrc |>) 
+     : System .
+\end{verbatim}
+
+Please make sure that ``\verb|(|'' is aligned with ``\verb|:|''.
+
+\item Page 4, line 340: ``\verb| ~>|'' \by ``\verb|~>|''. Please
+  remove the space before ``\verb|~|''.
+
+\item Page 4, line 342: ``\verb|Sys-Tasks|'' \by ``\verb|SysTasks|''.
+
+Please use \verb|\verb| mode and do not break the word into two parts.
+
+
+\item Page 5, lines 362--363: it should be
+\begin{verbatim}
+  op updateStatus_with_ : TaskList Timer 
+                            -> TaskList . 
+\end{verbatim}
+
+Please make sure that ``\verb|->|'' is aligned with the first
+``\verb|s|'' in ``\verb|TaskList|'' at line 362.
+
+\item Page 5, lines 366--367: it should be
+\begin{verbatim}
+  op update_with_ : Object Timer 
+                      ~> Object .
+\end{verbatim}
+
+Please make sure that ``\verb|~>|'' is aligned with the ``\verb|j|''
+in ``\verb|Object|'' at line 366.
+
+
+\item Page 5, lines 371--374: it should be
+\begin{verbatim}
+      = if ST == DORMANT 
+        then < O : PTask | status : READY >
+        else error fi
+      if TIMER rem T == 0 .
+\end{verbatim}
+
+Please make sure that ``\verb|if|'' at 371, ``\verb|then|'' at 372 and
+``\verb|else|'' at 373 are aligned with each other. And make sure that
+``\verb|=|'' at 371 is aligned with ``\verb|if|'' at 374.
+
+
+\item Page 5, lines 377--381: it should be
+\begin{verbatim}
+     = if ST == RUNNING 
+       then < O : PTask 
+              | status : INTERRUPT >
+       else < O : PTask |> fi 
+     [otherwise] .
+\end{verbatim}
+
+Please make sure that ``\verb|if|'' at 377, ``\verb|then|'' at 378 and
+``\verb|else|'' at 380 are aligned with each other. Make sure that
+``\verb+|+'' at 379 is aligned with ``\verb|O|'' at 378. Make sure
+that ``\verb|[otherwise]|'' at 381 is aligned with ``\verb|=|'' at
+377.
+
+
+\item Page 5, lines 400--403: it should be
+\begin{verbatim}
+  crl [interrupt-handle] :
+    SYSTEM =>  
+    ((SYSTEM).interrupt).startScheduling
+    if (SYSTEM).existInt .
+\end{verbatim}
+
+Please make sure that ``\verb|SYSTEM|'' at 401, ``\verb|((|'' at 402
+and ``\verb|if|'' at 403 are aligned with each other.
+
+
+\item Page 5, line 407--413:
+
+For the \verb|\enumerate| environment, is it possible to reduce the
+indentation right after the number, such that for each item, the first
+word of the first line is aligned with those of the other lines? 
+
+
+\item Page 5, lines 426--427: it should be
+\begin{verbatim}
+  op _.startScheduling : System 
+                           -> System .
+\end{verbatim}
+
+Please make sure that ``\verb|->|'' at 427 is aligned with the second
+``\verb|s|'' in ``\verb|System|'' at 426.
+
+
+\item Page 5, lines 429--430: it should be
+\begin{verbatim}
+     = ((updateStatus L with T) 
+        inc(T) STS HW ISRC) .
+\end{verbatim}
+
+Please make sure that ``\verb|inc|'' at 430 is aligned with the second
+``\verb|(|'' at 429.
+
+
+\item Page 5, lines 435--436: it should be
+\begin{verbatim}
+  op _.finishScheduling : System 
+                            -> System .
+\end{verbatim}
+
+Please make sure that ``\verb|->|'' at 436 is aligned with the second
+``\verb|s|'' in ``\verb|System|'' at 435.
+
+
+\item Page 5, lines 438--439: it should be
+\begin{verbatim}
+     = (L T (finish scheduling in STS) 
+        HW ISRC).run1stTask .
+\end{verbatim}
+
+Please make sure that ``\verb|HW|'' at 439 is aligned with
+``\verb|L|'' at 438.
+
+
+\item Page 5, line 450: ``\verb|/|$\backslash$'' \by
+  ``\verb|/\|''. All things should be put in \verb|\verb| mode.
+
+\item Page 5, line 451: ``\verb|/|$\backslash$'' \by
+  ``\verb|/\|''. All things should be put in \verb|\verb| mode.
+
+\item Page 6, footnote 3: ``real-time Maude'' \by ``Real-Time Maude''
+
+\item Page 6, footnote 4: ``Real-time Maude'' \by ``Real-Time Maude''  
+
+\item Page 6, line 478: ``$ID$'' \by ``$\mathit{ID}$''. Please use the
+  macro \verb|\mathit{}|.
+
+
+\item Page 6, lines 482--485: it should be
+\begin{verbatim}
+      = (deltaTask(ID, L, R) 
+         T STS HW (deltaIS(ISRC, R)))
+      if ID := (HW).getPc 
+         /\ ID :: MaybeNat .
+\end{verbatim}
+
+Please make sure that ``\verb|deltaTask|'' at 482 is aligned with
+``\verb|T|'' at 483. Make sure that ``\verb|=|'' at 482 is aligned
+with ``\verb|if|'' at 484. And make sure that ``\verb|/\|'' at 485 is
+aligned with ``\verb|ID|'' at 484.
+
+
+\item Page 6, lines 495--498: it should be
+\begin{verbatim}
+      = minimum(mteTask(ID, L),
+                mteIS(ISRC), mteIr(HW))
+      if ID := (HW).getPc 
+         /\ ID :: MaybeNat .
+\end{verbatim}
+
+Please make sure that ``\verb|mteTask|'' at 495 is aligned with
+``\verb|mteIS|'' at 496. Make sure that ``\verb|=|'' at 495 is aligned
+with ``\verb|if|'' at 497. And make sure that ``\verb|/\|'' at 498 is
+aligned with ``\verb|ID|'' at 497.
+
+\item Page 6, line 524: ``\verb|[]( taskTimeout)|'' \by
+  ``\verb|[](~taskTimeout)|''.
+
+All things should be put in \verb|\verb| mode.
+
+\item Page 6, line 530: ``\verb|( taskTimeout)|'' \by
+  ``\verb|(~taskTimeout)|''.
+
+All things should be put in \verb|\verb| mode.  
+
+
+\item Page 6, lines 537--540: it should be
+\begin{verbatim}
+      = if ID :: MaybeNat 
+        then shouldRun(ID, L)
+        else true fi
+      if ID := (HW).getPc .
+\end{verbatim}
+
+Please make sure that ``\verb|if|'' at 537, ``\verb|then|'' at 538 and
+``\verb|else|'' at 539 are aligned with each other.  And make sure
+that ``\verb|=|'' at 537 is aligned with ``\verb|if|'' at 540.
+
+
+\item Page 6, lines 546--547: ``\verb|(...)\/(...)|'' \by
+  ``\verb|([]correct)\/(correct U taskTimeout)|''.
+
+Please put the formula in \verb|\verb| mode, and do not break it into
+two lines.
+
+
+\item Page 6, lines 551--552: it should be
+\begin{verbatim}
+  (mc init |=u ([]correct) 
+               \/ (correct U taskTimeout) .)
+\end{verbatim}
+
+Please make sure that ``\verb|\/|'' at 552 is aligned with
+``\verb|([]correct)|'' at 551.
+
+Or if it is too wide to fit the column, it can be
+\begin{verbatim}
+  (mc init |=u ([]correct) \/ 
+               (correct U taskTimeout) .)
+\end{verbatim}
+
+Please make sure that ``\verb|(|'' at 552 is aligned with the second
+``\verb|(|'' at 551.
+
+
+\item Page 6, lines 556--559:
+
+If possible, we prefer an \verb|\itemize| (unnumbered) environment
+instead of an \verb|\enumerate| (numbered) enviroment here.
+
+\item Page 6, line 556: ``5 ms''. The space seems larger than others,
+  please correct it.
+
+\item Page 6, line 557: ``38 $\mu$s'' and ``20 $\mu$s''. The space
+  seems larger than others, please correct it.
+
+\item Page 7, lines 564--573:
+
+If possible, we prefer an \verb|\itemize| (unnumbered) environment
+instead of an \verb|\enumerate| (numbered) enviroment here.
+
+\item Page 7, lines 564--573:
+
+Along these lines, the spaces between the numbers and their units seem
+larger than the normal value, please correct them.
+
+\item Page 7, line 574: ``real-time Maude'' \by ``Real-Time Maude''
+
+\item Page 7, footnote 5: ``time robustness'' \by ``time-robustness''
+
+\item Page 7, footnote 5: ``tick invariance'' \by ``tick-invariance''
+  
+\item Page 7, line 635: ``time robust'' \by ``time-robust''
+
+\item Page 7, line 637: ``tick invariant'' \by ``tick-invariant''
+
+\item Page 7, line 665: ``nondeterminism'' \by ``non-determinism''
+
+\item Page 8, line 672: ``nondeterminism'' \by ``non-determinism''
+
+\item Page 8, line 697: ``such as'' \by ``similar to''
+
+\item Page 8, line 700: ``real-time Maude'' \by ``Real-Time Maude''
+
+\item Page 8, line 704: ``real-time Maude'' \by ``Real-Time Maude''
+
+\item Page 8, line 706: ``real-time Maude'' \by ``Real-Time Maude''
+
+\item Page 8, line 724: ``time robustness'' \by ``time-robustness''
+
+\item Page 8, line 725: ``time robustness'' \by ``time-robustness''
+
+\item Page 8, line 729: ``time robust'' \by ``time-robust''
+
+\item Page 8, lines 731--738. Please use ``(i)'' ``(ii)'' instead of
+  ``1)'' ``2)'' for the numbers, because they correspond to the
+  \emph{Proof of Theorem 2}.
+
+\item Page 8, line 731: ``\verb|mte(...)|$=$\verb|mte(...)|'' \by
+  ``\verb|mte(delta(|$t$\verb|,|$r$\verb|))| $=$
+  \verb|mte(|$t$\verb|)|''
+
+\item Page 8, line 732: ``$r\le$\verb|mte(|$t$\verb|)|'' \by ``$r\le$
+  \verb|mte(|$t$\verb|)|''
+
+\item Page 8, line 734: ``\verb|delta(|$t$ \verb|,|$0$\verb|)|'' \by
+  ``\verb|delta(|$t$\verb|,|$0$\verb|)|''
+
+\item Page 8, line 735:
+
+``\verb|delta(delta(|$t$ \verb|,|$r$ \verb|),|$r'$ \verb|)|
+  $=$\verb|delta(|$t$\verb|,|$r+r'$\verb|)|''
+
+\by
+  
+``\verb|delta(delta(|$t$\verb|,|$r$\verb|),|$r'$\verb|)| $=$
+\verb|delta(|$t$\verb|,|$r+r'$\verb|)|''
 
 \end{itemize}
 

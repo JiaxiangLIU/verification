@@ -1,0 +1,99 @@
+\documentclass{article}
+
+\usepackage[ruled]{algorithm2e}
+
+\begin{document}
+\begin{algorithm}[H]
+  \KwData{$G$, $path$}
+  \KwResult{complete expanding $G$}
+
+  \While{!path.empty()}{
+    $v = path.back()$\;
+    \uIf(\tcp*[h]{un-visited node}){!isVisited(v)}{
+      \tcp{decide whether we should generalize}
+      $list = path.findSamePC(v)$\;
+      $shouldGen = false$\;
+
+      \ForEach{$u\in list$}{
+        \If{$u.domain() == v.domain()$ \\
+            $\land$ $v$ has an incoming evaluation edge \\
+            $\land$ $u$ has no incoming refinement edge}{
+          $shouldGen = true$\;
+          $genTarget = u$\;
+          break\;
+        }
+      }
+
+      \tcp{Now we know what we should do}
+      \uIf(\tcp*[h]{we should generalize}){shouldGen}{
+        \tcc{Do generalization}
+        perform Algorithm~\ref{a:generalization}\;
+      } \Else(\tcp*[h]{we should not generalize, we do evaluation}) {
+        \tcc{Do evaluation}
+        perform Algorithm~\ref{a:evaluation}\;
+      }
+    } \Else(\tcp*[h]{$v$ is visited}) {
+      $set = G.unvisitedChildren(v)$\;
+      \uIf{$set == \emptyset$} {
+        $path.pop()$\tcp*{pop $v$ out}
+      } \Else {
+        $u = set[0]$\;
+        $path.push(u)$\;
+      }
+    }
+  }
+\caption{Generate the SEG}
+\end{algorithm}
+
+\begin{algorithm}[H]
+  \uIf{genTarget.isGeneralizationOf(v)}{
+    $v.visited = true$\;
+    $G.add\_edge(v,genTarget,generalization)$\;
+    $path.pop()$\tcp*{Pop $v$ out}
+  } \Else(\tcp*[h]{merge}) { 
+    $path.popupto(genTarget)$\;
+    $G.removeChild(genTarget)$\;
+    $c = merge(v, genTarget)$\;
+    $G.add\_vertex(c)$\;
+    Check size of $path$ here\;
+    $path.pop()$\tcp*{pop $genTarget$ out}
+    $previous = path.back()$\tcp*{previous vertex in path}
+    \uIf{$G.existGenEdge(previous, genTarget)$}{
+      $G.remove\_vertex(genTarget)$\;
+      $G.remove\_edge(previous,genTarget)$\;
+      $G.add\_edge(previous,c,generalization)$\;
+      $path.push(c)$\;
+    } \Else(\tcp*[h]{do not delete $genTarget$}){
+      $path.push(genTarget)$\;
+      $path.push(c)$\;
+      $G.add\_edge(genTarget,c,generalization)$\;
+    }
+  }
+\caption{Generalization}
+\label{a:generalization}
+\end{algorithm}
+
+\begin{algorithm}[H]
+  $v.visited = true$\;
+  $stateList = v.evaluate()$\;
+  \uIf{stateList.size() == 0} {
+    \tcc{echo ``unknown'' and exit}
+  } \uElseIf{stateList.size() == 1} {
+    $w = stateList.back()$\;
+    $G.add\_vertex(w)$\;
+    $G.add\_edge(v,w,evaluation)$\;
+    $path.push(w)$\;
+  } \Else(\tcp*[h]{size == 2}) {
+    $w_1 = stateList.front()$\;
+    $w_2 = stateList.back()$\;
+    $G.add\_vertex(w_1)$\;
+    $G.add\_edge(v,w_1,refinement)$\;
+    $G.add\_vertex(w_2)$\;
+    $G.add\_edge(v,w_2,refinement)$\;
+    $path.push(w_1)$\;
+  }
+\caption{Evaluation}
+\label{a:evaluation}
+\end{algorithm}
+
+\end{document}

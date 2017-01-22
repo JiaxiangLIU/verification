@@ -10,6 +10,13 @@
   \While{!path.empty()}{
     $v = path.back()$\;
     \uIf(\tcp*[h]{un-visited node}){!isVisited(v)}{
+      \tcp{if $v$ is an end node, go back directly}
+      \If{$v == NULL$} {
+        $v.visited = true$\;
+        $path.pop()$\;
+        continue\;
+      }
+
       \tcp{decide whether we should generalize}
       $list = path.findSamePC(v)$\;
       $shouldGen = false$\;
@@ -55,18 +62,23 @@
     $G.removeChild(genTarget)$\;
     $c = merge(v, genTarget)$\;
     $G.add\_vertex(c)$\;
-    Check size of $path$ here\;
-    $path.pop()$\tcp*{pop $genTarget$ out}
-    $previous = path.back()$\tcp*{previous vertex in path}
-    \uIf{$G.existGenEdge(previous, genTarget)$}{
-      $G.remove\_vertex(genTarget)$\;
-      $G.remove\_edge(previous,genTarget)$\;
-      $G.add\_edge(previous,c,generalization)$\;
-      $path.push(c)$\;
-    } \Else(\tcp*[h]{do not delete $genTarget$}){
-      $path.push(genTarget)$\;
-      $path.push(c)$\;
+
+    \uIf{$path.length() \le 1$} {
       $G.add\_edge(genTarget,c,generalization)$\;
+      $path.push(c)$\;
+    } \Else {
+      $path.pop()$\tcp*{pop $genTarget$ out}
+      $previous = path.back()$\tcp*{previous vertex in path}
+      \uIf{$G.existGenEdge(previous, genTarget)$}{
+        $G.remove\_edge(previous,genTarget)$\;
+        $G.remove\_vertex(genTarget)$\;
+        $G.add\_edge(previous,c,generalization)$\;
+        $path.push(c)$\;
+      } \Else(\tcp*[h]{do not delete $genTarget$}){
+        $path.push(genTarget)$\;
+        $G.add\_edge(genTarget,c,generalization)$\;
+        $path.push(c)$\;
+      }
     }
   }
 \caption{Generalization}
